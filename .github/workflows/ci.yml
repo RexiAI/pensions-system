@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   backend-ci-go:
-    uses: RexiAI/my-engineering-standards/.github/workflows/ci-go.yml@21046d96796467f8238d6d613ce3a552bf3fced0 # pinned; bump deliberately, never track a branch
+    uses: RexiAI/my-engineering-standards/.github/workflows/ci-go.yml@6eb2c9918566a1238e2910b1ba1268777c427c7a # pinned; bump deliberately, never track a branch
     with:
       docker-registry: ghcr.io
     secrets:
