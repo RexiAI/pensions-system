@@ -902,3 +902,78 @@ This is **neither a behaviour/test failure nor a structural/complexity failure**
 - The failure is `backend-ci-go` failing on a missing `go.mod` — a build-environment/config problem, not a test assertion, not a complexity/duplication issue.
 
 The deterministic fix-routing rules do not cover "CI workflow wired for the wrong language stack". Recommend **escalation to the human / PR Opener** (repo-config owner) rather than `spec-coder` or `spec-refactorer`: the fix is to remove the `backend-ci-go` job from `.github/workflows/ci.yml` (or condition it on `go.mod` presence) for this TypeScript-only repo. This is a `main`-shared config change, not a `spec/001-pension-math` code change, and should not be bundled into the spec's tasks.
+
+---
+
+## Phase 2 CI — round 2
+
+**CI Verdict: PASS** (post-PR CI, round 2 of 3; phase-2 counter independent of phase-1)
+
+Scoped re-check: this round re-checks only the phase-2 CI gate that failed in round 1. The phase-1 gates (traceability, test suite, complexity, design-principles, spot check) were PASS at attempt 3 and are untouched by the round-1 fix (a CI-config change only), so their results stand per the scoped-verification rule.
+
+### Query
+
+```
+command: gh pr checks 3 --json name,state,bucket,workflow,link
+exit: 0
+at: 2026-10-26T08:52:44Z
+```
+
+Raw output (verbatim, terminal state after polling):
+
+```json
+[{"bucket":"skipping","link":"https://github.com/RexiAI/pensions-system/actions/runs/40294928641/job/121479080194","name":"frontend-ci / Docker Build & Push","state":"SKIPPED","workflow":"CI"},
+ {"bucket":"pass","link":"https://github.com/RexiAI/pensions-system/actions/runs/40294928641/job/121478830069","name":"frontend-ci / Build","state":"SUCCESS","workflow":"CI"},
+ {"bucket":"pass","link":"https://github.com/RexiAI/pensions-system/actions/runs/40294928641/job/121478562793","name":"frontend-ci / Unit Tests","state":"SUCCESS","workflow":"CI"},
+ {"bucket":"pass","link":"https://github.com/RexiAI/pensions-system/actions/runs/40294928641/job/121478562926","name":"frontend-ci / Lint & Format","state":"SUCCESS","workflow":"CI"}]
+```
+
+### Per-check table (head `68f6e64`, run 40294928641)
+
+| Check | bucket | state | verdict |
+|---|---|---|---|
+| frontend-ci / Unit Tests | pass | SUCCESS | PASS |
+| frontend-ci / Lint & Format | pass | SUCCESS | PASS |
+| frontend-ci / Build | pass | SUCCESS | PASS |
+| frontend-ci / Docker Build & Push | skipping | SKIPPED | PASS (skipped, non-blocking — same as round 1) |
+
+### Terminality (no `pending` ruled on)
+
+```
+command: gh api repos/RexiAI/pensions-system/commits/68f6e64985d8d45be925dbce67b43981b353da4e/check-runs --jq '.check_runs[] | {name, status, conclusion, id}'
+exit: 0
+```
+
+```json
+{"conclusion":"skipped","id":121479080194,"name":"frontend-ci / Docker Build & Push","status":"completed"}
+{"conclusion":"success","id":121478830069,"name":"frontend-ci / Build","status":"completed"}
+{"conclusion":"success","id":121478562926,"name":"frontend-ci / Lint & Format","status":"completed"}
+{"conclusion":"success","id":121478562793,"name":"frontend-ci / Unit Tests","status":"completed"}
+```
+
+Aggregate over all check-runs at head `68f6e64`: `{"cancelled":0,"failure":0,"pending":0,"total":4}`. Run `40294928641` is `status: completed, conclusion: success, headSha: 68f6e64985d8d45be925dbce67b43981b353da4e`. Every check is terminal; nothing was treated as pending.
+
+### Round-1 root cause — genuinely gone
+
+1. **No `backend-ci-go` check appears.** The check set is exactly four `frontend-ci` checks. The six `backend-ci-go` jobs from round 1 (`Lint`, `Unit Tests`, `Contract Tests`, `Integration Tests`, `Build & Release`, `Docker Build & Push`) are all absent. The `backend-ci-go` job was removed from `.github/workflows/ci.yml` in `68f6e64` (the only production change in that commit besides this report), replaced by an explanatory comment.
+2. **No check is `cancelled`.** Zero `cancel` bucket / `cancelled` conclusion (aggregate `cancelled: 0`). The concurrency-group collision (ci-go.yml and ci-nextjs.yml both declaring `github.workflow`-keyed groups with `cancel-in-progress: true`) is structurally eliminated because only one reusable workflow (`ci-nextjs.yml`) remains invoked from this caller.
+3. **Check set is a superset of the round-1 passing frontend checks.** Round 1 at `6c642d7` had four frontend checks — `Unit Tests`, `Lint & Format`, `Build` (all pass) and `Docker Build & Push` (skipping). Round 2 at `68f6e64` has exactly the same four frontend checks in the same buckets. The fix removed jobs and broke nothing.
+
+### Fix-confirmation (diff `6c642d7` → `68f6e64`)
+
+```
+command: git diff --stat 6c642d7 68f6e64
+exit: 0
+```
+
+```
+ .github/workflows/ci.yml                  |  19 ++++--
+ specs/001-pension-math/25-verification.md | 103 ++++++++++++++++++++++++++++++
+ 2 files changed, 115 insertions(+), 7 deletions(-)
+```
+
+Commit `68f6e64` = `ci: remove Go backend workflow from a TypeScript-only repo`. The `frontend-ci` job is byte-identical (same `uses:` SHA `21046d96796467f8238d6d613ce3a552bf3fced0`, same `with:`/`secrets:`); the 7-line `backend-ci-go` block was replaced by a 14-line explanatory comment. No production/spec code touched — the fix is CI config only.
+
+### Outcome
+
+**CI Verdict: PASS.** Every check at head `68f6e64` is terminal and green (or a non-blocking skip). The round-1 failure — six `backend-ci-go` jobs that could never pass on a TypeScript-only repo, plus the concurrency collision — is gone, confirmed both by the absent checks and by the ci.yml diff. No FAIL, no BLOCK, nothing to route: the fix is complete and correct. Phase-2 budget stands at 2 of 3 used (round 1 FAIL, round 2 PASS); no third round is needed.
