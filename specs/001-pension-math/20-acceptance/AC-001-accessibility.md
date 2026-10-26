@@ -1,7 +1,7 @@
 # AC-001: Accessibility for charts
 
 ## AC-001-44 — When a chart renders, the chart renders non-visual data
-Given a computed metric
+Given a computed metric or a derived data view (the population pyramid)
 When its chart is rendered
 Then a non-visual representation (accessible table, `aria-label`, or text alternative) carrying
   the same values is present alongside the visual chart
@@ -9,7 +9,7 @@ And a table is emitted if and only if a chart is emitted: one component produces
   is no code path that renders one without the other
 
 ## AC-001-45 — When a chart renders, non-visual data is exposed to assistive technology
-Given a rendered chart for a computed metric
+Given a rendered chart for a computed metric or a derived data view (the population pyramid)
 When the DOM is inspected
 Then the non-visual data representation is present with an accessible name/role and contains the
   same values as the visual chart

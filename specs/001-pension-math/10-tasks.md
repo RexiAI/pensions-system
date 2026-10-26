@@ -5,7 +5,7 @@ Vercel (Vercel Git integration only — never `vercel deploy`). Computation is p
 at build time into committed derived JSON under `data/derived/`. Conformance tier
 `production`: mutation testing and property tests are in scope for the calculation layer.
 
-Task numbering `T1`…`T16`. Each task is a coherent unit (one value object, one operation,
+Task numbering `T1`…`T19`. Each task is a coherent unit (one value object, one operation,
 one behavior). Each carries: a one-line goal, input dependencies, a pointer to its
 acceptance file, and checkable acceptance criteria. Scenario IDs are globally unique
 `AC-001-NN` across the whole spec (see `20-acceptance/`).
@@ -105,6 +105,15 @@ current.
   for one country but not another renders `availability: 'unavailable'` for the country where the
   source is absent. The `definitionId` is unchanged, so the reader sees that this country has no
   value for that exact definition — never a silently different definition substituted for it.
+- The pyramid's ingest is part of this harness: `demo_pjan` (actual, ES) and `proj_23np`
+  (projected, ES) are machine-readable Eurostat dissemination-API sources, fetched live like
+  `spr_exp_pens`. The two datasets encode the open-ended age band differently (`Y_OPEN` vs
+  `Y_GE100`); both resolve by label, never by a hardcoded code. A failed fetch of either fails
+  the build (AC-001-05/06 unchanged; no new artefact may publish `unavailable` to dodge a fetch
+  failure).
+- The pyramid's derived file is written to `data/derived/series/` (a subdirectory), not
+  `data/derived/`, so the flat derived-figure loader does not parse it as a metric figure
+  (AC-001-96).
 
 ---
 
@@ -320,6 +329,9 @@ code, with all five locales covered and zero locale-hardcoded strings.
   user-facing text resolves through a locale resource key.
 - Adding a second country is a data addition (a new country content entry), not a new code path;
   the same rendering code serves both countries.
+- The country record gains two fields — `name` and `scopeClause` — present in every published
+  locale; a country record missing either in any published locale fails the build (a content
+  bug, never a silent fallback to `ES`) (AC-001-103).
 
 ---
 
@@ -528,6 +540,119 @@ panel, logging failed auth without the credential.
 - Failed authentication attempts are logged without the attempted credential (password or hash).
 
 
+## T17 — Population age structure (the pyramid: a distinct data view, not `fig-08`)
+
+**Goal.** Ingest `demo_pjan` and `proj_23np`, band to 21 five-year groups, compute per-sex
+shares of each year's total population, select 1995/2025/2050, and publish
+`data/derived/series/pyramid.json` as a distinct derived series — not one of the five metrics —
+with its own manifest, source, input hash and reproduce path.
+
+**Inputs.** T2 (both datasets ingested through the harness), T1 (the `Manifest` shape, with new
+`formulaId`/`definitionId` entries added to the documented closed sets).
+
+**Acceptance file.** `20-acceptance/AC-001-population-pyramid.md`
+
+**Acceptance criteria.**
+- Data contract: two Eurostat datasets — `demo_pjan` (Spain 1960–2025; age `Y_LT1`, `Y1`…`Y99`,
+  `Y_OPEN`; sex `T`/`M`/`F`) and `proj_23np` (Spain 2022–2100; age `Y_LT1`, `Y1`…`Y99`, `Y_GE100`;
+  sex `T`/`M`/`F`; `projection` ∈ {`BSL`, `LFRT`, `LMRT`, `HMIGR`, `LMIGR`, `NMIGR`}) — both
+  machine-verified against the dissemination API.
+- Years shown: 1995 (`observado`), 2025 (`observado`), 2050 (`proyectado`); the 2050 panel uses
+  `proj_23np` `BSL` (baseline), named on the page.
+- Granularity: 21 five-year bands (0–4 … 95–99, 100+). Single-year codes resolve to bands;
+  the open-ended band resolves from either `Y_OPEN` or `Y_GE100` by label, never a hardcoded code
+  (AC-001-93).
+- Encoding: per-band, per-sex share of that year's total population, in percent — never absolute
+  counts (the panels stay comparable as the population grows).
+- Both sexes mirrored, one colour per panel, sex encoded by side and column header, never by hue;
+  shared x axis 0–4.5% per side across all three panels; age increases upward.
+- Property invariants: `M + F == T` per band/year; band shares per year sum to 100 ± 0.1; `UNK`
+  excluded and the exclusion recorded in the definition string (AC-001-94).
+- Provenance: carries the same `Manifest` shape, with its own `formulaId`/`definitionId` (from the
+  documented closed sets), own `inputHash`, and a `reproducePath` that resolves; an unknown id
+  fails validation (AC-001-95). It appears in Reproducir as its own group, distinct from the
+  metric figures (AC-001-105).
+- File location: written to `data/derived/series/pyramid.json`, never `data/derived/pyramid.json`,
+  so the flat loader does not cast it to the closed `FigureId` union (AC-001-96).
+- States: `computed` (three-panel plate) and `unavailable` (a D1 ledger row, no chart/table, one
+  sentence). Never `null-value`. A failed fetch of either dataset fails the build loudly.
+- Accessibility: the 21-band × 3-year × 2-sex table is emitted if and only if the chart is,
+  by one component (AC-001-44/45, AC-001-97).
+
+---
+
+## T18 — Projected threshold crossing (the countdown, data-derived)
+
+**Goal.** Compute the old-age dependency ratio per year from `proj_23np` `BSL`, find the first
+year the ratio reaches the documented threshold, compute the countdown against the snapshot year,
+and compute the crossing year across all six variants.
+
+**Inputs.** T2 (the `proj_23np` reader), T1 (new `formulaId`/`definitionId` entries).
+
+**Acceptance file.** `20-acceptance/AC-001-countdown.md`
+
+**Acceptance criteria.**
+- Definition: population aged 65 and over per 100 persons aged 15–64 (Eurostat's own old-age
+  dependency-ratio age class), Spain, `proj_23np`, `projection = BSL`, series 2022–2100.
+- The ratio is drawn entirely from `proj_23np`, including its own 2025 back-cast (31.9), never
+  mixing a `demo_pjan` observation (31.2). The disclosure states the two differ and by how much.
+- Threshold 50, a documented parameter (not a literal in the aggregation loop): changing it
+  changes the crossing year (AC-001-98).
+- `years = thresholdYear − snapshotYear`, both integers, both printed; no sub-annual unit
+  (AC-001-99).
+- The variant range is computed over all six variants at build time; a variant that never crosses
+  inside the horizon is excluded from the range and does not fail the block (AC-001-100).
+- States: `computed` (full block), `not-crossed` (no numeral, a fixed sentence, never a substitute
+  threshold — AC-001-101), `unavailable`/`withheld` (block does not render; the hero falls back
+  to the D2 figure ladder).
+- Provenance: own manifest, own `formulaId`/`definitionId` in instrument vocabulary (no adjective,
+  no conclusion — AC-001-92), own digest and reproduce path.
+- Copy bans in every locale: `faltan`, `quedan`, `solo`, `apenas`, `ya`, `cuenta atrás`, `bomba`,
+  `explota`, any exclamation mark, any second-person address, any future-tense verb other than the
+  declarative `alcanza`/`cruza`. The number never appears in the meta description or the share card.
+
+---
+
+## T19 — Country scope mark (Spain only, three levels, from data)
+
+**Goal.** Mark the Spain-only scope at three levels — first viewport, every figure, shared/social
+artefacts — all derived from the country record, so a second country needs no copy edit.
+
+**Inputs.** T8 (the country record's `name` and `scopeClause`).
+
+**Acceptance file.** `20-acceptance/AC-001-scope-mark.md`
+
+**Acceptance criteria.**
+- Level 1 (first viewport): the `<h1>` names the scope — `hero.statement` must contain
+  `country.ES.name` in every locale, a build-time validation that fails the build on mismatch
+  (AC-001-103); a scope line under the `<h1>` renders `country.ES.name` (uppercase mono) plus the
+  `country.ES.scopeClause`.
+- Level 2 (every figure): each provenance strip gains an `Ámbito` field rendered from
+  `country.ES.name`; the pyramid gets the same field; the figure-table `<caption>` also names the
+  scope. `Ámbito` never renders an empty cell.
+- Level 3 (shared/social): the `<title>` and `og:title` take a scope suffix from the country
+  record; the share card gains the scope line (no metric, number, or date — D7 stands).
+- Degradation: exactly one published geo → plain text, not a control; two or more → the country
+  index (a bare `<details>`), no flags/dropdown; never a disabled or single-option control
+  (AC-001-104).
+- No component hardcodes a country name string (AC-001-102); failure modes are loud (AC-001-103).
+
+---
+
+## Revision 2 rendering invariants (R3, R5 — not owned by a task)
+
+Two cross-cutting invariants no single task owns. The colour tokens land in the rendered tasks
+that use them (T3–T7, T11, T17); R5's composition lands in the existing page-shell/hero work.
+
+- **AC-001-106** (R3) — every projected value is encoded by dash, position, and a printed word in
+  addition to hue; no projected datum is distinguished by colour alone.
+  File: `20-acceptance/AC-001-projection-colour.md`.
+- **AC-001-107** (R5) — at 1280×800 and 390×844 the hero does not fill the viewport, and the
+  demography block's heading and finding sentence are visible at the fold.
+  File: `20-acceptance/AC-001-first-viewport.md`.
+
+---
+
 ## Open questions
 
 These are genuinely undecided in `00-informal.md`. Defaults are recommendations, not
@@ -592,3 +717,19 @@ decisions; a human confirms before `/build`.
     `availability: 'unavailable'` with an explicit reason for these metrics' international
     rendering; revisit if the European Commission Ageing Report (AWG) or a new ESSPROS series is
     captured as a verified source in a later spec.
+
+19. **Countdown `snapshotYear` source.** The design states "16 years from the snapshot year 2026"
+    and `years = thresholdYear − snapshotYear`, but does not pin whether `snapshotYear` is a fixed
+    published constant or derived from the `proj_23np` snapshot's `fetchedAt`. *Recommended
+    default:* a documented constant equal to the data vintage year (2026), printed beside the
+    result, never the wall-clock year — so the number changes only when the projection is revised,
+    per R2's no-ticker rule.
+20. **Pyramid share rounding precision.** Shares are "in percent" and must sum to 100 ± 0.1
+    (AC-001-94), but the decimal precision is not stated. *Recommended default:* 2 decimal places,
+    consistent with the metric rounding convention.
+21. **The countdown's place in Reproducir.** R2 says the countdown has "its own group in
+    Reproducir", but R6's rendered form lists only computed figures plus the pyramid as the single
+    derived-series group (`2 figuras calculadas · 1 serie derivada`). *Recommended default:*
+    reconcile before `/build` — either advertise the countdown as a second derived-series row (it
+    has its own digest and reproduce path), or keep R6's form exactly (figures + pyramid) and note
+    that the countdown's provenance is disclosed in its own block, not in Reproducir.

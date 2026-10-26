@@ -1,291 +1,453 @@
 # 30 — Report: pension-math
 
-Stage 5a (Mutation Runner), **refresh run**. Conformance tier `production`, so the mutation gate
-applies. Read `25-verification.md`, `10-tasks.md`, `20-acceptance/`, `15-design.md`. Did **not** read
-`00-informal.md`.
+Stage 5a (Mutation Runner), **revision-2 refresh**. Conformance tier `production`, so the mutation
+gate applies. Read `25-verification.md`, `10-tasks.md`, `20-acceptance/`, `15-design.md`. Did **not**
+read `00-informal.md`.
 
 **Verdict: GREEN**
 
-- Mutation score on the stated scope: **93.83 %** (94.40 % over covered mutants), threshold ≥ 80 %.
-- **F1-unblocked block** re-measured separately: 18 mutants → **15 killed, 3 equivalent, 0 untested
-  reachable**. Raw block score 83.33 % (100 % of the killable mutants in the block).
-- Rounds this refresh: **2** (baseline + one test batch). Budget for a refresh was two rounds.
-- Final full suite: **415 tests, 33 files, 0 failures** (was 414; this stage added 1 test).
-- App builds: `next build` exit 0. `tsc --noEmit` exit 0. ESLint exit 0.
-- No existing test was weakened, renamed or deleted. Only additions (one file, one `describe`).
+- Mutation score on the **expanded** scope: **91.69 %** (92.64 % over covered mutants) across
+  **33 files / 2532 mutants**, threshold ≥ 80 %.
+- **`web/series/**` measured separately: 89.20 % (91.03 % covered), 398 mutants.** It cleared the
+  80 % line, but it started this refresh at **77.39 %** — below the line — and that was the real
+  finding on the new code. Round 1 (baseline) is recorded below; it is what revision 2 looked like
+  before this stage wrote a single test.
+- **Both encoding traps are now covered by assertions that kill the mutants**: the label-resolved
+  21-band mapping (`age-bands.ts` 97.62 % of 42 mutants, one survivor proven equivalent) and the
+  total-vs-sexes reconciliation (`assertSexTotals` + its message, both killed). Detail in
+  §The two encoding traps.
+- **F1 block: unchanged at 15/18, all three survivors equivalent** — same three coordinates as the
+  previous report. Not re-opened, not re-litigated.
+- Rounds this refresh: **2** (baseline + one test batch), the bound set by the brief.
+- Final full suite: **522 tests, 41 files, 0 failures** (was 505; this stage added 17).
+- App builds: `npm run build` exit 0 (21/21 static pages), `tsc --noEmit` exit 0, `eslint` exit 0.
+- No production code and no existing test was modified. Two files changed: one new test file, and
+  the `mutate` globs in `stryker.config.mjs` (scope widening, per §Mutation configuration).
 
 ---
 
 ## Revision history
 
-| When | Verdict | Score | Tests | What the tree looked like |
-|---|---|---|---|---|
-| 2026-10-25T23:25:50Z (first run of this stage) | GREEN | 92.74 % total / 93.51 % covered, 1846 mutants | 388 | **Before F1 was fixed.** `centralCellOf` compared a *deflated* `rPaidReal` against the *nominal* band centre, so `fig-05` threw `sensitivity grid is missing the central cell` whenever its compute body ran. 18 mutants in the post-throw half of `baseGrowthValue` and in `centralCellOf` were therefore un-killable, and the report had to list them as "blocked by a production defect". |
-| 2026-10-26T08:16:47Z (this refresh) | GREEN | **93.83 % total / 94.40 % covered**, 1846 mutants | 415 | **After F1 was fixed** (`SensitivityCell.rPaidNominal`, central-cell lookup on the swept nominal), after the hero ladder swap (`['fig-02','fig-01']` + per-figure spec table), and after the percent-scale fix (`percentPoints` kind). |
+| When | Verdict | Score | Scope | Tests | What the tree looked like |
+|---|---|---|---|---|---|
+| 2026-10-25T23:25:50Z | GREEN | 92.74 % total / 93.51 % covered, 1846 mutants | 28 files, `web/metrics\|manifest\|sources\|ingest/**` | 388 | **Before F1 was fixed**: `centralCellOf` compared a deflated `rPaidReal` against a nominal band centre, so `fig-05` threw and 18 mutants were un-killable. |
+| 2026-10-26T08:16:47Z | GREEN | **93.83 % total / 94.40 % covered**, 1846 mutants | 28 files (same) | 415 | After the F1 fix, the hero-ladder swap and the percent-scale fix. **This is the figure the brief calls "the 93.83 %".** |
+| **2026-10-26T14:27:38Z** (this refresh) | GREEN | **91.69 % total / 92.64 % covered**, **2532 mutants** | **33 files** — `web/series/**` added (398 mutants); `web/ingest/**` grew by three revision-2 files (200 mutants) | **522** | **Revision 2 exists**: T17 age structure (`age-bands`, `age-structure`, `PyramidPlate`), T18 countdown (`countdown`), the series ingest harness (`run-series`, `series`, `series-types`), the three new datasets, and revision-2 amendments to `definitions`/`validate`/`eurostat`/`figures`. |
 
-**The 92.74 % figure described pre-F1 code and must not be read as a claim about the current tree.**
-It is kept here only so the before/after is auditable. Two further corrections to the earlier report,
-for the record:
+**The 93.83 % figure was measured on a tree that did not contain revision 2. It must not be read as a
+claim about this one, and its headline is not comparable to the 91.69 % above** — the denominator grew
+from 1846 to 2532 mutants, and 598 of the newcomers sit in code that did not exist when 93.83 % was
+measured (`web/series/**` ×398, `web/ingest/{run-series,series,series-types}.ts` ×200).
 
-1. **Its detail tables overlapped.** The summary line was right ("64 equivalent, 18 unreachable/dead,
-   18 F1-blocked, 33 reachable gaps" = 133), but the per-file tables underneath double-counted:
-   `npv.ts` line 41 appears in the equivalent table (as "12 + 3 dead") *and* in the dead-code table
-   (5 mutants), and `figures.ts` 33/88's "7 no-coverage" overlapped the F1-block list. This report
-   gives each mutant exactly one classification, and the totals add to the recorded count exactly
-   (64 + 18 + 31 = 113).
-2. **One mutant coordinate was mis-grouped** in the earlier eurostat row (`49 (×3)` where the third
-   mutant is on line 235). Corrected below.
+The like-for-like comparison is the same 28 files that made up the previous run's scope, which this
+run puts at **93.12 % / 93.80 % covered over 1934 mutants** — 0.71 points below the previous 93.83 %.
+That small drop is itself revision 2's: those 28 files gained 88 mutants and 19 more non-killed mutants
+from the revision-2 amendments (`definitions.ts` grew for the two series definitions, `validate.ts` for
+`snapshotYear`, `eurostat.ts` for `resolveCountUnit`, `figures.ts` for the projection horizon), and
+`definitions.ts` fell from 92.23 % to 87.60 % on the new id predicates and definition text.
 
 ---
 
 ## Precondition
 
-`specs/001-pension-math/25-verification.md` exists and its most recent overall verdict
-(attempt 3, phase 1) is **PASS**: scenario traceability 92/92, full suite 414/33, complexity gate
-exit 0, design-principles gate PASS for the deliverable, scenario-to-behavior spot check PASS against
-the built app. Mutation work ran on that basis; nothing below re-litigates it.
+`specs/001-pension-math/25-verification.md` exists and its most recent overall verdict is **PASS**
+(revision-2 attempt 2): scenario traceability 99/99 visible to the gate (107/107 by grep, the gate's
+regex limitation disclosed), full suite 505/40, complexity gate exit 0, design-principles gate PASS
+for the deliverable (the attempt-1 `component-per-file` FAIL resolved by the page→layout move; sole
+remaining FAIL is the out-of-scope `.standards/` hallmark example), scenario-to-behavior spot check
+PASS against the built app. Mutation work ran on that basis; nothing below re-litigates it.
 
-The working tree is dirty and every dirty entry is this pipeline's own uncommitted output
-(`specs/`, `tests/`, `web/`, `app/`, `scripts/`, `data/`, `stryker.config.mjs`, `package.json`). Stage
-5b commits them. Nothing was stashed, reverted or auto-committed; production code was **not** edited
-by this stage. (During mutant-verification probing, `web/ingest/figures.ts` was temporarily mutated in
-place and restored byte-identically — md5 `362a8f59156e3081c7b1f1f3ef9fe866` before and after — so
-the tree that was measured is the tree that ships.)
-
----
-
-## What changed since the previous report, and what is in scope
-
-| # | Change | Files | Inside this stage's mutation scope? |
-|---|---|---|---|
-| 1 | Defect **F1** fixed: `SensitivityCell` carries `rPaidNominal`; the central cell is found by the swept nominal band centre instead of by comparing a deflated rate to a nominal one | `web/ingest/figures.ts`, `web/metrics/required-base-growth.ts` | **Yes** — re-measured below |
-| 2 | Hero ladder swapped to `['fig-02','fig-01']`; a per-figure spec table resolves number, unit and label from the figure id | `web/components/public/hero-subject.ts`, `web/components/public/Hero.tsx` | **No** — `web/components/**` is outside the mutation scope (see below) |
-| 3 | Percent-scale defect fixed: a `percentPoints` `ValueKind` added at the single formatting entry point | `web/content/format.ts`, `web/components/metrics/views.ts`, `web/components/metrics/view-support.ts` | **No** — `web/content/**` and `web/components/**` are outside the mutation scope |
-
-**Explicitly stated rather than silently excluded:** changes 2 and 3 are real code changes that this
-stage did **not** mutate, because the mutation scope is the calculation and validation surface
-(`web/metrics|manifest|sources|ingest/**`), not the rendering surface. `web/content/format.ts` is a
-presentation formatter and `web/components/**` is React/Next markup — mutating them proves nothing
-about whether a published number is right. They are covered instead by the full suite (415 tests,
-including the 19 percent-scale and 6 hero-ladder tests the Coder added) and by the Verifier's render
-check against the built app (attempt 3). That is the same scope decision as the first run, unchanged,
-not a new exclusion.
-
-`mtime` audit of the whole in-scope surface confirms only the two F1 files changed after the previous
-mutation run: every other in-scope file is older (`web/metrics/cohort-irr.ts` 22:34Z, `web/sources/*`
-≤ 23:15Z, `web/ingest/run-compute.ts` 22:22Z, …) than the previous run's start. So the only in-scope
-delta this refresh could possibly measure is F1, and that is what it measures.
-
----
-
-## Mutation scope
-
-A score without a scope is meaningless. Scope is the calculation and validation surface whose
-correctness carries the product's claims — not the application shell.
-
-**Mutated (28 files, 1846 mutants)** — unchanged from the first run; Stryker re-instruments the
-current tree with the same globs and finds the same 28 files and the same mutant count.
-
-| Area | Files | Why it is in scope |
-|---|---|---|
-| `web/metrics/**` | 8 | calculation kernels: ratio, share of GDP, cohort IRR, implicit debt, required base growth, growth rate, NPV/root finding, rounding |
-| `web/manifest/**` | 6 | manifest validation, hashing, definition registry, formula registry, reproduce-path resolution |
-| `web/sources/**` | 8 | ingest parsing (Eurostat JSON-stat, INE tempus3), unit conversion, year alignment, catalogue, labels, freshness |
-| `web/ingest/**` | 6 | calculation and validation layer the committed scripts delegate to: figure table, compute harness, figure validation, deterministic JSON, derived-file IO |
-
-**Excluded**
-
-- `web/components/**`, `app/**` — React/Next surfaces (includes changes 2 and 3 above).
-- `web/content/**` (includes `format.ts`, change 3) — presentation formatting.
-- `data/**`, generated files, migrations, `web/content/data/**` — data, not code.
-- `.standards/**` — submodule; out of scope and off-limits to pipeline agents.
-- `scripts/*.ts` (7 files) — CLI entry points that perform their side effect at import time
-  (`process.exit(main())`) and are only exercised as subprocesses; Stryker instruments modules inside
-  the test runner's process, so a mutant there is a permanent 0 % that measures nothing. The
-  calculation and validation logic those scripts delegate to lives in the four in-scope areas.
+The working tree is dirty and every dirty entry is this pipeline's own uncommitted output (`specs/`,
+`tests/`, `web/`, `app/`, `scripts/`, `data/`, `stryker.config.mjs`, `package.json`). Stage 5b
+commits them. Nothing was stashed, reverted or auto-committed. During mutant verification
+`web/series/*.ts`, `web/ingest/series.ts` and `web/ingest/run-series.ts` were mutated in place and
+restored **byte-identically** (md5 verified before and after each probe — see §Tests added).
 
 ---
 
 ## Mutation configuration
 
-`stryker.config.mjs` is unchanged by this refresh:
+The only configuration change is the scope widening the brief asked for. **No mutator was disabled,
+no threshold was changed, no `// Stryker disable` comment was added anywhere.**
 
 ```
-testRunner:      vitest
-mutate:          web/metrics/**/*.ts, web/manifest/**/*.ts, web/sources/**/*.ts, web/ingest/**/*.ts
-vitest.configFile: vitest.config.ts
-coverageAnalysis: perTest
-timeoutMS:       30000        timeoutFactor: 2      concurrency: 4
-reporters:       clear-text, progress, json
-jsonReporter:    reports/mutation/mutation.json
-thresholds:      high 80, low 80, break null   (reported, not enforced — the verdict is written here)
-disableTypeChecks: false      (vitest transpiles via oxc and never type-checks)
-ignorePatterns:  .opencode, .standards, specs, .github, .githooks, .playwright-mcp,
-                 data/pending, data/proposals, tsconfig.tsbuildinfo, runs.jsonl
+mutate:
+  web/metrics/**/*.ts
+  web/manifest/**/*.ts
+  web/sources/**/*.ts
+  web/ingest/**/*.ts
+  web/series/**/*.ts        ← added by this refresh (revision-2 calculation surface)
+
+testRunner:        vitest          vitest.configFile: vitest.config.ts
+coverageAnalysis:  perTest         timeoutMS: 30000   timeoutFactor: 2   concurrency: 4
+reporters:         clear-text, progress, json          jsonReporter: reports/mutation/mutation.json
+thresholds:        high 80, low 80, break null         (reported, not enforced — this report is the verdict)
+disableTypeChecks: false           (vitest transpiles via oxc and never type-checks)
+ignorePatterns:    .opencode, .standards, specs, .github, .githooks, .playwright-mcp,
+                   data/pending, data/proposals, tsconfig.tsbuildinfo, runs.jsonl
 ```
 
-**No mutator was disabled. No threshold was changed. No `// Stryker disable` comment was added.**
-(`data/derived` and `data/snapshots` remain deliberately un-ignored — the ingest and gate tests read
-them.)
+Still **excluded**, unchanged from the previous report: `web/components/**` and `app/**` (React/Next
+markup — revision 2's `PyramidPlate`, `CountdownBlock` and `ScopeMark` live there), `web/content/**`
+(presentation formatting), `data/**` and generated files, `.standards/**` (submodule, off-limits),
+and `scripts/*.ts` (CLI entry points that run `process.exit(main())` at import time and are only
+exercised as subprocesses — a mutant there is a permanent 0 % that measures nothing; the logic they
+delegate to is in the five in-scope areas).
 
-Sandbox detail recorded for auditability: Stryker's dry run reports "Ran 401 tests" against the
-project's 415. The 14 it does not execute live in three files — `tests/acceptance/admin-auth.test.ts`
-(8), `tests/acceptance/fail-closed.test.ts` (4), `tests/acceptance/static-dynamic.test.ts` (2) — which
-import no module in the mutated scope (they exercise the admin middleware and route plan), so they
-map to zero in-scope mutants and cannot change the score. Their absence from the sandbox is a
-coverage-mapping artefact, not a skipped test: all 415 run in the project suite below.
+**Explicitly stated rather than silently excluded:** revision 2's series *rendering* (`web/components/
+series/**`, `web/components/public/ScopeMark.tsx`, `web/seo/**`) is outside the mutation scope, for
+the same reason `web/components/**` always was. Its evidence is the revision-2 acceptance suite plus
+the Verifier's live render check, not a mutation score. `web/series/**` — the calculation the
+rendering displays — **is** in scope, and that is the change this refresh makes.
+
+### Scope as measured
+
+| Area | Files | Mutants | Why it is in scope |
+|---|---|---|---|
+| `web/metrics/**` | 8 | 298 | calculation kernels (ratio, GDP share, cohort IRR, implicit debt, required base growth, growth rate, NPV/root finding, rounding) |
+| `web/manifest/**` | 5 | 517 | manifest validation, hashing, definition registry (now including the two series definitions), formula registry, reproduce-path resolution |
+| `web/sources/**` | 8 | 499 | JSON-stat / INE parsing, unit conversion, year alignment, catalogue, labels, freshness |
+| `web/ingest/**` | 9 | 820 | figure + **series** compute harnesses, figure validation, deterministic JSON, derived-file IO |
+| `web/series/**` | 3 | 398 | **revision 2**: age banding, age structure/shares/readouts, dependency ratio + threshold crossing |
+
+`web/manifest/types.ts` and the other pure-type modules generate no mutants and therefore do not
+appear; a module that declares runtime constants beside its types (`web/ingest/series-types.ts`, 13
+mutants) does.
 
 ---
 
 ## Rounds run this refresh
 
-Two rounds — the bound set for this refresh (threshold already met; this is a refresh, not a rescue).
+Two — the bound set by the brief. Round 1 is a baseline with **no test changes**; round 2 is the
+single test batch. This is a refresh on new code, not a rescue, so there is no round 3.
 
-| Round | Score (total) | Score (covered) | killed | timeout | survived | no coverage | runtime errors | ended (UTC) |
-|---|---|---|---|---|---|---|---|---|
-| 1 — baseline on the current tree (no test changes) | 93.67 % | 94.23 % | 1714 | 2 | 105 | 11 | 14 | 2026-10-26T08:03:35Z |
-| 2 — after 1 added test | **93.83 %** | **94.40 %** | **1717** | **2** | **102** | **11** | **14** | 2026-10-26T08:16:47Z |
+| Round | Score (total) | Score (covered) | killed | timeout | survived | no coverage | runtime errors | `web/series/**` | ended (UTC) |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 — baseline on the revision-2 tree | 88.27 % | 89.77 % | 2217 | 2 | 253 | 42 | 18 | **77.39 %** (79.59 % covered) | 2026-10-26T13:59:01Z |
+| 2 — after `tests/unit/series-coverage-gaps.test.ts` (17 tests) | **91.69 %** | **92.64 %** | **2303** | **2** | **183** | **26** | **18** | **89.20 %** (91.03 % covered) | 2026-10-26T14:27:38Z |
 
 Score convention (Stryker's own): `(killed + timeout) / (total − runtimeErrors)`; `covered` further
-excludes no-coverage mutants. The 14 runtime errors sit in each figure's `define({ … })` table entry
-(7 figures × 2: the argument object literal, e.g. `figures.ts:128:17`, and its `figureId` literal,
-e.g. `130:19`). `define()` resolves the published definition at module load, and several suites build
-their compute report at collection time, so an emptied table entry surfaces as an unhandled run error
-instead of a clean assertion failure — Stryker records those as runtime errors and excludes them from
-the denominator. They are not untested behaviour: mutating `figureId: 'fig-01'` to `''` by hand makes
-the project suite fail 5 of 14 tests in the two files that most directly exercise the figure table
-(`vitest run tests/acceptance/dependency-ratio.test.ts tests/unit/figure-metadata-branches.test.ts`,
-`figureId` restored byte-identically afterwards). It is a `perTest` adjudication limit, not a gap.
+excludes no-coverage mutants.
 
-Round 2 killed exactly the three mutants it was written for, and nothing else changed:
+Round 1 was the finding the brief anticipated: **`web/series/**` at 77.39 % is below the 80 % gate**,
+and it was not a rounding artefact — `age-structure.ts` sat at 70.81 % and `countdown.ts` at 79.49 %,
+with the worst block being the *published readout* (`over65`/`under20`), where 15 mutants were
+untested. The three new `web/ingest` files were also weak on first measurement (`series.ts` 41.67 %,
+`series-types.ts` 0 %, `run-series.ts` 80.00 %), and they dragged the whole `ingest` area from 94.72 %
+to 86.94 %. Round 2 lifts `series` to 89.20 % and `ingest` to 91.79 %.
 
-| File:line | Mutator | Replacement | Round 1 | Round 2 |
-|---|---|---|---|---|
-| `web/ingest/figures.ts:221:39` | ConditionalExpression | `true` | Survived | **Killed** |
-| `web/ingest/figures.ts:221:39` | EqualityOperator | `entry.year !== PROJECTION_HORIZON.from` | Survived | **Killed** |
-| `web/ingest/figures.ts:224:66` | ArithmeticOperator | `last.year + first.year` | Survived | **Killed** |
+### What round 2 changed, per file
 
-Round-2 per-file result (verbatim from the run):
-
-```
-All files                 |  93.83 |   94.40 |     1717 |         2 |        102 |       11 |       14 |
- ingest                   |  94.72 |   95.83 |      574 |         0 |         25 |        7 |       14 |
-  deterministic-json.ts   | 100.00 |  100.00 |       14 |         0 |          0 |        0 |        0 |
-  figures.ts              |  94.47 |   95.92 |      188 |         0 |          8 |        3 |       14 |
-  run-compute.ts          |  93.00 |   94.90 |      186 |         0 |         10 |        4 |        0 |
-  types.ts                | 100.00 |  100.00 |       11 |         0 |          0 |        0 |        0 |
-  validate-figure.ts      |  96.97 |   96.97 |      160 |         0 |          5 |        0 |        0 |
-  write-derived.ts        |  88.24 |   88.24 |       15 |         0 |          2 |        0 |        0 |
- manifest                 |  95.61 |   95.82 |      436 |         0 |         19 |        1 |        0 |
-  definitions.ts          |  92.23 |   93.14 |       95 |         0 |          7 |        1 |        0 |
-  formula-ids.ts          |  92.86 |   92.86 |       13 |         0 |          1 |        0 |        0 |
-  hash.ts                 |  93.94 |   93.94 |       31 |         0 |          2 |        0 |        0 |
-  repo-file.ts            | 100.00 |  100.00 |       16 |         0 |          0 |        0 |        0 |
-  validate.ts             |  96.90 |   96.90 |      281 |         0 |          9 |        0 |        0 |
- metrics                  |  93.62 |   94.26 |      278 |         1 |         17 |        2 |        0 |
-  cohort-irr.ts           |  96.00 |   96.00 |       48 |         0 |          2 |        0 |        0 |
-  contribution-cover.ts   | 100.00 |  100.00 |       38 |         0 |          0 |        0 |        0 |
-  dependency-ratio.ts     | 100.00 |  100.00 |       40 |         0 |          0 |        0 |        0 |
-  implicit-debt.ts        | 100.00 |  100.00 |       10 |         0 |          0 |        0 |        0 |
-  npv.ts                  |  81.11 |   82.95 |       72 |         1 |         15 |        2 |        0 |
-  pension-share.ts        | 100.00 |  100.00 |       36 |         0 |          0 |        0 |        0 |
-  required-base-growth.ts | 100.00 |  100.00 |       29 |         0 |          0 |        0 |        0 |
-  rounding.ts             | 100.00 |  100.00 |        5 |         0 |          0 |        0 |        0 |
- sources                  |  91.10 |   91.30 |      429 |         1 |         41 |        1 |        0 |
-  countries.ts            |  93.22 |   93.22 |       55 |         0 |          4 |        0 |        0 |
-  eurostat.ts             |  91.40 |   91.40 |      169 |         1 |         16 |        0 |        0 |
-  freshness.ts            | 100.00 |  100.00 |       29 |         0 |          0 |        0 |        0 |
-  ine.ts                  |  95.71 |   95.71 |       67 |         0 |          3 |        0 |        0 |
-  labels.ts               |  78.72 |   78.72 |       37 |         0 |         10 |        0 |        0 |
-  live.ts                 |  90.24 |   90.24 |       37 |         0 |          4 |        0 |        0 |
-  load.ts                 |  82.14 |   85.19 |       23 |         0 |          4 |        1 |        0 |
-  types.ts                | 100.00 |  100.00 |       12 |         0 |          0 |        0 |        0 |
-```
-
----
-
-## The F1-unblocked block, measured separately
-
-The first report recorded **18 mutants** as un-killable because of F1:
-`web/ingest/figures.ts` 224, 227, 228 (×3), 229 (×3), 240, 241, 246, 249, 250, 256, 277, 279 at the
-pre-fix line numbers — the post-throw half of `baseGrowthValue` and the whole of `centralCellOf`.
-Those mutants now have their own identifiers (`135, 136, 137, 139, 141, 142, 145, 146, 147, 149, 161,
-162, 163, 164, 165, 166, 177, 178` in `web/ingest/figures.ts`), which is what the evidence block below
-queries.
-
-| Status | Pre-fix run (92.74 %) | This refresh (93.83 %) |
-|---|---|---|
-| Killed | 0 (all 18 un-killable) | **15** |
-| Survived | 13 | 2 |
-| No coverage | 5 | 1 |
-| **Block score** | 0.00 % | **83.33 %** (15 / 18) — **100 % of the killable mutants** |
-
-The three that are still not killed are all **equivalent**, not gaps:
-
-| File:line | Mutator → replacement | Class | Why no test can distinguish it |
+| File | Round 1 | Round 2 | Mutants killed by the new file |
 |---|---|---|---|
-| `web/ingest/figures.ts:244:7` | ConditionalExpression → `false` (`if (!cell)` never throws) | equivalent | The guard is unreachable for the shipped constants: the grid is swept over `[band.min, band.central, band.max]`, so a cell with `rPaidNominal === centralNominal` always exists, and `DEFAULT_G_WAGE_SWEEP` contains `ASSUMED_REAL_WAGE_GROWTH` (the acceptance suite pins that at `required-base-growth.test.ts:224`). Removing the throw changes no observable behaviour while those invariants hold — and if they ever stopped holding, the suite fails on the invariant assertion, not on a mutant. |
-| `web/ingest/figures.ts:244:30` | StringLiteral → `""` (the throw's message) | equivalent (no coverage) | Same branch: the `throw` cannot execute for the shipped constants, so no test ever evaluates the mutated message. |
-| `web/ingest/figures.ts:261:14` | ObjectLiteral → `{}` (`horizon: { ...PROJECTION_HORIZON }` passed to `sensitivityGrid`) | equivalent | `sensitivityGrid` discards `value.horizon`: a cell carries only `gWage`, `rPaidNominal`, `rPaidReal`, `gRequired`, `gap`. The published central's `horizon` is set independently (`figures.ts:271`) and is asserted by two tests. So the swept horizon is unobservable. |
-
-**F1 also made a nearby pair observable**, which the first report had filed as an ordinary reachable
-gap (`figures.ts:221:39`, `ConditionalExpression → true` and `EqualityOperator → !==`). While the
-compute body always threw, the projected growth rate was never asserted as a value — the only test
-that reached it asserted "fails inside itself". Round 2's new test kills both.
-
-**A third effect, not in the recorded block:** three mutants on the `cohort.central === null ||
-cohort.band === null` guard (`figures.ts:252:7` `ConditionalExpression → true`, `252:7`
-`EqualityOperator` on `cohort.central`, `252:34` `EqualityOperator` on `cohort.band`) were
-*undetectably* survivable pre-fix because "always throw" was the observable behaviour either way. With
-fig-05 computing, forcing that guard to always throw now fails the suite, so three of the six variants
-died without any new test. The three that remain (`252:7` `LogicalOperator`, `252:7` and `252:34`
-`ConditionalExpression → false`) are equivalent — see the table below.
-
-| Change in status, pre-fix run → this refresh | Mutants |
-|---|---|
-| Killed by F1 being fixed (no new test) | 17 (`figures.ts` 136, 137, 139, 141, 142, 145, 146, 151, 155, 157, 161, 162, 164, 165, 166, 177, 178) |
-| Killed by the round-2 test | 3 (`figures.ts` 121, 123, 135) |
-| Newly visible and still equivalent | 3 (`figures.ts` 147, 149, 163 — the `244`/`261` rows above) |
-| Non-killed then, still non-killed now, untouched by F1 | 110 |
-| **Pre-fix non-killed → non-killed now** | **133 → 113** (133 − 17 − 3 = 113; of those 113, 3 are newly visible equivalents and 110 are unchanged) |
+| `web/series/age-bands.ts` | 92.86 % | **97.62 %** | 3 (2 killed, 1 equivalent) |
+| `web/series/age-structure.ts` | 70.81 % | **87.58 %** | 27 |
+| `web/series/countdown.ts` | 79.49 % | **88.72 %** | 18 |
+| `web/ingest/series.ts` | 41.67 % | **86.67 %** | 27 |
+| `web/ingest/series-types.ts` | 0.00 % | **92.31 %** | 12 |
+| `web/ingest/run-series.ts` | 80.00 % | 80.00 % | 0 |
 
 ---
 
-## Evidence: mutation score
+## Results
+
+### Per area
+
+| Area | Mutants | Killed | Timeout | Survived | No coverage | Runtime errors | Score (total / covered) |
+|---|---|---|---|---|---|---|---|
+| `web/metrics/**` | 298 | 278 | 1 | 17 | 2 | 0 | 93.62 / 94.26 |
+| `web/manifest/**` | 517 | 482 | 0 | 31 | 2 | 2 | 93.59 / 93.96 |
+| `web/sources/**` | 499 | 450 | 1 | 45 | 3 | 0 | 90.38 / 90.93 |
+| `web/ingest/**` | 820 | 738 | 0 | 55 | 11 | 16 | 91.79 / 93.06 |
+| **`web/series/**`** | **398** | **355** | **0** | **35** | **8** | **0** | **89.20 / 91.03** |
+| **All files** | **2532** | **2303** | **2** | **183** | **26** | **18** | **91.69 / 92.64** |
+
+### Per file (round 2, verbatim from the run)
+
+```
+web/ingest/deterministic-json.ts           mut=  14  killed=  14  surv= 0  nocov= 0  err= 0   100.00
+web/ingest/figures.ts                      mut= 213  killed= 188  surv= 8  nocov= 3  err=14    94.47
+web/ingest/run-compute.ts                  mut= 200  killed= 186  surv=10  nocov= 4  err= 0    93.00
+web/ingest/run-series.ts                   mut= 125  killed= 100  surv=22  nocov= 3  err= 0    80.00
+web/ingest/series-types.ts                 mut=  13  killed=  12  surv= 1  nocov= 0  err= 0    92.31
+web/ingest/series.ts                       mut=  62  killed=  52  surv= 7  nocov= 1  err= 2    86.67
+web/ingest/types.ts                        mut=  11  killed=  11  surv= 0  nocov= 0  err= 0   100.00
+web/ingest/validate-figure.ts              mut= 165  killed= 160  surv= 5  nocov= 0  err= 0    96.97
+web/ingest/write-derived.ts                mut=  17  killed=  15  surv= 2  nocov= 0  err= 0    88.24
+web/manifest/definitions.ts                mut= 131  killed= 113  surv=14  nocov= 2  err= 2    87.60
+web/manifest/formula-ids.ts                mut=  16  killed=  15  surv= 1  nocov= 0  err= 0    93.75
+web/manifest/hash.ts                       mut=  33  killed=  31  surv= 2  nocov= 0  err= 0    93.94
+web/manifest/repo-file.ts                  mut=  16  killed=  16  surv= 0  nocov= 0  err= 0   100.00
+web/manifest/validate.ts                   mut= 321  killed= 307  surv=14  nocov= 0  err= 0    95.64
+web/metrics/cohort-irr.ts                  mut=  50  killed=  48  surv= 2  nocov= 0  err= 0    96.00
+web/metrics/contribution-cover.ts          mut=  38  killed=  38  surv= 0  nocov= 0  err= 0   100.00
+web/metrics/dependency-ratio.ts            mut=  40  killed=  40  surv= 0  nocov= 0  err= 0   100.00
+web/metrics/implicit-debt.ts               mut=  10  killed=  10  surv= 0  nocov= 0  err= 0   100.00
+web/metrics/npv.ts                         mut=  90  killed=  73  surv=15  nocov= 2  err= 0  to=1  81.11
+web/metrics/pension-share.ts               mut=  36  killed=  36  surv= 0  nocov= 0  err= 0   100.00
+web/metrics/required-base-growth.ts        mut=  29  killed=  29  surv= 0  nocov= 0  err= 0   100.00
+web/metrics/rounding.ts                    mut=   5  killed=   5  surv= 0  nocov= 0  err= 0   100.00
+web/series/age-bands.ts                    mut=  42  killed=  41  surv= 1  nocov= 0  err= 0    97.62
+web/series/age-structure.ts                mut= 161  killed= 141  surv=14  nocov= 6  err= 0    87.58
+web/series/countdown.ts                    mut= 195  killed= 173  surv=20  nocov= 2  err= 0    88.72
+web/sources/countries.ts                   mut=  59  killed=  55  surv= 4  nocov= 0  err= 0    93.22
+web/sources/eurostat.ts                    mut= 210  killed= 188  surv=20  nocov= 2  err= 0  to=1  89.52
+web/sources/freshness.ts                   mut=  29  killed=  29  surv= 0  nocov= 0  err= 0   100.00
+web/sources/ine.ts                         mut=  70  killed=  67  surv= 3  nocov= 0  err= 0    95.71
+web/sources/labels.ts                      mut=  47  killed=  37  surv=10  nocov= 0  err= 0    78.72
+web/sources/live.ts                        mut=  44  killed=  40  surv= 4  nocov= 0  err= 0    90.91
+web/sources/load.ts                        mut=  28  killed=  23  surv= 4  nocov= 1  err= 0    82.14
+web/sources/types.ts                       mut=  12  killed=  12  surv= 0  nocov= 0  err= 0   100.00
+```
+
+One file remains below 80 % individually — `web/sources/labels.ts` at 78.72 % — exactly as in every
+prior run; its ten survivors are all proven equivalent (§Equivalent mutants). No file in the
+revision-2 surface is below the line.
+
+---
+
+## The two encoding traps
+
+The brief singled these out, correctly: mutants here matter more than the aggregate. Both traps are
+now killed, and the assertions behind them are exact, not "defined and non-zero".
+
+### Trap 1 — the band mapping (`Y_OPEN` vs `Y_GE100`)
+
+`bandOfAgeLabel` resolves the open-ended band from the payload's own **labels**, because `demo_pjan`
+publishes `Y_OPEN` `"Open-ended age class"` and `proj_23np` publishes `Y_GE100` `"100 years or over"`.
+A hardcoded code would silently drop the 100+ band from one dataset.
+
+| Mutant | Status | What kills it / why it cannot be killed |
+|---|---|---|
+| `age-bands.ts:22:27` Regex `\s*`→`\s` (single space only) | **Killed** | new: `bandOfAgeLabel('5  years')` → 5. The function normalises whitespace; two spaces must still band. |
+| `age-bands.ts:36:10` ConditionalExpression `age >= OPEN_BAND`→`false` (always take the `floor` branch) | **Killed** | new: `bandOfAgeLabel('105 years')` → `OPEN_BAND` (100); the `floor` branch would answer 105, i.e. invent a band above the open one. |
+| `age-bands.ts:36:10` EqualityOperator `>=`→`>` | Equivalent | At age exactly 100 the `floor` branch computes `floor(100/5)*5 = 100 = OPEN_BAND`; at every other integer age both forms take the same branch. Proven, not assumed: the same test pins 100→100 and 105→100. |
+
+The hardcoded-code trap itself was already covered by the pre-existing rename test
+(`population-pyramid.test.ts:88` renames `Y_OPEN`→`ZZ_OPEN_99` and asserts the band still resolves by
+label). That test does what it claims: a code-keyed read cannot pass it.
+
+### Trap 2 — the total-vs-sexes sum (`sex=T` is the denominator, `M`/`F` are the halves)
+
+`assertSexTotals` refuses a payload whose `M + F ≠ T` for any band, and every published share divides
+by the year's `Total` row.
+
+| Mutant | Status | What kills it / why it cannot be killed |
+|---|---|---|
+| `age-structure.ts:176:57` ArithmeticOperator — the thrown message's `${male + female}`→`${male - female}` | **Killed** | new: the double-count fixture must throw a message naming the computed sums (`/males \+ females \(2\)/`, `/the sex total \(3\)/`). A build that stops must say why correctly. |
+| `age-structure.ts:194:7` / `194:50` / `195:27` — the re-check inside `bandCounts` (condition, throw body, message) | Equivalent (3) | `bandCounts` is module-private and only reachable through `readAgeCounts`, which has already run `assertSexTotals` over exactly these entries. The check cannot fire, so neither its body nor its message is ever evaluated. |
+| `age-structure.ts:228:57` / `232:27` / `233:28` — the count sums and the `>= 65` / `< 20` predicates behind `over65`/`under20` | **Killed** | new: the readouts are pinned as literals per year (`14.98/25.14`, `20.72/18.40`, `32.68/16.00`), independently decoded from the committed snapshots. Before this, `over65` was only ever asserted to render. |
+| `countdown.ts:83:7` / `83:46` — the sex guard (`point.coords.sex !== codes.sex`) | **Killed** | new: the synthetic ratio payload's 2025 halves (1400 + 1600) do **not** sum to its total (3000), so summing the halves reads 57.14 where the `Total` row reads 50.00. A sex-blind sum is now a failing test. |
+| `countdown.ts:84:10` ×2 — the variant guard | **Killed** | new: the same payload carries a second variant; dropping the guard reads 50.83 instead of 50.00 (and the `false` form empties the series). |
+
+**Verdict on the traps: the assertions were weaker than claimed in two places, and both are now
+fixed** — the readout claim (`over65`/`under20`) had no value assertion at all, and the `Total`-row-only
+rule for the dependency ratio was only ever exercised against a payload whose halves reconcile
+(where summing them is arithmetically invisible).
+
+---
+
+## F1 block status (still relevant, unchanged)
+
+F1 was the `centralCellOf` defect (a *deflated* `rPaidReal` compared against a *nominal* band centre,
+so `fig-05` always threw). The previous report recorded the 18 mutants it had blocked as
+**15 killed + 3 equivalent** once the fix landed. This run reproduces exactly that, at the same
+coordinates:
+
+| Coordinate | Mutator | Status | Class |
+|---|---|---|---|
+| `web/ingest/figures.ts:244:7` | ConditionalExpression (`if (!cell)` never throws) | Survived | equivalent — the grid is swept over `[min, central, max]` and `DEFAULT_G_WAGE_SWEEP` contains `ASSUMED_REAL_WAGE_GROWTH`, so the cell always exists; the guard is unreachable for the shipped constants |
+| `web/ingest/figures.ts:244:30` | StringLiteral (the throw's message) | NoCoverage | equivalent — same unreachable branch |
+| `web/ingest/figures.ts:261:14` | ObjectLiteral (`horizon: { ...PROJECTION_HORIZON }` → `{}`) | Survived | equivalent — `sensitivityGrid` discards `value.horizon`; a cell carries only `gWage`, `rPaidNominal`, `rPaidReal`, `gRequired`, `gap` |
+
+The neighbouring `figures.ts:252` cluster (the `cohort.central === null || cohort.band === null` guard)
+is unchanged too: three killed, three equivalent (`central` and `band` are null under exactly the same
+condition — an empty grid).
+
+**F1 is closed. It is not re-opened by revision 2 and it is not part of the 91.69 % shortfall.**
+
+---
+
+## Equivalent mutants (111) — no test can distinguish them
+
+111 of the 209 non-killed mutants are equivalent or dead. Each group is counted once; the counts
+sum to 111.
+
+| File | Coordinates | Count | Why it is un-killable |
+|---|---|---|---|
+| `web/series/age-bands.ts` | 36:10 (`>=`→`>`) | 1 | See Trap 1 — both forms agree on every integer age because 100 is a multiple of the band width. |
+| `web/series/age-structure.ts` | 139:73, 194:7, 194:50, 195:27, 260:53, 262:109 | 6 | `139:73` the trailing `?? ''` on `point.coords.age` is dead (`decodeCoords` fills every dimension in `id`, so it is always a string). `194:7/194:50/195:27` the `bandCounts` re-check cannot fire (see Trap 2). `260:53` the projection payload the product ingests (`eurostat-proj-23np`) publishes exactly one projection category (`size[1] = 1`, verified in the committed snapshot), so dropping the variant filter changes nothing. `262:109` the `?? 'measured'` fallback is unreachable: 1995 and 2025 are both keys of `OBSERVED_HUES`. |
+| `web/series/countdown.ts` | 59:7 (×2), 59:47, 99:41, 214:7, 247:17 | 6 | `59:7`/`59:47` `ratioOf`'s zero-denominator guard is unreachable: `readDependencySeries` filters `denominator > 0` first and `observedDependency` guards `denominatorPopulation > 0`. `99:41` dead `?? ''` (as above). `214:7` with `year === null`, `projectedAt` yields null through `?? null` and `observedDependency` yields null, so the next guard returns the same null. `247:17` `pinned[pinned.length − 1] ?? snapshotYear` is unreachable — `pinned.length > 0` is enforced by the throw above it. |
+| `web/ingest/run-series.ts` | 44:13, 56:13, 61:37 | 3 | `44:13`/`56:13` the `kind: 'failure'` discriminant is never read: `applyInspection` falls through to its `else` for any kind that is neither `ok` nor `unresolved`. `61:37` `evaluateFreshness` returns a non-empty `reason` on every `fresh: false` path (three branches, all with a message), so the `?? 'outside freshness window'` fallback is dead. |
+| `web/ingest/series-types.ts` | 20:10 | 1 | `typeof value === 'string' && SERIES_IDS.includes(value)` — `includes` already rejects every non-string, so dropping the `typeof` operand changes no answer. |
+| `web/ingest/series.ts` | 22:7, 22:8, 22:44, 28:12 | 4 | `22:*` `payloadOf`'s unresolved guard and its message are unreachable: the harness only calls `compute` after `unfinishedOutcome` verified every requirement source resolved. `28:12` `value.years[0]?.bands` is dead — `computePyramid` always returns three years or throws. |
+| `web/ingest/figures.ts` | 33 (×3), 88 (×2), 244 (×2), 252 (×3), 261 | 11 | Carried forward unchanged: `payload()`'s throw and `spanOf`'s empty branch are unreachable; the F1 group is the table above; the `252` guard is redudantly two-sided. |
+| `web/ingest/run-compute.ts` | 65, 128 (+ dead 95, 209, 292, 347) | 6 | Carried forward: the `missingForCountry` branch is shadowed, `parsed <= oldest` and `parsed < oldest` agree at equal timestamps, the three `??` fallbacks never fire, and `hashInputBytes` has no production caller. |
+| `web/ingest/validate-figure.ts` | 29, 122 (×2) | 3 | Carried forward: the membership test alone rejects the same non-strings; `identity.length > 0` is implied by an unknown id. |
+| `web/ingest/write-derived.ts` | 6, 22 | 2 | `DERIVED_DIR` is a re-export with no reader in scope; `writeFileSync` accepts a Buffer, so the `'utf8'` argument's removal round-trips to the same bytes. |
+| `web/manifest/definitions.ts` | 36 (×3), 40, 152, 158, 166, 183, 231, 233 (×4), 254 (×2) | 15 | `36`/`40`/`166` — `includes` rejects the same non-strings the `typeof` guard rejected. `152`/`158` — the `definitionId` field inside `SERIES_DEFINITIONS` records has no reader (only `.definition` and `.formulaId` are read). `183`/`254` — `firstDefinitionOf` can only throw for a metric outside the closed `MetricId` union. `231`/`233` — for every metric that *has* an international definition it is also the first definition of that metric, so the `?? firstDefinitionOf(...)` fallback resolves to the same object; for national-only metrics `find` already returned undefined. |
+| `web/manifest/validate.ts` | 145 (×8) | 8 | Carried forward: the `reproducePath` pass inside `manifestFieldProblems` is called with `fileExists = () => true`, so `checkReproducePath` can never produce `missingFile` — the `.filter`, both arrow operands, the equality, the boolean and the `""` literal are all dead. |
+| `web/manifest/hash.ts` | 14, 20 | 2 | Carried forward: the closed-set/pattern check rejects the same non-strings; `/\.\d{3}Z$/`→`/\.\d{3}Z/` is a no-op because `toISOString()` always ends with the millisecond group. |
+| `web/manifest/formula-ids.ts` | 19 | 1 | Same shape as `hash.ts:14`. |
+| `web/metrics/npv.ts` | 40, 42, 65 (×7), 66, 86, 91 (+ dead 41 ×5) | 17 | Carried forward: the root is invariant to a positive rescaling of every flow; `<=`→`<` differs only at an exact-equality boundary float bisection never lands on; `86`'s `!== 1` is masked by `initialBracket` returning null for the same inputs; `41`'s `scale === 0` branch is unreachable (an all-zero flow set has zero sign changes and returns null first). |
+| `web/metrics/cohort-irr.ts` | 66 (×2) | 2 | `<= 0`→`< 0` differs only at exactly zero contribution, where the sign-change gate already returns null. |
+| `web/sources/labels.ts` | 6, 7, 18, 19, 29, 31, 33 (×4), 36 | 10 | Carried forward: dropping `^`/`\.` is a no-op for the shipped catalogue; `split('')`/`join('')` transform both sides of every comparison identically; the `byDataset` short-circuit and the exact-host branches all fall through to the registered-domain lookup, which selects the same declaration for every URL in `SOURCE_DECLARATIONS`. |
+| `web/sources/countries.ts` | 64 (×2), 110 (×2) | 4 | `isPublishedGeo` is gated by the closed `PUBLISHED_GEOS` list; a national definition's lookup returns `null` before the `sourceIds.length` check matters. |
+| `web/sources/live.ts` | 38 (×2), 54, 67 | 4 | `LIVE_URLS` only contains declared source ids, so the guard and the `find` predicate in `declaration()` cannot take their other branch; the `Z$` anchor is redundant for `toISOString()` output. |
+| `web/sources/ine.ts` | 23, 45, 50 | 3 | Replacing the `typeof payload !== 'object'` operand leaves sibling checks catching exactly the same inputs. |
+| `web/sources/load.ts` | 39 | 1 | The `dir = 'data/snapshots'` default is never taken; every caller passes its own path. |
+| `web/sources/eurostat.ts` | 131 | 1 | `resolveCountUnit`'s return value has no reader inside the mutated scope (callers use it for validation only), so emptying the returned object changes nothing. |
+
+---
+
+## Reachable residual gaps (98) — named with the assertion that would kill each
+
+Real gaps, not equivalents. They are recorded rather than chased because the refresh budget is two
+rounds, the gate is met, and **none of them sits on a published calculation** — they are guards,
+fallbacks, error text and provenance fields. Grouped by the single assertion that would kill each
+cluster.
+
+| File | Mutants | Coordinates | What would kill it |
+|---|---|---|---|
+| `web/series/age-structure.ts` | 7 | 185:7 (×3), 185:30 (×2), 185:42, 186:27 | **A year whose `Total` row is missing or zero must be refused, not published as a panel of NaN.** `yearTotal`'s guard — and its throw body and message — has zero coverage: the one test that reaches a missing year (`computePyramid` with `demo_pjan` as the projection) throws earlier, in `resolveCategoryCode`, because that payload has no `projection` dimension. Assert `computePyramid({observed: payloadWithBandsButNoTotal, projected})` throws `/no total population for 1995/`. **Highest-value residual in this report.** |
+| `web/series/age-structure.ts` | 3 | 275:10, 275:81 (×2) | `openBandShare` — assert `openBandShare(value, 1900)` is `undefined` (the optional chain) and `openBandShare(value, 1995)?.band === OPEN_BAND` (the predicate). Today the open-band helper is only asserted `toBeDefined()` and `.total > 0`, which band 0 also satisfies. **Second-highest value** — it is the trap's own helper. |
+| `web/series/age-structure.ts` | 2 | 120:12, 126:7 | A payload publishing a fourth sex code (neither M/F/T) and one publishing `' Total '` with surrounding whitespace. |
+| `web/series/age-structure.ts` + `countdown.ts` | 3 | `age-structure` 128:7, 138:7; `countdown` 97:9 | A payload with a non-numeric `time` code (`Number('TOTAL')` → NaN) — the shared "not a year" guards. |
+| `web/series/countdown.ts` | 5 | 177:10, 217:7 (×3), 217:29 | **A back-cast whose projection side or observation side is missing must be `null`.** An observation whose latest year precedes the projection's first year (e.g. an observed payload carrying only 1995 against a series starting 2022). |
+| `web/series/countdown.ts` | 2 | 117:28 (×2) | A year whose 65+ count is `0` with the denominator present is skipped by `numerator > 0` — assert that year is absent. |
+| `web/series/countdown.ts` | 4 | 129:10, 130:25 (×2), 130:41 | A payload publishing a blank (`''`/`'  '`) projection code must be filtered out of `projectionVariants`. |
+| `web/series/countdown.ts` | 3 | 84:10, 136:42, 153:10 (×2) | `readDependencySeries(demo_pjan)` (no variant → `variant === null` branch), `firstYearAtOrAbove([{year: 2020, ratio: 50}], 50) === 2020` (exact-threshold equality), and `lastObservedYear(payload, 1900) === null` (empty filter). |
+| `web/ingest/run-series.ts` | 6 | 92:12 (×3), 92:36 (×3) | **`manifest.fetchedAt` must be the oldest source retrieval.** No assertion on `run-series`' manifest date exists (the figures equivalent, AC-001-01's "stamps the oldest source retrieval", covers `run-compute` only). Assert it equals the oldest of the three snapshots' `retrievedAt`, on snapshots whose timestamps differ. |
+| `web/ingest/run-series.ts` | 6 | 116:17, 116:18 (×2), 116:62, 116:76, 116:131 | **A series' `inputHash` must change when an input snapshot's bytes change** (AC-001-02 exists for figures, not for series). |
+| `web/ingest/run-series.ts` | 4 | 97:10, 136:24, 156:24, 194:104 | Duplicate source URLs are de-duplicated; an unavailable series carries `unresolvedSources` equal to its requirement list; a computed series carries `unresolvedSources: []` and no problems. |
+| `web/ingest/run-series.ts` | 2 | 212:15 | **The harness exit code.** `results.some(...)`→`every(...)`: run both `SERIES` with one snapshot broken and assert `exitCode === 1`. |
+| `web/ingest/run-series.ts` | 3 | 61:17, 182:13, 184:50 | The stale-snapshot detail names the age (`/days old/`); the manifest-invalid detail names the field and code; the unavailable reason is `'manifest did not validate'`. |
+| `web/ingest/run-series.ts` | 1 | 51:71 | An unresolved snapshot with no `unresolvedReason` falls back to `'series not specified'`. |
+| `web/ingest/run-series.ts` | 1 | 196:61 | A non-`Error` thrown from a series `compute`. |
+| `web/ingest/series.ts` | 4 | 44:23, 45:26, 48:15, 49:18 | The countdown assumptions when a variant does not cross and when the back-cast is null (the `variantsCrossing` filter and the two `backCast === null` branches). With the shipped data all six variants cross and the back-cast exists, so both are invisible. |
+| `web/manifest/definitions.ts` | 1 | 160 | The `old-age-dependency-ratio` **definition text** is not pinned anywhere (the `age-structure` one is, via AC-001-94). Assert it names the 15–64 denominator and the baseline projection. |
+| `web/manifest/validate.ts` | 6 | 29, 97 (×3), 98, 126 | `snapshotYear: 1900` / `2200` are accepted and the boundary rejections are named (`<=`/`>=` mutants survive); a manifest built without `snapshotYear` must not gain a `snapshotYear: undefined` key (assert `'snapshotYear' in manifest`); a non-array object with all-valid fields reaches `asRecord`'s `Array.isArray` operand. |
+| `web/ingest/run-compute.ts` | 8 | 162, 210, 216, 234, 249, 270, 294, 325 | Carried forward unchanged: the `missing` hash token, the `'; '` separator, a failure with no `sourceId`, and `unresolvedSources: []` on each computed path. |
+| `web/ingest/validate-figure.ts` | 2 | 57, 120 | Carried forward: a candidate with valid `availability` but no `figureId`, asserting `figureId: 'unknown'` in both problem lists. |
+| `web/sources/eurostat.ts` | 21 | 44, 49, 56, 58 (×4), 77, 102, 123 (×4), 124 (×2), 125, 199 (×2), 202, 207 (×2), 262 | Carried forward plus revision-2 additions: `IngestError.name`; a payload whose `dimension` is absent; a payload with `value` but no `id`/`size`; an ascending-order assertion on `pointsFor`' sort; **new** — a payload with two unit categories or a blank unit code (`resolveCountUnit`'s filter and `entries.length !== 1` guard). The 21-mutant `eurostat.ts` cluster remains the largest single residual and the best next target. |
+| `web/sources/load.ts` | 4 | 21, 32, 47, 48 | Carried forward: a file with neither `resolved` nor `payload`; `bytes` as a string; readdir order differing from sorted order; non-ASCII bytes. |
+
+---
+
+## Runtime errors (18) — excluded from the denominator, not untested behaviour
+
+Stryker records a runtime error (and drops the mutant from both numerator and denominator) when a
+mutant makes a suite throw at collection time rather than fail an assertion. All 18 are of one shape:
+
+- `web/ingest/figures.ts` — 14, at each figure's `define({ … })` table entry (the argument object and
+  its `figureId` literal, 7 figures × 2). `define()` resolves the published definition at module load,
+  and several suites build their compute report at collection time.
+- `web/ingest/series.ts` — 2, at `seriesDefinitionFor('age-structure')` / `…('old-age-dependency-ratio')`
+  in the `SERIES` table (same shape, revision-2 file).
+- `web/manifest/definitions.ts` — 2, at `150` (the `SERIES_DEFINITIONS` table entry) and `173`
+  (`seriesDefinitionFor`'s throw, emptied).
+
+This is a `perTest` adjudication limit, not a coverage hole: by hand, mutating `figureId: 'fig-01'` to
+`''` fails 5 of 14 tests in the two files that most directly exercise the figure table, and mutating
+the series definition id fails the manifest/hash suite. Three of them (`definitions.ts:152`/`158` and
+the `definitionId` field) are additionally dead fields — see the equivalent table.
+
+---
+
+## Tests added by this refresh
+
+**17 tests, in 1 new file. No existing test was modified, weakened, renamed or deleted. No production
+code was edited.**
+
+`tests/unit/series-coverage-gaps.test.ts` — every test drives the real modules; the synthetic
+JSON-stat payloads are hand-built so that only one reading of the code can produce the expected
+answer (the committed snapshots are single-variant and ascending, so a lost filter or a lost sort is
+invisible through them).
+
+| # | Assertion | Mutants killed |
+|---|---|---|
+| 1 | `bandOfAgeLabel('105 years' / '120 years') === OPEN_BAND`, `'100 years' === OPEN_BAND` | 1 (Trap 1 saturation) |
+| 2 | `bandOfAgeLabel('  5  years ') === 5`, `'5  YEARS' === 5` | 1 (Trap 1 whitespace) |
+| 3 | `over65`/`under20` pinned per year: `14.98/25.14`, `20.72/18.40`, `32.68/16.00` (independently decoded from the committed snapshots) | 15 (the whole `readoutOf` block) |
+| 4 | `[year, state, hue]` per panel: `reference`, `measured`, `projected`; populations pinned | 5 |
+| 5 | `excludedLabels === ['Total', 'Unknown']` (published value) | — |
+| 6 | A two-variant projection reads **only** the pinned variant: totals 210, bands 22/41 | 2 (the projection filter, Trap 2-adjacent) |
+| 7 | `excludedLabels` comes back **sorted** for a payload whose age order is `Unknown` before `Total` | 1 |
+| 8 | The double-count message names both computed sums (`(2)` / `(3)`) | 1 (Trap 2 message) |
+| 9 | A year with a population total but no bands is refused: `/age band 0 is missing for 2050/` | 3 |
+| 10 | The ratio series is ascending, skips a year missing its denominator, and reads the `Total` row rather than the halves (50.00, not 57.14) and not the second variant (not 50.83) | 27 (incl. Trap 2 sex/variant guards) |
+| 11 | `observedDependency` answers `null` when the published denominator has no population | 2 |
+| 12 | `lastObservedYear` on a descending time axis answers 2025, not 2010 | 4 |
+| 13 | A baseline variant that never publishes a complete year is refused: `/no baseline dependency series/` | 2 |
+| 14 | `SERIES_IDS` / `SERIES_AVAILABILITY` closed sets; `isSeriesId` accepts both ids and rejects `'figure'`, `42`, `null` | 12 |
+| 15 | `seriesById` resolves both series and answers `undefined` for an unknown id | 1 |
+| 16 | The `age-structure` assumptions object, pinned field by field (bands, observedYears, projectedYear, variant, encoding, decimals, excludedLabels) | 13 |
+| 17 | The `countdown` assumptions object, pinned field by field (threshold, denominator, variant, snapshotYear, the six-variant `variantsCrossing` string, backCast, observation) | 38 |
+
+**Kill verification (not inferred from the score).** Each assertion was probed by applying the
+mutation to the real source, running the new file, and restoring the file byte-identically
+(md5 compared before/after — all 13 probes reported `restored=True`):
+
+```
+KILLED    band saturation (36:10 CondExpr->false)          (restored=True)
+KILLED    whitespace tolerance (22:27 Regex)               (restored=True)
+KILLED    sex-sum message operand (176:57)                 (restored=True)
+KILLED    over65 predicate (232:27)                        (restored=True)
+KILLED    projection filter removed (136:7)                (restored=True)
+KILLED    excludedLabels sort (163:82)                     (restored=True)
+KILLED    optional chaining (192:17)                       (restored=True)
+KILLED    sex guard removed (83:7)                         (restored=True)
+KILLED    year sort comparator (119:11)                    (restored=True)
+KILLED    observed-year bound (152:75)                     (restored=True)
+KILLED    denominator guard (172:10)                       (restored=True)
+KILLED    empty-baseline throw (240:7)                     (restored=True)
+KILLED    observedYears assumption (29:49)                 (restored=True)
+```
+
+---
+
+## Evidence: mutation score (whole scope)
 
 command: npx stryker run
 exit: 0
-at: 2026-10-26T08:16:47Z
+at: 2026-10-26T14:27:38Z
 
 ```
-All files                 |  93.83 |   94.40 |     1717 |         2 |        102 |       11 |       14 |
-JsonReporter  Your report can be found at: file:///home/dbueno/projects/pensions-system/reports/mutation/mutation.json
-MutationTestExecutor  Done in 10 minutes and 7 seconds.
+series                   |  89.20 |   91.03 |      355 |         0 |         35 |        8 |        0 |
+  age-bands.ts           |  97.62 |   97.62 |       41 |         0 |          1 |        0 |        0 |
+  age-structure.ts       |  87.58 |   90.97 |      141 |         0 |         14 |        6 |        0 |
+  countdown.ts           |  88.72 |   89.64 |      173 |         0 |         20 |        2 |        0 |
+ingest                   |  91.79 |   93.06 |      738 |         0 |         55 |       11 |       16 |
+sources                  |  90.38 |   90.93 |      450 |         1 |         45 |        3 |        0 |
+manifest                 |  93.59 |   93.96 |      482 |         0 |         31 |        2 |        2 |
+metrics                  |  93.62 |   94.26 |      278 |         1 |         17 |        2 |        0 |
+All files                 |  91.69 |   92.64 |     2303 |         2 |        183 |       26 |       18 |
+MutationTestExecutor  Done in 24 minutes and 18 seconds.
 EXIT=0
 ```
 
-Scope: 28 files under `web/metrics/**`, `web/manifest/**`, `web/sources/**`, `web/ingest/**`;
-1846 mutants. Threshold for this tier: ≥ 80 %. Achieved **93.83 % total / 94.40 % covered**.
-`EXIT=0`; `thresholds.break` is `null`, so a non-zero exit would have meant a tool failure, not a
-threshold miss — the verdict is asserted in this report, not delegated to the CLI. This block is the
-round-2 run (the one that reflects the tree described here); round 1's numbers are in the round table
-above.
+Scope: **33 files, 2532 mutants** under `web/metrics/**`, `web/manifest/**`, `web/sources/**`,
+`web/ingest/**` and `web/series/**`. Threshold for this tier: ≥ 80 %. Achieved **91.69 % total /
+92.64 % covered**. `EXIT=0`; `thresholds.break` is `null`, so a non-zero exit would have meant a tool
+failure, not a threshold miss — the verdict is asserted in this report, not delegated to the CLI. This
+is the round-2 run, i.e. the tree described here.
 
 ---
 
-## Evidence: F1-unblocked block
+## Evidence: `web/series/**` score (measured separately)
 
-command: python3 -c "import json,collections;d=json.load(open('reports/mutation/mutation.json'));ms={m['id']:m for m in d['files']['web/ingest/figures.ts']['mutants']};ids=['135','136','137','139','141','142','145','146','147','149','161','162','163','164','165','166','177','178'];print('F1 block:',dict(collections.Counter(ms[i]['status'] for i in ids)));print('non-killed:',[(ms[i]['location']['start']['line'],ms[i]['mutatorName']) for i in ids if ms[i]['status']!='Killed'])"
+command: python3 -c "import json,collections; d=json.load(open('reports/mutation/mutation.json')); c=collections.Counter(m['status'] for p,f in d['files'].items() if p.startswith('web/series/') for m in f['mutants']); t=sum(c.values()); k=c['Killed']+c['Timeout']; print('web/series/**', dict(c), 'mutants', t); print('score %.2f covered %.2f' % (k/(t-c['RuntimeError'])*100, k/(t-c['RuntimeError']-c['NoCoverage'])*100))"
 exit: 0
-at: 2026-10-26T08:18:30Z
+at: 2026-10-26T14:32:01Z
 
 ```
-F1 block: {'Killed': 15, 'Survived': 2, 'NoCoverage': 1}
-non-killed: [(244, 'ConditionalExpression'), (244, 'StringLiteral'), (261, 'ObjectLiteral')]
+web/series/** {'NoCoverage': 8, 'Killed': 355, 'Survived': 35} mutants 398
+score 89.20 covered 91.03
 ```
 
-15 / 18 = **83.33 %** on the block, with all three survivors classified equivalent above; against the
-killable set that is 15 / 15 = 100 %.
+Reported separately, as asked, so the new code is not diluted by the 2134 older mutants: **89.20 %**
+after this refresh, **77.39 %** on first measurement. The round-1 figure is the finding; the round-2
+figure is what the shipped tests support.
 
 ---
 
@@ -293,19 +455,17 @@ killable set that is 15 / 15 = 100 %.
 
 command: npx vitest run
 exit: 0
-at: 2026-10-26T08:21:33Z
+at: 2026-10-26T14:30:03Z
 
 ```
  RUN  v5.0.5 /home/dbueno/projects/pensions-system
 
- Test Files  33 passed (33)
-      Tests  415 passed (415)
-   Duration  3.02s
+ Test Files  41 passed (41)
+      Tests  522 passed (522)
 ```
 
-**415 tests across 33 files, exit 0**, none skipped or disabled — the Verifier's 414 plus the one
-test this refresh added. This is the final run, executed after all mutation work, after the app build
-and after the design-principles gate, so the number quoted is the tree that ships.
+**522 tests across 41 files, exit 0**, none skipped or disabled — the Verifier's 505 plus the 17 this
+refresh added. This is the final run, executed after all mutation work and after the build.
 
 ---
 
@@ -313,21 +473,24 @@ and after the design-principles gate, so the number quoted is the tree that ship
 
 command: npm run build
 exit: 0
-at: 2026-10-26T08:21:12Z
+at: 2026-10-26T14:30:16Z
 
 ```
 > pensions-system@0.0.0 prebuild
-> tsx scripts/verify-derived.ts && tsx scripts/check-public-vocabulary.ts
+> tsx scripts/verify-derived.ts && tsx scripts/check-content-scope.ts && tsx scripts/check-public-vocabulary.ts
 
 derived figures verified: 7 (2 computed, 5 unavailable)
+derived series verified: 2
+country scope gate: clean (5 locales)
 public vocabulary gate: clean (5 locales)
 
-✓ Compiled successfully in 593ms
-✓ Generating static pages using 11 workers (21/21) in 1411ms
+✓ Compiled successfully in 579ms
+✓ Generating static pages using 11 workers (21/21) in 1046ms
 ```
 
-`npx tsc --noEmit` exit 0 at 2026-10-26T08:17:09Z (no output). `npm run verify:derived` exit 0 at
-2026-10-26T08:17:23Z (`derived figures verified: 7 (2 computed, 5 unavailable)`).
+`npx tsc --noEmit` exit 0 at 2026-10-26T14:30:07Z (no output). `npm run verify:derived` exit 0 at
+2026-10-26T14:30:24Z (`derived figures verified: 7 (2 computed, 5 unavailable)` / `derived series
+verified: 2`).
 
 ---
 
@@ -335,15 +498,15 @@ public vocabulary gate: clean (5 locales)
 
 command: npx eslint .
 exit: 0
-at: 2026-10-26T08:17:07Z
+at: 2026-10-26T14:30:09Z
 
 ```
 (no output — clean)
 ```
 
 `eslint.config.mjs` enforces `complexity: ['error', 6]`. Clean across the whole tree, including the
-F1 fix (`web/ingest/figures.ts`, `web/metrics/required-base-growth.ts`) and the new test. The added
-test introduced no nesting beyond the describe/it structure.
+revision-2 series modules and the new test file (its payload builders were factored into small
+helpers — `positionsOf`, `flatIndexOf`, `jsonStat` — to stay inside the limit).
 
 ---
 
@@ -351,14 +514,17 @@ test introduced no nesting beyond the describe/it structure.
 
 command: .standards/scripts/check-scenario-traceability.sh --json
 exit: 0
-at: 2026-10-26T08:17:24Z
+at: 2026-10-26T14:30:12Z
 
 ```
-{ "checks": [1, 2], "passes": [ "AC-001-01 — traced to a test", …, "AC-001-92 — traced to a test" ], "fails": [] }
+{ "checks": [1, 2], "passes": ["AC-001-01 — traced to a test", …, "AC-001-99 — traced to a test"], "fails": [] }
 ```
 
-92/92 scenarios still traced, `fails: []`, check 2 clean. The new test cites `AC-001-31` (already
-traced, and the scenario the F1 fix serves).
+99/99 scenarios visible to the gate still traced, `fails: []`, check 2 clean. **Same disclosed
+limitation as the Verifier's revision-2 record:** the gate's regexes are `AC-[0-9]{3}-[0-9]{2}`, so
+`AC-001-100`…`AC-001-107` (three-digit suffix) are invisible to both checks; the Verifier confirmed by
+grep that all 107 headings exist and all 107 are cited by a test. The new tests cite no new scenario
+id (they pin behaviour already covered by AC-001-93/94/95/98/99/100/101), so the count is unchanged.
 
 ---
 
@@ -366,7 +532,7 @@ traced, and the scenario the F1 fix serves).
 
 command: .standards/scripts/check-audit-trail.sh 001-pension-math
 exit: 0
-at: 2026-10-26T08:21:59Z
+at: 2026-10-26T14:32:19Z
 
 ```
 PASS 001-pension-math: 10-tasks.md present and non-empty
@@ -374,135 +540,54 @@ PASS 001-pension-math: 20-acceptance/ has an AC-*.md with a '## AC-NNN-NN' headi
 PASS 001-pension-math: 25-verification.md present and non-empty
 PASS 001-pension-math: 30-report.md present and non-empty
 PASS 001-pension-math: 15-design.md present and non-empty (AC-015-13)
-PASS 001-pension-math: 40-deploy.md absent — tolerated pre-5c (stage 5d re-runs with --require-deploy, AC-031-21)
-PASS 001-pension-math: evidence block 'scenario traceability' — command: .standards/scripts/check-scenario-traceability.sh --json, exit: 0, at: 2026-10-25T22:38:30Z
-PASS 001-pension-math: evidence block 'full test suite' — command: npx vitest run, exit: 0, at: 2026-10-25T22:39:00Z
-PASS 001-pension-math: evidence block 'complexity gate' — command: npx eslint ., exit: 0, at: 2026-10-25T22:40:00Z
-PASS 001-pension-math: evidence block 'design-principles gate' — command: .standards/scripts/check-code-principles.sh --tier production --json, exit: 1, at: 2026-10-25T22:42:00Z
-PASS 001-pension-math: evidence block 'scenario-to-behavior spot check' — command: (manual read of 10 scenarios across 6 tasks; test files opened and assertions compared to the scenario Then-clauses), exit: 0, at: 2026-10-25T22:44:00Z
+PASS 001-pension-math: 40-deploy.md present and non-empty (AC-031-18)
+PASS 001-pension-math: evidence block 'scenario traceability' — … at: 2026-10-25T22:38:30Z
+PASS 001-pension-math: evidence block 'full test suite' — … at: 2026-10-25T22:39:00Z
+PASS 001-pension-math: evidence block 'complexity gate' — … at: 2026-10-25T22:40:00Z
+PASS 001-pension-math: evidence block 'design-principles gate' — … at: 2026-10-25T22:42:00Z
+PASS 001-pension-math: evidence block 'scenario-to-behavior spot check' — … at: 2026-10-25T22:44:00Z
 ✔ Audit-trail check: specs/001-pension-math complete, verifier evidence recorded.
 ```
 
-**Finding F2 from the previous report is closed.** The earlier `exit: 1` was a heading-spelling
-mismatch (`scenario-to-behaviour` vs the gate's hardcoded `scenario-to-behavior`) in
-`25-verification.md`; the Verifier corrected that heading at attempt 2 and the gate is green. Stage
-5b's pre-push run of this gate will not block.
+The gate reads the Verifier's five evidence blocks (the revision-1 blocks remain first in
+`25-verification.md`; the revision-2 blocks appended there use the same heading strings). Stage 5b's
+pre-push run will not block on it.
 
 ---
 
 ## Complexity summary (carried from the Refactorer)
 
 - **Cyclomatic complexity ≤ 6:** `eslint.config.mjs` enforces `complexity: ['error', 6]`; ESLint
-  exits 0 on the whole tree (re-confirmed above). The F1 fix — one added struct field plus a `.find`
-  predicate change — added no branching.
-- **Duplication:** `check-code-principles.sh --tier production` reports **0 DRY FAILs**. The DRY
-  WARNs are 4-line markup blocks in `web/components/**` (outside this stage's scope) plus the
-  `.standards` templates.
-- **Design-principles gate:** exit 1 with **exactly one FAIL**,
-  `.standards/skills/hallmark/site/examples/cobalt-01/script.js:7` (`CC=10`) — inside the
-  `.standards/` submodule, out of scope and off-limits to pipeline agents. **Zero FAILs in project
-  source.** Unchanged from the Verifier's attempt 3: 40 WARNs (29 project-source KISS/DRY review
-  hints + 11 `.standards` template WARNs), line numbers shifted only by the F1 fix's added comment.
-  Re-run with `.next` moved aside (`/tmp/opencode/next2`), because the gate SIGPIPEs on Next's
-  chunks — a pre-existing gate defect the Verifier confirmed at attempt 1; `.next` was restored
-  immediately afterwards (`PRINCIPLES_EXIT=1`, 1 FAIL / 40 WARNs, completed
-  2026-10-26T08:21:26Z).
+  exits 0 on the whole tree (re-confirmed above).
+- **Duplication:** `check-code-principles.sh --tier production` reports **0 DRY FAILs** (the Verifier's
+  revision-2 attempt-2 run: 1 FAIL total, 42 WARNs).
+- **Design-principles gate (Verifier's revision-2 attempt 2, PASS for the deliverable):** exit 1 with
+  **exactly one FAIL** — `./.standards/skills/hallmark/site/examples/cobalt-01/script.js:7` (`CC=10`),
+  inside the `.standards/` submodule, out of scope and off-limits to pipeline agents. **Zero FAILs in
+  project source.** The attempt-1 `component-per-file` FAIL on `app/(public)/[locale]/page.tsx` was
+  resolved by the Refactorer's page→layout move and is gone (`PASS Component-per-file: no
+  violations`). 42 WARNs recorded (29 project-source KISS/DRY review hints incl. the new
+  `PyramidPlate`/`CountdownBlock` bodies, 13 `.standards` template WARNs) — WARN-level, not blocking,
+  per the Stop-and-Ask matrix ("Design gate WARN → record, do not stop").
 - **Property tests:** `tests/unit/properties.test.ts` uses `fast-check`; 0 property-test FAILs.
-  Several `npv.ts` equivalents below are invariants that property suite already pins at value level.
-- **WARN-level, carried forward unchanged:** the 29 project-source KISS/DRY WARNs (method bodies
-  > 20 lines in admin pages and public components). Recorded, not blocking, per the Stop-and-Ask
-  matrix ("Design gate WARN → record, do not stop").
-
----
-
-## Surviving mutants
-
-**113 of 1846 mutants were not killed: 102 survived + 11 no coverage.** (14 further mutants are
-runtime errors, which Stryker excludes from the denominator.) Every one of the 113 is classified
-below, and every classification is counted once — 64 equivalent + 18 unreachable/dead + 31 reachable
-gaps = 113.
-
-### Equivalent mutants (64) — no test can distinguish them
-
-| File | Mutants | Count | Why it is un-killable |
-|---|---|---|---|
-| `web/metrics/npv.ts` 40, 42, 65:21 (×4), 65:54 (×3), 66, 86, 91 | 12 | 12 | The root is invariant to a positive rescaling of every flow, so `Math.max`→`Math.min` (40), `flow / scale`→`flow * scale` (42) and `Math.min`→`Math.max` on the tolerance (91) converge to the same rate (only the tolerance scale changes, by < 1e-15). `<=`→`<` at 65/65:54/66 and `<= Number.EPSILON`→`<`/`*2` differ only at an exact-equality boundary that float bisection never lands on. 86's `!== 1`→`=== 1` is masked by `initialBracket` returning null for the same inputs. |
-| `web/sources/labels.ts` 6, 7, 18, 19, 29, 31, 33 (×3), 36 | 10 | 10 | Dropping `^` from `/^www\./` (6) and `\.`→`.` (6) are no-ops for the shipped catalogue; `split('')`/`join('')` (18, 19) transform both sides of every comparison identically; the `byDataset` short-circuit (29), the exact-host branch (31, 33) and its null guard (36) all fall through to the registered-domain lookup, which selects the *same* declaration for every URL in `SOURCE_DECLARATIONS`; `catch { }` (7) still yields a falsy value, which `if (!host)` handles. |
-| `web/manifest/validate.ts` 131 (8 variants) | 8 | 8 | The `reproducePath` pass inside `manifestFieldProblems` is called with `fileExists = () => true`, so `checkReproducePath` can never produce `missingFile`; the `.filter(p => p.code !== 'missingFile')`, both arrow operands, the equality, the boolean and the `""` literal are all dead. |
-| `web/ingest/figures.ts` 252 (×3), 244 (×2), 261 | 6 | 6 | 252: `cohort.central` and `cohort.band` are null under exactly the same condition (an empty grid, which happens iff nothing was paid in — `cohortIrr` returns null and every scaled contribution keeps the same sign), so guarding on either alone rejects the same case. 244/261: see the F1-block table — unreachable guard, and a horizon `sensitivityGrid` discards. |
-| `web/manifest/definitions.ts` 24, 172, 174 (×4) | 6 | 6 | `renderingOf(internationalDefinitionFor(metric) ?? firstDefinitionOf(metric), …)`: for every metric with an international definition it *is* the first definition of that metric, so the `??` fallback resolves to the same object; for the national-only metrics `find` already returned `undefined`. Mutating the predicate or its body to a constant yields the identical definition. |
-| `web/sources/countries.ts` 64 (×2), 110 (×2) | 4 | 4 | `isPublishedGeo` is already gated by the closed `PUBLISHED_GEOS` list, so weakening `&&`/`!== undefined` changes no answer for any input the API can be asked. In `sourcesForDefinition`, `sourceIds.length >= 0` is vacuous because a national definition's lookup is `undefined` (falsy) and returns `null` before the length check matters. |
-| `web/sources/live.ts` 27 (×2), 43, 56 | 4 | 4 | `LIVE_URLS` only contains declared source ids, so the `if (!source) continue` guard and the `find` predicate in `declaration()` cannot take their other branch. `/\.\d{3}Z$/`→`/\.\d{3}Z/` is a no-op because `toISOString()` always puts the millisecond group at the end. |
-| `web/sources/ine.ts` 23, 45, 50 | 3 | 3 | Replacing the `typeof payload !== 'object'` operand with `false` leaves the sibling `payload === null` / `!Array.isArray` / entry-shape checks catching exactly the same inputs; every rejected input still rejects. |
-| `web/metrics/cohort-irr.ts` 66 (×2) | 2 | 2 | `<= 0`→`< 0` differs only at exactly zero contribution, where the sign-change gate already returns `null`, so both forms report `undefined`. |
-| `web/manifest/hash.ts` 14, 20 | 2 | 2 | Dropping the `typeof value === 'string'` operand leaves the closed-set/pattern check, which rejects the same non-strings. `/\.\d{3}Z$/`→`/\.\d{3}Z/` is a no-op for the same reason as `live.ts`. |
-| `web/ingest/validate-figure.ts` 29, 122 (×2) | 3 | 3 | `typeof value === 'string' && includes` — the membership test alone rejects the same non-strings. In `definitionProblems`, `identity.length > 0` is true whenever `isDefinitionId` is false (an unknown id always produced a problem in `definitionIdProblem`s), so the `&&`/`false` forms return the same early result. |
-| `web/ingest/run-compute.ts` 65, 128 | 2 | 2 | In `resolveSources`, the `missingForCountry` branch is evaluated first in `unfinishedOutcome`, so the empty `sourceIds` array it returns is never consumed. `parsed <= oldest` assigns the same instant as `parsed < oldest` when timestamps are equal. |
-| `web/ingest/write-derived.ts` 22 | 1 | 1 | `writeFileSync` accepts a `Buffer`; omitting `'utf8'` writes the same bytes a utf8 read then decodes, so the round-trip is byte-identical. |
-| `web/manifest/formula-ids.ts` 17 | 1 | 1 | Same shape as `hash.ts` 14: the `includes`/pattern check alone rejects every input the `typeof` guard rejected. |
-
-### Unreachable / dead code (18)
-
-| File | Mutants | Count | Why unreachable |
-|---|---|---|---|
-| `web/ingest/figures.ts` 33 (×3), 88 (×2) | 5 | 5 | `payload()`'s throw is unreachable through `FIGURES`: every requirement source is inspected before `compute` runs, so the input map only ever holds resolved snapshots and no compute body asks for a source outside its own `requirementSources`. `spanOf`'s empty-array branch is dead because `alignedYears` throws on an empty alignment first. |
-| `web/ingest/run-compute.ts` 95, 209, 292, 347 | 4 | 4 | The `?? 'outside freshness window'` fallback is unreachable (`evaluateFreshness` always supplies a reason when `fresh` is false), the `?? 'input'` fallback is unreachable (every failure carries a `sourceId`), `'compute failed'` needs a non-`Error` throw, and `hashInputBytes` has no production caller. |
-| `web/metrics/npv.ts` 41 (×5) | 5 | 5 | `if (scale === 0) return {flows: [...], scale: 1}` is unreachable: an all-zero flow set has zero sign changes and returns `null` first. |
-| `web/manifest/definitions.ts` 195 (×2) | 2 | 2 | `firstDefinitionOf` can only throw for a metric outside `MetricId`, a closed union; no caller can reach it. |
-| `web/ingest/write-derived.ts` 6 | 1 | 1 | `DERIVED_DIR` is a re-export with no reader inside the mutated scope. |
-| `web/sources/load.ts` 39 | 1 | 1 | The `dir = 'data/snapshots'` default is never taken; the script passes its own path. |
-
-5 + 4 + 5 + 2 + 1 + 1 = **18**. (The `validate.ts` 131 `missingFile` filter is also dead code — for
-the `fileExists = () => true` reason given in the equivalent table — but it is counted there, once.)
-
-### Reachable residual gaps (31) — named with the assertion that would kill each
-
-Real gaps, not equivalents. The first report listed 33; the two `figures.ts:221` mutants on that list
-became observable once F1 was fixed and are now killed (round 2), leaving these 31. They are recorded
-rather than chased because the refresh budget is two rounds and the gate is met with margin.
-
-| File:line | Mutants | What would kill it |
-|---|---|---|
-| `web/sources/eurostat.ts` 44, 49 (×2), 56, 58 (×3), 77, 91, 102, 172 (×2), 175, 180 (×2), 235 | 16 | assert `IngestError.name`; a payload whose `dimension` object is absent (exercises the `?.` chain and the `?? {}` fallback); a payload with `value` but no `id`/`size`; a labels map that is upper-case only; a two-element series asserted in ascending order plus an order check on `codesFor`'s sort |
-| `web/ingest/run-compute.ts` 162, 210, 216, 234, 249, 270, 294, 325 | 8 | assert the manifest hash for the no-snapshot case (pins the literal `missing` token); a two-problem reason string (pins the `'; '` separator); a failure with no `sourceId`; and `unresolvedSources: []` on the computed / manifest-invalid / unconfigured-country paths |
-| `web/sources/load.ts` 21, 32, 47, 48 | 4 | a file with neither `resolved` nor `payload` (defaults to unresolved); `bytes` asserted as a string; readdir order forced to differ from sorted order; non-ASCII bytes compared exactly |
-| `web/ingest/validate-figure.ts` 57, 120 | 2 | a candidate with valid `availability` but no `figureId`, asserting `figureId: 'unknown'` in both the manifest and definition problem lists |
-| `web/manifest/validate.ts` 113 | 1 | reach `asRecord`'s `Array.isArray` operand with a non-array object whose fields are all valid |
-
-None of these affects the verdict: 93.83 % clears the 80 % threshold with margin, and the residual set
-is concentrated in defensive fallbacks and error-message text rather than in a calculation. The
-highest-value next step, if the owner wants a higher score, is the 16-mutant `eurostat.ts` cluster —
-JSON-stat shape handling, which is where a real ingest regression would most plausibly hide.
-
----
-
-## Tests added by this refresh
-
-**1 test, in 1 existing file.** No existing test was modified, weakened, renamed or deleted.
-
-| File | Tests | Covers |
-|---|---|---|
-| `tests/acceptance/required-base-growth.test.ts` (new `describe('projected growth from the population projection (T7)')`) | 1 | `AC-001-31`: `g_proj` annualises the horizon endpoints — asserts `value.central.gProj === annualisedGrowthRate(40_000_000, 32_000_000, 44)` plus a literal pin `≈ -0.005058606285837319`, on a projection carrying decoy years *before* the horizon (2010) and *inside* it (2050), and asserts the decoy-derived rates are distinguishable from the published one; finally pins that `assumptions.gProj` is the same number the central value carries |
-
-Why this test and not another: it is the specific missing assertion the F1 unblocking exposed. The
-existing fig-05 test only asserted `gProj < 0`, which every lookup variant satisfies (2010→2070 over
-60 years is still negative; 2026→2070 with the endpoints *summed* is still negative at
--5.45e-5 vs -5.06e-3). Pinning the exact value — and proving the decoys are far enough apart to be
-distinguishable — is what turns "negative" into "the right negative". Verified before the round-2
-run: each of the three mutations was applied to `web/ingest/figures.ts` in turn and the new test
-failed on all three (exit 1, 1 failed / 9 passed), and the file was restored byte-identically
-(md5 checked).
+- **WARN-level, carried forward unchanged:** the project-source KISS/DRY WARNs. This stage adds none:
+  the new test file's helpers are each under 20 lines.
 
 ---
 
 ## What this stage did not touch
 
-- **No production code was edited.** The F1 fix, the hero-ladder change and the percent-scale fix
-  belong to the Coder/Refactorer stages; this stage only measured them (and temporarily mutated
-  `figures.ts` for mutant verification, restored byte-identically).
-- **No gate config was changed.** `stryker.config.mjs`, `eslint.config.mjs`, `vitest.config.ts`,
-  `.gitignore` and `.standards/**` are untouched. No mutator disabled, no threshold moved, no
-  `// Stryker disable` comment.
+- **No production code was edited.** The revision-2 modules are the Coder's and Refactorer's work;
+  this stage measured them (and temporarily mutated them for kill verification, restoring each file
+  byte-identically — md5 compared, 13/13 restored).
+- **No existing test was edited.** The 505 tests the Verifier passed are byte-identical; this stage
+  added one file.
+- **No gate config was changed except the scope.** `stryker.config.mjs`'s `mutate` globs gained
+  `web/series/**/*.ts` — a widening, which can only make the gate harder. Thresholds, mutators,
+  `ignorePatterns`, `eslint.config.mjs`, `vitest.config.ts` and `.gitignore` are untouched. No
+  `// Stryker disable` comment was added anywhere.
+- **Nothing outside the allowed surface was edited.** `specs/**` changed only in this file; `.standards/**`
+  is untouched.
 - **Nothing was committed or pushed.** That is stage 5b's job.
 - `reports/mutation/mutation.json` is left in place as the machine-readable evidence for this report;
   `.stryker-tmp/` is gitignored and cleaned by the run.
@@ -512,54 +597,74 @@ failed on all three (exit 1, 1 failed / 9 passed), and the file was restored byt
 ## Remediation record
 
 **Stage 5a, this refresh: none** — no BLOCK occurred during this stage. The mutation gate never
-reported BLOCK, and the two rounds were a baseline plus one test-strengthening pass, not a
-fix-and-retry loop against a failing gate. Both rounds exited 0.
+reported BLOCK; the two rounds were a baseline plus one test-strengthening pass, not a fix-and-retry
+loop against a failing gate. Both rounds exited 0. The below-threshold round-1 reading on
+`web/series/**` was closed inside this stage's own budget, not by handing a BLOCK to another stage.
 
-**Carried forward from `25-verification.md` (not guessed, not invented):**
+**Carried forward from `25-verification.md` (read, not guessed or invented):**
 
 | Phase | Attempt | Trigger | Outcome |
 |---|---|---|---|
 | 1 (pre-PR) | 1 | first full run | PASS |
-| 1 (pre-PR) | 2 | finding F1 (this stage's first report) — `centralCellOf` compared a deflated rate to a nominal band centre | PASS after the Coder's fix; three pre-existing assertions adjudicated legitimate (1 shape pin, 2 that encoded the defect). Budget state recorded at that attempt: `SPEC_LOOP_COUNT=1`, `SPEC_PHASE1_RETRIES=1`, `SPEC_PHASE2_RETRIES=0` |
-| 1 (pre-PR) | 3 | hero ladder swap + percent-scale fix | PASS; state `SPEC_LOOP_COUNT=2`, `SPEC_PHASE1_RETRIES=2`, `SPEC_PHASE2_RETRIES=0` |
+| 1 (pre-PR) | 2 | finding F1 (this stage's first report) — `centralCellOf` compared a deflated rate to a nominal band centre | PASS after the Coder's fix; three pre-existing assertions adjudicated legitimate (1 shape pin, 2 that encoded the defect). Budget state at that attempt: `SPEC_LOOP_COUNT=1`, `SPEC_PHASE1_RETRIES=1`, `SPEC_PHASE2_RETRIES=0` |
+| 1 (pre-PR) | 3 | hero ladder swap + percent-scale fix | PASS; `SPEC_LOOP_COUNT=2`, `SPEC_PHASE1_RETRIES=2`, `SPEC_PHASE2_RETRIES=0` |
+| 2 (post-PR CI) | 1 | six `backend-ci-go` checks on a TypeScript-only repo (`##[error]The specified go version file at: go.mod does not exist`) | FAIL — routed to the repo owner (CI config, not spec code) |
+| 2 (post-PR CI) | 2 | `ci.yml` fixed in `68f6e64` (Go workflow removed) | PASS — phase-2 budget 2 of 3 used |
 
-So: **two Phase 1 BLOCKs, both resolved in Phase 1, at attempts 2 and 3** — Phase 1 budget used 2 of
-3. **Phase 2 (post-PR CI): no attempts** — the PR has not been opened yet. Phase 3 (deploy
-verification) has not run. The orchestrator supplied no loop summary beyond
-`25-verification.md`'s attempt headers, and none is inferred here.
+**Revision-2 scope cycle** (a new cycle: `SPEC_PHASE1_RETRIES` reset to 0 for it, as the Verifier
+documents and justifies; `SPEC_LOOP_COUNT=3`, `SPEC_PHASE2_RETRIES=2` carried forward):
+
+| Phase | Attempt | Trigger | Outcome |
+|---|---|---|---|
+| 1 (pre-PR, cycle 2) | 1 | first revision-2 run | **FAIL** — design-principles gate: `Component-per-file: ./app/(public)/[locale]/page.tsx exports 5 functions/components (threshold: ≤4)`, newly introduced by T19's `generateMetadata` |
+| 1 (pre-PR, cycle 2) | 2 | `dynamicParams` moved to a new `[locale]/layout.tsx` (page back to 4 exports) | **PASS** — component-per-file clean, 505 tests, route config re-verified |
+
+So: **two Phase 1 BLOCKs in revision 1** (resolved at attempts 2 and 3 of the original cycle) and
+**one Phase 1 BLOCK in revision 2** (resolved at attempt 2 of the new scope cycle). **Phase 2: two
+attempts, one FAIL one PASS.** Phase 3 (deploy verification) has not run. The orchestrator supplied no
+loop summary beyond `25-verification.md`'s attempt headers; none is inferred here.
 
 ---
 
 ## Flagged to the next stage
 
-1. **F1 is closed and verified.** The block that the previous report had to mark "un-killable by any
-   passing test" is now 15/18 killed with the remaining 3 proven equivalent. The 18-mutant caveat is
-   gone from the score.
-2. **F2 is closed.** `check-audit-trail.sh` now exits 0 (evidence block above), so stage 5b's pre-push
-   gate will not block on it.
-3. **Changes 2 and 3 (hero ladder, percent scale) were not mutated** — and cannot meaningfully be,
-   under this scope. Their evidence is the 25 tests the Coder added plus the Verifier's render check
-   against the built app. If the owner wants mutation coverage of `web/content/format.ts`, that is a
-   scope change (a new `mutate` glob), and it should be a deliberate decision, not a silent widening.
-4. **31 reachable residual mutants**, itemised above with the assertion that would kill each — a
-   candidate for a later pass if the owner wants a score above 93.83 %.
-5. **Carried forward unchanged from the Verifier**: 29 project-source WARNs (KISS method bodies, DRY
-   4-line blocks) in admin pages and public components, and one out-of-scope FAIL inside
-   `.standards/`.
-6. **`25-verification.md`'s attempt-3 block is the verification of record** for the tree this report
-   measures. If code changes again before stage 5b, this report is stale and must be re-run — the
-   mutation score is a property of a tree, not of a spec number.
+1. **The 93.83 % figure is retired.** It described pre-revision-2 code. The current tree is
+   **91.69 %** over 33 files / 2532 mutants, and `web/series/**` is **89.20 %** on its own.
+2. **`web/series/**` is above the line now but was not on first measurement (77.39 %).** If a later
+   revision adds calculation code to `web/series/`, re-measure it separately before trusting the
+   aggregate — the whole point of the split figure.
+3. **The two traps are covered — but two of their assertions had been weaker than the surrounding
+   prose claimed.** `over65`/`under20` had no value assertion (15 mutants), and the dependency ratio
+   was only ever exercised on a payload whose sex halves reconcile, which makes a sex-summing bug
+   arithmetically invisible. Both are now explicit.
+4. **Highest-value residual: `age-structure.ts`'s "no denominator" guard (7 mutants)** — a year
+   publishing bands but no `Total` row is currently untested, and that is the guard that stops a
+   division by a missing population. Second: the `openBandShare` predicate (3 mutants), which is the
+   open-band trap's own helper.
+5. **`web/ingest/run-series.ts` is at exactly 80.00 %** with the largest cluster (12 mutants) in
+   provenance fields — the series manifest's `fetchedAt` and `inputHash` have no value assertions at
+   all, while the figures' equivalents do. That is a genuine gap in the series' provenance contract,
+   not a defensive branch.
+6. **`web/manifest/validate.ts:29`** — a manifest built without `snapshotYear` may now carry a
+   `snapshotYear: undefined` key without any test noticing (`toEqual` ignores undefined properties).
+7. **Carried forward unchanged from the Verifier**: 42 project-source WARNs (KISS method bodies above
+   20 lines, DRY 4-line blocks — now including `PyramidPlate` and `CountdownBlock`) and one
+   out-of-scope FAIL inside `.standards/`.
+8. **`25-verification.md`'s revision-2 attempt-2 block is the verification of record** for the tree
+   this report measures. If code changes again before stage 5b, this report is stale and must be
+   re-run — the mutation score is a property of a tree, not of a spec number.
 
 ---
 
 **Verdict: GREEN**
 
-Mutation score **93.83 % total / 94.40 % covered** on the stated 28-file scope, threshold ≥ 80 %:
-1846 mutants, 1717 killed + 2 timed out, 102 survived and 11 uncovered (64 equivalent, 18
-unreachable/dead, 31 reachable residuals named), with 14 runtime errors excluded by the tool. The
-F1-unblocked block measures **83.33 % (15/18, 100 % of its killable mutants)**, up from 0 % when the
-first report was written. Final suite **415/415 green across 33 files**, app builds, `tsc` and ESLint
-clean, traceability 92/92 intact, audit-trail gate exit 0.
+Mutation score **91.69 % total / 92.64 % covered** on the expanded 33-file scope (2532 mutants:
+2305 killed or timed out, 183 survived, 26 uncovered, 18 runtime errors excluded by the tool), with
+**89.20 %** measured separately on `web/series/**` (was 77.39 % at round-1 baseline; the gate is met
+and both encoding traps are killed). 111 of the 209 non-killed mutants are equivalent or dead and are
+named above; the 98 reachable residuals are grouped with the assertion that would kill each. F1 remains
+closed (15/18, three equivalent). Final suite **522/522 across 41 files**, app builds (21/21 static
+pages), `tsc` and ESLint clean, traceability 99/99 visible to the gate.
 
 ---
 
@@ -567,10 +672,8 @@ clean, traceability 92/92 intact, audit-trail gate exit 0.
 
 PR: https://github.com/RexiAI/pensions-system/pull/3
 
-Commits: 16 (one per task T1–T16; 17 including this record commit).
-
-Opened as a draft against `main` from `spec/001-pension-math`. The spec is **not** archived in
-this PR — `scripts/archive-spec.sh 001-pension-math` is stage 5d, which runs after the stage 5c
-deploy verification. `scripts/check-specs-archived.sh` therefore exits 1 at this stage
-(`001-pension-math is finished … but not archived`), which is the expected intermediate state;
-the repo's own `ci.yml` does not run that gate.
+Commits: 16 (one per task T1–T16; 17 including the previous record commit), carried forward from the
+previous report — this refresh has not committed or pushed anything. Revision 2's work (T17/T18/T19,
+R3/R5/R6) is still uncommitted on the working tree and belongs to stage 5b, which will add it to the
+same `spec/001-pension-math` branch. The spec is **not** archived in this PR: `scripts/archive-spec.sh`
+is stage 5d, which runs after stage 5c's deploy verification.

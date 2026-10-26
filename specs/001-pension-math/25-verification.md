@@ -977,3 +977,638 @@ Commit `68f6e64` = `ci: remove Go backend workflow from a TypeScript-only repo`.
 ### Outcome
 
 **CI Verdict: PASS.** Every check at head `68f6e64` is terminal and green (or a non-blocking skip). The round-1 failure — six `backend-ci-go` jobs that could never pass on a TypeScript-only repo, plus the concurrency collision — is gone, confirmed both by the absent checks and by the ci.yml diff. No FAIL, no BLOCK, nothing to route: the fix is complete and correct. Phase-2 budget stands at 2 of 3 used (round 1 FAIL, round 2 PASS); no third round is needed.
+
+---
+
+# Revision 2 verification (new scope cycle — T17, T18, T19, R3, R5, R6)
+
+## Scope-cycle counter reasoning
+
+This is a **new scope cycle**, not a re-verification of a previously-failed gate. T17
+(inverted population pyramid), T18 (projected threshold-crossing countdown), T19
+(Spain-only scope mark), and the R3/R5/R6 rendering invariants were added at
+product-owner request after revision 1 had already run its phase-1 and phase-2 loops to
+green. The Phase 1 counter therefore **resets to 0** for this cycle: revision 1's
+phase-1 budget (3 attempts) was consumed by revision 1's own gate-failure loops, and a
+new scope cycle is a new budget, not a continuation of the old counter. `SPEC_PHASE1_RETRIES=0`
+below records this reset explicitly so the audit trail explains it as a scope-cycle reset
+rather than a counter tamper. (`SPEC_LOOP_COUNT=3`, `SPEC_PHASE2_RETRIES=2` carry forward.)
+
+## Summary of checks
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Scenario traceability | PASS (gate exit 0) — with a known limitation disclosed below |
+| 2 | Full test suite | PASS — 505 tests / 40 files, exit 0 |
+| 3 | Complexity gate (`eslint`) | PASS — exit 0 |
+| 3.5 | Design-principles gate | **FAIL** — exit 1: one NEW in-scope FAIL (component-per-file) + one unchanged out-of-scope FAIL (`.standards/`) |
+| 4 | Scenario-to-behavior spot check | PASS |
+| — | No unaccounted behavior | No finding |
+
+## Evidence: scenario traceability
+
+command: .standards/scripts/check-scenario-traceability.sh --json
+exit: 0
+at: 2026-10-26T13:08:29Z
+
+Scenario IDs found: 99 live, 0 archived
+The gate emits exactly 99 `PASS` lines (AC-001-01 … AC-001-99) and zero `FAIL` lines. Representative excerpt of the JSON transcript:
+
+```
+{
+  "checks": [1, 2],
+  "passes": ["AC-001-01 — traced to a test", "AC-001-02 — traced to a test", "…", "AC-001-98 — traced to a test", "AC-001-99 — traced to a test"],
+  "fails": []
+}
+```
+
+**Known limitation — confirmed and disclosed, do not read this exit 0 as 107/107.**
+The gate's scenario-heading regex and reference regex are both `AC-[0-9]{3}-[0-9]{2}`
+(two-digit suffix). The 8 scenarios `AC-001-100` … `AC-001-107` have a three-digit
+suffix and are therefore **invisible** to both checks: the gate mechanically verifies
+99 of 107 and would not catch a missing test (check 1) or a dangling reference (check 2)
+for the rest. I confirmed by grep that all 8 are actually covered, in both directions:
+
+- Scenario headings exist for all 8 (`grep '^## AC-001-10[0-7]'` = 8 matches across
+  AC-001-countdown.md, AC-001-reproduce.md, AC-001-scope-mark.md, AC-001-projection-colour.md,
+  AC-001-first-viewport.md).
+- A test cites each of the 8: AC-001-100/-101 (tests/acceptance/countdown.test.ts),
+  AC-001-102/-103/-104 (tests/acceptance/scope-mark.test.ts), AC-001-105
+  (tests/acceptance/reproduce.test.ts), AC-001-106 (tests/acceptance/projection-colour.test.ts),
+  AC-001-107 (tests/acceptance/first-viewport.test.ts).
+
+So the true state is 107/107 scenarios traced and cited; the gate's exit 0 only proves
+99 of them. This is a gap in the gate's regex, not in the deliverable, and is flagged to
+the Architect as an out-of-scope tooling observation.
+
+## Evidence: full test suite
+
+command: npx vitest run
+exit: 0
+at: 2026-10-26T13:08:29Z
+
+```
+ RUN  v5.0.5 /home/dbueno/projects/pensions-system
+
+ Test Files  40 passed (40)
+      Tests  505 passed (505)
+   Start at 13:56:08
+   Duration  3.09s (tests 48%, import 37%, transform 13%, worker 1%)
+```
+
+Supplementary build/type/lint gates, each exit 0:
+
+```
+command: npx tsc --noEmit          exit: 0
+command: npx eslint .              exit: 0
+command: npm run build             exit: 0   (Next.js 16.4.3 static export: /, /en, /fr, /de, /it prerendered)
+command: npm run verify:derived    exit: 0   → "derived figures verified: 7 (2 computed, 5 unavailable)" / "derived series verified: 2"
+command: npx tsx scripts/check-client-secrets.ts   exit: 0 → "no admin secret configured in this environment; .next/static not grepped for values"
+command: npx tsx scripts/check-content-scope.ts    exit: 0 → "country scope gate: clean (5 locales)"
+command: npx tsx scripts/check-public-vocabulary.ts exit: 0 → "public vocabulary gate: clean (5 locales)"
+```
+
+## Evidence: complexity gate
+
+command: npx eslint .
+exit: 0
+at: 2026-10-26T13:08:29Z
+
+ESLint (v10.13.0, typescript-eslint, `complexity: [error, 6]` in eslint.config.mjs) reports
+no findings and exits 0. `eslint` is the authoritative complexity gate for this TypeScript
+repo (docs/SPEC_PIPELINE.md §Tooling by language: "Complexity gate — ESLint `complexity` (≤6)").
+No `golangci-lint`/`pmd` applies (no Go/Java source).
+
+## Evidence: design-principles gate
+
+command: .standards/scripts/check-code-principles.sh . --tier production
+exit: 1
+at: 2026-10-26T13:08:29Z
+
+`.next/` was moved aside before the run (per the task), then restored. The gate scanned the
+repo and reported **2 FAIL(s), 42 WARN(s)**. Every FAIL and WARN line, verbatim:
+
+FAIL Cyclomatic complexity >6 (node): ./.standards/skills/hallmark/site/examples/cobalt-01/script.js:7:90::CC=10
+FAIL Component-per-file: ./app/(public)/[locale]/page.tsx exports 5 functions/components (threshold: ≤4) — split file
+WARN Method body >20 lines (go): ./.standards/ci/templates/go-saga-lint.go:45:71:main:KISS_LINES=28
+WARN Method body >20 lines (go): ./.standards/ci/templates/go-saga-lint.go:101:124:checkCompensationPairs:KISS_LINES=25
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/proposals/[id]/page.tsx:48:67:ActionForms:KISS_LINES=21
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/proposals/[id]/page.tsx:69:91:ProposalPage:KISS_LINES=23
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/revisions/[id]/page.tsx:35:67:ReviewTable:KISS_LINES=26
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/refresh/[runId]/page.tsx:7:34:RefreshPage:KISS_LINES=28
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/page.tsx:57:82:PendingTable:KISS_LINES=24
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/page.tsx:84:123:PanelHome:KISS_LINES=39
+WARN Method body >20 lines (node): ./app/(admin)/admin/login/page.tsx:5:30:LoginPage:KISS_LINES=26
+WARN Method body >20 lines (node): ./.standards/skills/hallmark/site/examples/cobalt-01/script.js:7:90::KISS_LINES=41
+WARN Method body >20 lines (node): ./.standards/skills/hallmark/site/examples/cobalt-01/script.js:93:225::KISS_LINES=43
+WARN Method body >20 lines (node): ./web/components/DataTable.tsx:32:57:DataTable:KISS_LINES=27
+WARN Method body >20 lines (node): ./web/components/series/CountdownBlock.tsx:20:69:CountdownBlock:KISS_LINES=43
+WARN Method body >20 lines (node): ./web/components/series/PyramidPlate.tsx:72:106:Panel:KISS_LINES=35
+WARN Method body >20 lines (node): ./web/components/series/PyramidPlate.tsx:181:229:PyramidPlate:KISS_LINES=47
+WARN Method body >20 lines (node): ./web/components/CitationChip.tsx:12:38:CitationChip:KISS_LINES=28
+WARN Method body >20 lines (node): ./web/components/metrics/PlateBody.tsx:9:28:Chart:KISS_LINES=21
+WARN Method body >20 lines (node): ./web/components/metrics/PlateBody.tsx:41:62:ChartWithTable:KISS_LINES=23
+WARN Method body >20 lines (node): ./web/components/public/SiteFooter.tsx:27:59:SiteFooter:KISS_LINES=34
+WARN Method body >20 lines (node): ./web/components/public/ScopeMark.tsx:27:52:ScopeMark:KISS_LINES=24
+WARN Method body >20 lines (node): ./web/components/public/Hero.tsx:36:60:SubjectFacts:KISS_LINES=26
+WARN Method body >20 lines (node): ./web/components/public/Hero.tsx:138:168:PropositionHero:KISS_LINES=30
+WARN Method body >20 lines (node): ./web/components/public/ReproduceBlock.tsx:32:77:ReproduceBlock:KISS_LINES=46
+WARN Method body >20 lines (node): ./web/components/public/AssumptionsLedger.tsx:43:83:AssumptionsLedger:KISS_LINES=41
+WARN Method body >20 lines (node): ./web/components/public/ThemeGroup.tsx:13:36:ThemeGroup:KISS_LINES=21
+WARN Method body >20 lines (node): ./web/components/public/SiteHeader.tsx:62:101:IndexPanel:KISS_LINES=41
+WARN Method body >20 lines (node): ./web/components/public/SiteHeader.tsx:108:134:SiteHeader:KISS_LINES=28
+WARN Method body >20 lines (node): ./web/components/registers/DisputeSection.tsx:17:42:DisputeSection:KISS_LINES=25
+WARN Method body >20 lines (node): ./web/components/registers/ThesisSection.tsx:19:43:ThesisSection:KISS_LINES=22
+WARN Method body >20 lines (node): ./web/components/FigureStatusRow.tsx:30:57:FigureStatusRow:KISS_LINES=26
+WARN Possible duplication (5x identical 4-line block, first at ./web/components/ProvenanceStrip.tsx:49): </li> /))} /</ul> /</a>
+WARN Possible duplication (3x identical 4-line block, first at ./.standards/ci/templates/eslint-saga-rules/saga-compensation.js:115): type: "problem", /docs: { /description: /meta: {
+WARN Possible duplication (3x identical 4-line block, first at ./.standards/ci/templates/eslint-saga-rules/saga-compensation.js:132): schema: [], /}, /create(context) { /},
+WARN Possible duplication (3x identical 4-line block, first at ./web/components/metrics/views.ts:153): ...headValue, /summary: summaryOf(input.content, value.points.length), /readout: [ /return {
+WARN Possible duplication (2x identical 4-line block, first at ./web/ingest/run-compute.ts:96): }, /}; /return { kind: 'ok', snapshot }; /detail: freshness.reason ?? 'outside freshness window',
+WARN Possible duplication (2x identical 4-line block, first at ./.standards/ci/templates/eslint-saga-rules/saga-compensation.js:133): }, /create(context) { /return { /schema: [],
+WARN Possible duplication (2x identical 4-line block, first at ./web/components/public/SiteHeader.tsx:120): {content.t(anchor.label)} /</a> /))} /<a key={anchor.href} href={anchor.href}>
+WARN Possible duplication (2x identical 4-line block, first at ./web/components/public/Hero.tsx:143): {content.t('hero.statement')} /</h1> /<ScopeMark content={content} countries={countries ?? [{ geo: content.country.code, name: content.country.name, href: '#' }]} /> /<h1 className="hero__title" id="hero-title">
+WARN Possible duplication (2x identical 4-line block, first at ./web/derived/series-store.ts:35): try { /files = readdirSync(dir).filter((file) => file.endsWith('.json')); /} catch { /let files: string[];
+WARN Possible duplication (2x identical 4-line block, first at ./web/sources/types.ts:76): sourceClass: 'machine', /publisherUrl: 'https: /}, /datasetCode: 'proj_23np',
+WARN Empty method body (java): ./.standards/ci/templates/archunit/OutboxArchRules.java:30
+WARN Empty method body (java): ./.standards/ci/templates/archunit/SagaArchRules.java:33
+PASS Property tests (node): fast-check in use
+✘ Design-principles check: 2 FAIL(s), 42 WARN(s).
+
+**Reading of the FAILs.** One FAIL is the unchanged out-of-scope finding in the
+`.standards/` submodule (the `hallmark` example `script.js`, CC=10) — present since
+revision 1, not part of this child repo's deliverable. The second FAIL is **new and
+in-scope**: `app/(public)/[locale]/page.tsx` now exports 5 functions/constants
+(`export const dynamic`, `export const dynamicParams`, `generateStaticParams`,
+`generateMetadata`, and the default `LocalePage`), crossing the component-per-file
+`>4 exported functions` threshold. This was introduced in revision 2 by the T19
+scope-mark work adding `generateMetadata` to the `[locale]` route (the `<title>`/`og:title`
+scope suffix requires it); before that the file had 4 exports and the gate was clean
+(revision-1 reports record "component-per-file: 0 FAILs"). The `export const dynamic` and
+`export const dynamicParams` lines are Next.js route-segment config constants, not
+functions, but the gate's heuristic (line 1136 of `check-code-principles.sh`) counts every
+`export const X =` pattern, and `component-per-file` is in the gate's blocking set — so
+the script's exit 1 is the authority. This is a pipeline-stop finding, not a WARN.
+
+## Evidence: scenario-to-behavior spot check
+
+command: manual — 2 acceptance scenarios read against their test assertions
+exit: 0
+at: 2026-10-26T13:08:29Z
+
+Two scenarios picked from the new revision-2 set; each test's assertions were read and
+compared to the scenario's Given/When/Then (not just name-matched).
+
+1. **AC-001-100** (`20-acceptance/AC-001-countdown.md`): "the printed range is the minimum
+   and maximum crossing year over the variants that cross inside the horizon; a variant
+   that never crosses is excluded and does not fail the block."
+   → `tests/acceptance/countdown.test.ts` asserts `byVariant === { BSL:2042, HMIGR:2043,
+   LFRT:2041, LMIGR:2040, LMRT:2041, NMIGR:2039 }`, asserts `range === { min:2039, max:2043 }`
+   and the rendered range string, and asserts a never-crossing variant yields `thresholdYear:
+   null`, `range: null`, and no numeral. Assertions match the scenario; they are behavioral
+   (values and rendered output), not name-only.
+
+2. **AC-001-102** (`20-acceptance/AC-001-scope-mark.md`): "every occurrence is derived from
+   `country.ES.name` and `country.ES.scopeClause` … no component hardcodes a country name
+   … `Ámbito` never renders an empty cell."
+   → `tests/acceptance/scope-mark.test.ts` asserts the first viewport renders
+   `content.country.name` + `scopeClause` + `data-scope="text"`; the headline names the
+   country in all five locales; every figure strip renders `Ámbito` from the record with no
+   empty `<dd>`; the `<caption>`, `<title>`/`og:title`, and share card all derive the name
+   from the record (title/card carry no digit); and a source-scan test asserts no component
+   hardcodes a country-name literal. Assertions match the scenario.
+
+Both spot-checked tests pass in the suite and assert the scenario's actual Then-clauses.
+
+## Additional independent checks (the ones that matter)
+
+### R6 fix is real — Reproducir section advertises exactly two figures, no fig-03…fig-07
+
+Parsed the live-rendered `/` (es). The `<section class="reproduce" id="reproducir">` contains
+**exactly** these command/hash rows, and nothing for fig-03 … fig-07:
+
+- `npx tsx scripts/compute.ts --figure fig-01` (hash `561a7da…`)
+- `npx tsx scripts/compute.ts --figure fig-02` (hash `31c2d5b…`)
+- `npx tsx scripts/compute.ts --series countdown` (hash `9b4e815…`)
+- `npx tsx scripts/compute.ts --series pyramid` (hash `c1fd3c0…`)
+
+A whole-page grep for `--figure fig-` / `--series ` returns only `fig-01`, `fig-02`,
+`countdown`, `pyramid` (2 occurrences each — static HTML + RSC flight). No `--figure fig-03`
+… `fig-07`, no hash for them. The `fig-03`…`fig-07` strings that do appear in the page are
+the D2 figure-ladder rows (`<section class="figure-row" id="fig-03" data-state="unavailable">`
+etc.), which is correct behaviour, not a reproduction advertisement. The "omitted" line reads
+"5 de las 7 figuras no tienen valor calculado … no tienen huella ni comando de reproducción"
+and carries no id/hash. R6's measured defect is gone.
+
+### Data honesty — my own arithmetic from the committed snapshots
+
+I re-decoded the Eurostat JSON-stat snapshots with an independent Python decoder (correctly
+sorting each `category.index` by its position value) and recomputed both series. The actual
+production code (`computeCountdown`/`computePyramid`, run offline against the same snapshots)
+agrees with my arithmetic and with the committed `data/derived/series/*.json`:
+
+- **Countdown crossing year**: old-age dependency ratio = 65+ ÷ 15–64 × 100, threshold 50.
+  BSL = **2042**; variants {BSL:2042, HMIGR:2043, LFRT:2041, LMIGR:2040, LMRT:2041,
+  NMIGR:2039}; **range 2039–2043**. 2025 back-cast: projected **31.91** vs observed **31.22**
+  (difference 0.69). All match the committed `countdown.json`.
+- **Pyramid 65+ share of total** (sum of bands ≥65 ÷ year total × 100): 1995 = **14.98**,
+  2025 = **20.72**, 2050 = **32.68** (populations 39,639,726 / 49,128,297 / 50,460,161).
+  All match the committed `pyramid.json` `readout.over65`.
+
+Disclosure on the task's claimed triple "31.91 / 20.72 / 32.68 (as percentages of total)":
+**31.91 is not a 65+ share of total** — it is the old-age **dependency ratio** (65+ per 100
+aged 15–64), the countdown's 2025 back-cast. The three 65+-shares-of-total are 14.98 / 20.72 /
+32.68. This is a labelling imprecision in the claim, not a defect: the code and committed data
+are internally consistent and I reproduce them exactly.
+
+### Trap assertions exist and would fail on a hardcoded mapping or a double-count
+
+- `Y_OPEN` vs `Y_GE100`: `tests/acceptance/population-pyramid.test.ts` asserts
+  `bandOfAgeLabel('Open-ended age class')` and `bandOfAgeLabel('100 years or over')` both map
+  to `OPEN_BAND` (100), and — decisively — renames the `Y_OPEN` code to `ZZ_OPEN_99` in a
+  cloned payload and asserts the open band still resolves by label (so a hardcoded code would
+  fail this test).
+- `sex=T` double-count: the same file constructs a payload whose open band total (3) ≠ the
+  sum of its two sexes (2) and asserts `readAgeCounts` throws `/double-count/`; plus AC-001-94
+  asserts `male + female === total` per band/year and that band shares sum to 100 ± 0.1.
+
+### Thesis hygiene
+
+- The countdown copy is instrument vocabulary. The live Spanish block reads: eyebrow
+  "Proyección central · Eurostat", "16 años", "2042 año del umbral", definition "Años hasta que
+  la población de 65 y más años alcance 50 por cada 100 personas de 15 a 64 años.",
+  "variantes 2039–2043", and the back-cast "La proyección da 31,91 para 2025 y la observación
+  del mismo año da 31,22." — no opinion adjective, no conclusion. `tests/acceptance/
+  countdown.test.ts` enforces the copy bans (`faltan, quedan, solo, apenas, cuenta atrás,
+  bomba, explota`, `!`, second-person, word-`ya`) across all five locales, and that no operator
+  variant code (`BSL`/`HMIGR`) leaks.
+- The thesis register still cannot carry hue: `tests/acceptance/projection-colour.test.ts`
+  (AC-001-106) pins the hue token `--data-projection` to projected values only, asserts sex is
+  never hue-encoded, and the thesis section renders `data-register="thesis"` as prose with no
+  projection hue.
+
+### Scope marking is data-driven
+
+- `country.name` / `scopeClause` come from the content model (`web/content/data/ES/{es,en,fr,
+  de,it}.json` each carry `countryName` and `scopeClause`; `web/content/registry.ts` resolves
+  them into `CountryRecord { code, name, scopeClause }`). `ScopeMark` reads `content.country.name`
+  / `content.country.scopeClause`.
+- No component hardcodes a country name: `grep -rn "España"|"Spain"` over `web/components/`,
+  `web/sources/`, `web/content/` (excluding the locale data files) returns nothing.
+- Live render: `<h1>` = "La aritmética de las pensiones en **España**" (es) / "The arithmetic
+  of pensions in **Spain**" (en); `Ámbito` present in every provenance strip.
+
+### Live render (built app, `next start`)
+
+- `/` and `/en` → HTTP 200; `/admin` → HTTP 503 with the fail-closed body "CONFIG. Administración
+  no configurada…", no form.
+- Countdown: `16` / `2042` / `2039–2043` present in both `es` and `en`, with definition, source
+  ("Eurostat, proyecciones demográficas 2024 · Dato de 2026") and the back-cast disclosure.
+- Pyramid: 3 `demography__svg` panels, 21 `scope="row"` table rows per year, `<table>`+`<caption>`
+  emitted, `100+` label present in every panel. The 100+ band's share is 0.00 for 1995 (the
+  underlying count is non-zero but below two-decimal precision — the test documents this
+  explicitly) and 0.16 for 2050, so the band is present and non-zero where the data is.
+
+## No unaccounted behavior
+
+Skimmed the revision-2 diff (new/changed files) for logic that does not trace to T17/T18/T19/
+R3/R5/R6. Everything maps: the new `data/snapshots/eurostat-demo-pjan.json`,
+`eurostat-proj-23np.json`, `eurostat-proj-23np-ratio.json` are T17/T18 inputs;
+`data/derived/series/{pyramid,countdown}.json` are outputs; `web/series/*`, `web/ingest/series*`,
+`web/derived/series-store.ts` are the series compute/ingest path; `web/components/series/*` is the
+render; `web/components/public/ScopeMark.tsx` + `web/seo/metadata.ts` + `web/seo/share-card.tsx`
+are T19; the `web/manifest/*` changes are the new `formulaId`/`definitionId` closed-set entries;
+the new `tests/acceptance/*` and `tests/fixtures/series.ts` are the new scenario tests. No
+finding.
+
+## Audit-trail gate
+
+command: .standards/scripts/check-audit-trail.sh 001-pension-math
+exit: 0
+
+All folder artefacts present (10-tasks.md, 20-acceptance/ with `## AC-NNN-NN` headings,
+25-verification.md, 30-report.md, 15-design.md, 40-deploy.md) and all five contract evidence
+blocks resolve (the gate reads the revision-1 blocks, which remain first in the file; the
+revision-2 blocks appended here use the same heading strings for human audit).
+
+## Overall verdict
+
+**FAIL.** The design-principles gate ran and produced a project-source finding that stops the
+pipeline: `Component-per-file: ./app/(public)/[locale]/page.tsx exports 5 functions/components
+(threshold: ≤4)`, newly introduced by revision 2's T19 `generateMetadata` addition. The
+Refactorer's framing "the one out-of-scope FAIL is in `.standards/`" is stale for this cycle —
+there are now two FAILs, one of which is in-scope project code. Per the Stop-and-Ask matrix
+("a design gate blocks → fix the code, never the threshold"), this routes to the Refactorer
+(structural), not to the tooling. Everything else I checked — traceability (107/107, with the
+gate's 99-of-107 regex limitation), the 505-test suite, `tsc`/`eslint`/`build`/`verify:derived`,
+the three content gates, the R6 reproduction fix, the recomputed countdown/pyramid arithmetic,
+the trap assertions, thesis hygiene, scope-mark data derivation, and the live render — is green.
+
+This is the phase-1 gate of the new scope cycle; its counter is 0 (first run), not exhausted.
+
+---
+
+# Revision 2 verification — attempt 2
+
+**Re-verification attempt:** attempt 2, phase 1 (revision-2 scope cycle; this is the first
+phase-1 remediation round for this cycle).
+**Budget state:** `SPEC_LOOP_COUNT=3`, `SPEC_PHASE1_RETRIES=1`, `SPEC_PHASE2_RETRIES=2`.
+**Trigger:** the revision-2 attempt-1 FAIL — `Component-per-file:
+./app/(public)/[locale]/page.tsx exports 5 functions/components (threshold: ≤4)`. The
+Refactorer moved `export const dynamicParams = false` out of the `[locale]` page into a new
+`app/(public)/[locale]/layout.tsx` (with a pass-through `LocaleLayout` that returns
+`children` and contributes no markup), leaving the page with 4 exports
+(`dynamic`, `generateStaticParams`, `generateMetadata`, `LocalePage`).
+
+This attempt re-runs only the affected gate (design-principles, the gate that FAILed) plus
+the full suite / typecheck / lint / build / derived-verification / traceability that the
+structural move could touch, and — because the move crosses the page/layout boundary — an
+independent rendering-mode check that `dynamicParams: false` and `dynamic: force-static`
+still combine to the same static-prerender policy. Did **not** read `00-informal.md`.
+
+Prior-stage claims under test this round:
+- Refactorer: page now exports 4 (component-per-file threshold ≤4); the one FAIL the
+  verifier blocked on is gone.
+- Refactorer: effective route config unchanged (`dynamicParams: false`, `dynamic: force-static`).
+- Refactorer: build route table and `prerender-manifest` unchanged; locale routes still SSG.
+- Refactorer: 505 tests pass; no test edited.
+
+---
+
+## Evidence: scenario traceability
+
+command: .standards/scripts/check-scenario-traceability.sh --json
+exit: 0
+at: 2026-10-26T13:23:45Z
+
+```
+{ "checks": [1, 2],
+  "passes": ["AC-001-01 — traced to a test", "AC-001-02 — traced to a test", …, "AC-001-98 — traced to a test", "AC-001-99 — traced to a test"],
+  "fails": [] }
+```
+
+**Verdict: PASS (with the same known limitation, restated — do not read this exit 0 as 107/107).**
+The gate emits exactly 99 `PASS` lines (`AC-001-01` … `AC-001-99`) and zero `FAIL` lines. Its
+scenario-heading and reference regexes are both `AC-[0-9]{3}-[0-9]{2}` (two-digit suffix), so
+the 8 three-digit-suffix scenarios `AC-001-100` … `AC-001-107` are invisible to both checks —
+the gate mechanically verifies 99 of 107. I re-confirmed by grep that all 107 scenario headings
+exist (`grep -rhoE '^## AC-001-[0-9]+' 20-acceptance/ | sort -u | wc -l` = 107) and that the 8
+invisible ones are cited by a test (AC-001-100/-101 → countdown.test.ts, 102/-103/-104 →
+scope-mark.test.ts, 105 → reproduce.test.ts, 106 → projection-colour.test.ts, 107 →
+first-viewport.test.ts), so the true state is 107/107 traced; the gate's exit 0 only proves 99
+of them. This is the gate's regex gap, not a deliverable gap — unchanged from attempt 1 and
+still flagged to the Architect as an out-of-scope tooling observation.
+
+---
+
+## Evidence: full test suite
+
+command: npx vitest run
+exit: 0
+at: 2026-10-26T13:22:34Z
+
+```
+ RUN  v5.0.5 /home/dbueno/projects/pensions-system
+
+ Test Files  40 passed (40)
+      Tests  505 passed (505)
+   Start at  14:22:34
+   Duration  3.04s (tests 47%, import 37%, transform 14%, worker 1%)
+```
+
+**Verdict: PASS.** Real count **505 tests / 40 files**, exit 0, none skipped or disabled —
+identical to attempt 1. The structural move (page → layout) changed no test and no behaviour;
+the Refactorer's "505 tests pass, no test edited" is reproduced. Supplementary gates, each
+exit 0: `npx tsc --noEmit` (0), `npx eslint .` (0), `npm run build` (0 — 21/21 static pages),
+`npm run verify:derived` (0 — `derived figures verified: 7 (2 computed, 5 unavailable)` /
+`derived series verified: 2`), `npx tsx scripts/check-content-scope.ts` (0 — clean, 5 locales),
+`npx tsx scripts/check-public-vocabulary.ts` (0 — clean, 5 locales).
+
+---
+
+## Evidence: complexity gate
+
+command: npx eslint .
+exit: 0
+at: 2026-10-26T13:23:10Z
+
+```
+(no output — clean)
+```
+
+**Verdict: PASS.** ESLint (v10.13.0, `complexity: [error, 6]` in `eslint.config.mjs`) exits 0
+with zero findings across the changed tree (the new `layout.tsx` and the trimmed `page.tsx`
+included). The move introduced no branching and no complexity violation.
+
+---
+
+## Evidence: design-principles gate
+
+command: .standards/scripts/check-code-principles.sh --tier production
+exit: 1
+at: 2026-10-26T13:21:10Z
+
+`.next/` was moved aside before the run (per the task; the gate SIGPIPEs on Next chunks, a
+pre-existing condition confirmed in attempt 1) and restored/rebuild afterward. The gate
+reported **1 FAIL(s), 42 WARN(s)**. The component-per-file finding I blocked on is **gone**.
+Every FAIL / WARN line, verbatim (ANSI stripped):
+
+```
+PASS Complexity/KISS (java): no violations found
+WARN Method body >20 lines (go): ./.standards/ci/templates/go-saga-lint.go:45:71:main:KISS_LINES=28
+WARN Method body >20 lines (go): ./.standards/ci/templates/go-saga-lint.go:101:124:checkCompensationPairs:KISS_LINES=25
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/proposals/[id]/page.tsx:48:67:ActionForms:KISS_LINES=21
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/proposals/[id]/page.tsx:69:91:ProposalPage:KISS_LINES=23
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/revisions/[id]/page.tsx:35:67:ReviewTable:KISS_LINES=26
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/refresh/[runId]/page.tsx:7:34:RefreshPage:KISS_LINES=28
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/page.tsx:57:82:PendingTable:KISS_LINES=24
+WARN Method body >20 lines (node): ./app/(admin)/admin/(authed)/page.tsx:84:123:PanelHome:KISS_LINES=39
+WARN Method body >20 lines (node): ./app/(admin)/admin/login/page.tsx:5:30:LoginPage:KISS_LINES=26
+FAIL Cyclomatic complexity >6 (node): ./.standards/skills/hallmark/site/examples/cobalt-01/script.js:7:90::CC=10
+WARN Method body >20 lines (node): ./.standards/skills/hallmark/site/examples/cobalt-01/script.js:7:90::KISS_LINES=41
+WARN Method body >20 lines (node): ./.standards/skills/hallmark/site/examples/cobalt-01/script.js:93:225::KISS_LINES=43
+WARN Method body >20 lines (node): ./web/components/DataTable.tsx:32:57:DataTable:KISS_LINES=27
+WARN Method body >20 lines (node): ./web/components/series/CountdownBlock.tsx:20:69:CountdownBlock:KISS_LINES=43
+WARN Method body >20 lines (node): ./web/components/series/PyramidPlate.tsx:72:106:Panel:KISS_LINES=35
+WARN Method body >20 lines (node): ./web/components/series/PyramidPlate.tsx:181:229:PyramidPlate:KISS_LINES=47
+WARN Method body >20 lines (node): ./web/components/CitationChip.tsx:12:38:CitationChip:KISS_LINES=28
+WARN Method body >20 lines (node): ./web/components/metrics/PlateBody.tsx:9:28:Chart:KISS_LINES=21
+WARN Method body >20 lines (node): ./web/components/metrics/PlateBody.tsx:41:62:ChartWithTable:KISS_LINES=23
+WARN Method body >20 lines (node): ./web/components/public/SiteFooter.tsx:27:59:SiteFooter:KISS_LINES=34
+WARN Method body >20 lines (node): ./web/components/public/ScopeMark.tsx:27:52:ScopeMark:KISS_LINES=24
+WARN Method body >20 lines (node): ./web/components/public/Hero.tsx:36:60:SubjectFacts:KISS_LINES=26
+WARN Method body >20 lines (node): ./web/components/public/Hero.tsx:138:168:PropositionHero:KISS_LINES=30
+WARN Method body >20 lines (node): ./web/components/public/ReproduceBlock.tsx:32:77:ReproduceBlock:KISS_LINES=46
+WARN Method body >20 lines (node): ./web/components/public/AssumptionsLedger.tsx:43:83:AssumptionsLedger:KISS_LINES=41
+WARN Method body >20 lines (node): ./web/components/public/ThemeGroup.tsx:13:36:ThemeGroup:KISS_LINES=21
+WARN Method body >20 lines (node): ./web/components/public/SiteHeader.tsx:62:101:IndexPanel:KISS_LINES=41
+WARN Method body >20 lines (node): ./web/components/public/SiteHeader.tsx:108:134:SiteHeader:KISS_LINES=28
+WARN Method body >20 lines (node): ./web/components/registers/DisputeSection.tsx:17:42:DisputeSection:KISS_LINES=25
+WARN Method body >20 lines (node): ./web/components/registers/ThesisSection.tsx:19:43:ThesisSection:KISS_LINES=22
+WARN Method body >20 lines (node): ./web/components/FigureStatusRow.tsx:30:57:FigureStatusRow:KISS_LINES=26
+WARN Possible duplication (5x identical 4-line block, first at ./web/components/ProvenanceStrip.tsx:49): </li> /))} /</ul> /</a>
+WARN Possible duplication (3x identical 4-line block, first at ./.standards/ci/templates/eslint-saga-rules/saga-compensation.js:115): type: "problem", /docs: { /description: /meta: {
+WARN Possible duplication (3x identical 4-line block, first at ./.standards/ci/templates/eslint-saga-rules/saga-compensation.js:132): schema: [], /}, /create(context) { /},
+WARN Possible duplication (3x identical 4-line block, first at ./web/components/metrics/views.ts:153): ...headValue, /summary: summaryOf(input.content, value.points.length), /readout: [ /return {
+WARN Possible duplication (2x identical 4-line block, first at ./web/ingest/run-compute.ts:96): }, /}; /return { kind: 'ok', snapshot }; /detail: freshness.reason ?? 'outside freshness window',
+WARN Possible duplication (2x identical 4-line block, first at ./.standards/ci/templates/eslint-saga-rules/saga-compensation.js:133): }, /create(context) { /return { /schema: [],
+WARN Possible duplication (2x identical 4-line block, first at ./web/components/public/SiteHeader.tsx:120): {content.t(anchor.label)} /</a> /))} /<a key={anchor.href} href={anchor.href}>
+WARN Possible duplication (2x identical 4-line block, first at ./web/components/public/Hero.tsx:143): {content.t('hero.statement')} /</h1> /<ScopeMark content={content} countries={countries ?? [{ geo: content.country.code, name: content.country.name, href: '#' }]} /> /<h1 className="hero__title" id="hero-title">
+WARN Possible duplication (2x identical 4-line block, first at ./web/derived/series-store.ts:35): try { /files = readdirSync(dir).filter((file) => file.endsWith('.json')); } /catch { /let files: string[];
+WARN Possible duplication (2x identical 4-line block, first at ./web/sources/types.ts:76): sourceClass: 'machine', /publisherUrl: 'https: /}, /datasetCode: 'proj_23np',
+WARN Empty method body (java): ./.standards/ci/templates/archunit/OutboxArchRules.java:30
+WARN Empty method body (java): ./.standards/ci/templates/archunit/SagaArchRules.java:33
+PASS YAGNI (go): no premature abstractions detected
+PASS YAGNI (node): no premature abstractions detected
+PASS SOLID-SRP (java): no oversized files
+PASS SOLID-SRP (go): no oversized files
+PASS SOLID-SRP (node): no oversized files
+PASS SOLID-OCP (java): no large type-dispatch chains
+PASS SOLID-OCP (go): no large type-dispatch chains
+PASS SOLID-OCP (node): no large type-dispatch chains
+PASS SOLID-LSP (java): no heavy instanceof dispatch
+PASS SOLID-LSP (node): no heavy instanceof dispatch
+PASS SOLID-ISP (java): no fat interfaces
+PASS SOLID-ISP (node): no fat interfaces
+PASS SOLID-DIP (java): no domain→infrastructure imports
+PASS SOLID-DIP (go): no domain→infrastructure imports
+PASS SOLID-DIP (node): no domain→infrastructure imports
+PASS SOLID-DIP (python): no domain→infrastructure imports
+PASS SOLID-DIP (rust): no domain→infrastructure imports
+PASS Component-per-file: no violations
+PASS Property tests (java): jqwik/@Property in use
+PASS Property tests (go): testing/quick in use
+PASS Property tests (node): fast-check in use
+✘ Design-principles check: 1 FAIL(s), 42 WARN(s).
+```
+
+**Verdict: PASS for the spec's deliverable (the blocked finding is resolved; one out-of-scope
+FAIL carried forward, unchanged).**
+
+- **component-per-file line, verbatim:** `PASS Component-per-file: no violations` — the
+  `page.tsx exports 5 functions/components` FAIL from attempt 1 is **gone**. The `[locale]`
+  page now exports exactly 4 (`dynamic`, `generateStaticParams`, `generateMetadata`,
+  `LocalePage`), and the new `layout.tsx` exports 2 (`dynamicParams`, `LocaleLayout`), both
+  under the ≤4 threshold.
+- **Only remaining FAIL:** `FAIL Cyclomatic complexity >6 (node):
+  ./.standards/skills/hallmark/site/examples/cobalt-01/script.js:7:90::CC=10` — path
+  `./.standards/skills/hallmark/site/examples/cobalt-01/script.js`, inside the `.standards/`
+  submodule. Out of scope and off-limits to pipeline agents; identical to every prior attempt.
+- **42 WARNs** — byte-identical file/line set to revision-2 attempt 1 (no new WARN, no shifted
+  line from the move). 29 project-source KISS/DRY review hints + 13 `.standards` template WARNs.
+  Zero FAILs in project source (`app/`, `web/`, `tests/`, `scripts/`, `middleware.ts`).
+
+Exit 1 = findings; the sole FAIL is the out-of-scope submodule file. The in-scope finding that
+produced the attempt-1 FAIL is resolved.
+
+---
+
+## Evidence: scenario-to-behavior spot check
+
+command: (render-mode + content check against the real built app — `next start`, `curl`)
+exit: 0
+at: 2026-10-26T13:24:30Z
+
+### Rendering-mode claim — independently confirmed (status codes)
+
+Started the built app (`npx next start -p 4390`) and probed the route table the
+Refactorer claimed was unchanged:
+
+| path | HTTP status | note |
+|---|---|---|
+| `/` | 200 | Spanish home (default locale) |
+| `/en` | 200 | SSG |
+| `/fr` | 200 | SSG |
+| `/de` | 200 | SSG |
+| `/it` | 200 | SSG |
+| `/es` | **404** | `es` is the default locale rendered at `/`, not a `[locale]` param |
+| `/xx` | **404** | `dynamicParams: false` → no on-demand render for an unenumerated locale |
+| `/en/` | **308** → `/en` | trailing-slash redirect |
+
+`/xx` returning 404 (not an on-demand 200) is the decisive confirmation that
+`dynamicParams: false` is still in force after the page→layout move — a regression to
+`dynamicParams: true` would render `/xx` as a 200 `[locale]` page.
+
+### Static-prerender evidence — not trusting the report
+
+- **Build route markers (verbatim):** `○ /` (static) and `● /en /fr /de /it` (SSG,
+  `generateStaticParams`), `ƒ /admin/*` and `ƒ /api/admin/*` (dynamic), `○ /_not-found`
+  (static). "Generating static pages (21/21)".
+- **`prerender-manifest.json`:** `routes` keys include `/`, `/en`, `/fr`, `/de`, `/it` (all
+  `"compute":"static"`); `dynamicRoutes` contains `/[locale]` with **`"fallback": false`**
+  and `"fallbackRootParams": []` — the machine-readable form of `dynamicParams: false`.
+  `/es` and `/xx` are absent from `routes`, so they are not prerendered and (per `fallback:
+  false`) 404 rather than render on demand.
+
+The effective route config is therefore unchanged: `dynamic: force-static` lives on the page
+(`app/(public)/[locale]/page.tsx:5`) and `dynamicParams = false` now lives on the layout
+(`app/(public)/[locale]/layout.tsx:10`); Next folds route-segment config from both into the
+same policy, exactly as the layout's own comment states. No silent regression.
+
+### Served `/` still carries the revision-2 content (spot check)
+
+- **Countdown:** `<span class="countdown__numeral">16</span> <span class="countdown__unit">años</span>`,
+  `<span class="countdown__year">2042</span> … año del umbral`, `countdown__range` =
+  `variantes 2039–2043`. All three tokens present.
+- **Pyramid:** 3 `demography__svg` panels (6 = 3 × static-HTML + RSC flight), 21 `scope="row"`
+  rows per year (`scope="row"` × 67), `<table>` + `<caption>` emitted.
+- **Reproducir section (`id="reproducir"`):** the command rows are exactly
+  `compute.ts --figure fig-01`, `compute.ts --figure fig-02`, `compute.ts --series countdown`,
+  `compute.ts --series pyramid` (each ×2 = static HTML + RSC flight). A whole-page grep for
+  `compute.ts --figure fig-03` … `fig-07` returns **zero** — the section advertises only
+  `fig-01`/`fig-02` (plus the two series), as required.
+
+Both spot-checked behaviours hold on the served build, not fixtures.
+
+---
+
+## No unaccounted behavior
+
+The fix's entire surface is the move of `export const dynamicParams = false` from
+`app/(public)/[locale]/page.tsx` to a new `app/(public)/[locale]/layout.tsx` plus a
+pass-through `LocaleLayout` (`children => children`, no markup, no logic). It traces to the
+attempt-1 component-per-file FAIL and to the Next route-segment-config convention
+(`dynamicParams` is a route-segment config export, valid on any segment). No helper, no logic,
+no behaviour appears that is not accounted for. `git diff` confirms the only page change is
+`-export const dynamicParams = false;` (and the `layout.tsx` addition); `generateMetadata`,
+`generateStaticParams`, and `dynamic` are untouched.
+
+---
+
+## Audit-trail gate
+
+command: .standards/scripts/check-audit-trail.sh 001-pension-math
+exit: 0
+
+All folder artefacts present (10-tasks.md, 20-acceptance/ with `## AC-NNN-NN` headings,
+25-verification.md, 30-report.md, 15-design.md, 40-deploy.md) and all five contract evidence
+blocks resolve. PASS.
+
+---
+
+## Overall verdict (attempt 2)
+
+**Verdict: PASS**
+
+- scenario traceability — PASS (99/99 visible to the gate, exit 0; 107/107 by grep; 8
+  three-digit-suffix scenarios invisible to the gate's regex — documented limitation, not a
+  deliverable gap)
+- full test suite — PASS (505 tests / 40 files, exit 0; tsc/eslint/build/verify:derived all exit 0)
+- complexity gate — PASS (ESLint `complexity ≤6`, exit 0)
+- design-principles gate — PASS for the deliverable (the attempt-1 component-per-file FAIL is
+  gone; `PASS Component-per-file: no violations`; sole remaining FAIL is the out-of-scope
+  `.standards/skills/hallmark/site/examples/cobalt-01/script.js` CC=10)
+- scenario-to-behavior spot check — PASS (rendering mode independently re-confirmed: 200/404/308
+  table correct, `prerender-manifest` `fallback: false`, locale routes SSG; served `/` carries
+  the countdown 16/2042/2039–2043, the pyramid, and a Reproducir section advertising only
+  fig-01/fig-02)
+
+Refactorer claims reproduced: the `[locale]` page now exports 4 (component-per-file clean); the
+effective route config is unchanged (`dynamicParams: false` + `dynamic: force-static`, proven by
+the 404 on `/xx` and `fallback: false` in the manifest); the route table and prerender-manifest
+are unchanged; 505 tests pass with no test edited. The blocked finding is resolved with no
+regression on the one axis that could have silently changed — rendering mode.
+
+Flagged to the Architect (non-blocking, carried forward unchanged): 29 project-source
+KISS/DRY WARNs plus the single out-of-scope `.standards` FAIL.
+

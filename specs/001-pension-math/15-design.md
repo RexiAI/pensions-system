@@ -237,6 +237,8 @@ Mobile collapse is explicit per block, not left to Tailwind defaults: every mult
 
 ### Colour
 
+> **Revision 2 amendment:** the palette gains one hue (`--data-projection`) and two chart aliases. The declarations are in §Revision 2, "New tokens"; the allowed-meanings table and the contrast verification for every new pair are in §Revision 2 R3. No existing value changes, and the three hues already in use keep their meanings.
+
 Two token sets, one theme at a time, page-level lock. The page never inverts mid-scroll. Section grounds are steps within the same neutral family at low contrast, which is permitted; there is no light-to-dark flip.
 
 ```css
@@ -1172,4 +1174,378 @@ Share-card dimensions (1200×630) stay constants inside `scripts/build-brand.mjs
 ### Not changing
 
 The register system and its three labels; the token palette and every contrast pair verified above; the dial values `5 / 4 / 5` and the admin dialect `8 / 2 / 2`; the chart forms for all five metrics (unexercised, not disproven); the admin surface, including the 503 view confirmed in the pass; the thesis confinement rule; the citation requirement; the four-rate implicit-debt rule; the `<details>`-over-modal discipline; the no-photography decision.
+
+## Revision 2: alarm register
+
+Product-owner review of the deployed site (2026-10-26). Three asks, verbatim: "hay que jugar con colores"; "hay que poner bombas de relojería, pirámides invertidas, etc. hay que atraer a la gente!!"; "recalcar que esto es en españa solo!!". Plus one defect: the Reproducir section advertises seven figures, five of which publish no value, no digest and no command.
+
+Directive ids below are `R1` to `R7`, distinct from Revision 1's `D1` to `D8`. Findings are `G1` to `G6`, all from that review:
+
+| # | Finding |
+|---|---|
+| G1 | The page is monochrome and reads as quiet to the point of not registering. Colour is doing no work because there is none. |
+| G2 | Nothing in the first screens pulls a cold visitor forward: no tension, no shape, no reason to scroll past the hero. |
+| G3 | The Spain-only scope is not unmistakable. A visitor can take the site for a generic or international analysis, which makes every national figure ambiguous. |
+| G4 | Reproducir advertises seven figures, five of which publish no value. It offers a digest and a command for numbers that do not exist: a false reproducibility claim, in the section whose only job is to prove reproducibility. |
+| G5 | The hero is one instrument showing one number, inside a hero defined to be a full viewport, so nothing can appear at the fold by construction. |
+| G6 | There is no demographic evidence on the page at all. The two computed figures are money ratios, and the demographic driver (`T7`) is `unavailable`, so the site argues about pensions without ever showing the age structure the argument rests on. |
+
+**The tension is real and is not resolved by pretending it away.** Revision 1 refused the alarm aesthetic on purpose: "collapse" iconography, red tickers and urgency copy are what a crank site looks like, and a site whose credibility is built on arithmetic cannot borrow the visual grammar of the sites it is arguing against. The owner is now asking for exactly that grammar. Neither capitulation (red on black, an illustrated fuse) nor refusal (a polite "we considered it") serves them.
+
+**Resolution, and it is a rule, not a mood: drama from data, never from decoration.** A time bomb drawn as an icon is rhetoric; a countdown computed from an official projection and printed with its own uncertainty is evidence. This revision admits the second and refuses the first, everywhere, without exception. Concretely: the biggest type on the page becomes a number nobody has to trust (16 years, and the year it lands on, and the range across the six official projection variants); the most arresting shape on the page becomes the Spanish age structure in 2050, drawn from Eurostat, with the same provenance strip as every other computed thing. No icon, no fuse, no flag, no siren, no red.
+
+**What this revision is not.** It does not touch the register system, the admin surface, the existing chart forms, the token values already verified, or any figure's computation. It adds one hue, one data view, one derived metric, one first-viewport composition, one scope marker, and one deletion.
+
+### Severity ranking
+
+| # | Directive | Finding | Severity |
+|---|---|---|---|
+| R1 | Population pyramid, the centrepiece | G2, G6 | **Blocks the brief** |
+| R2 | The countdown, data-derived | G2, G5 | **Blocks the brief** |
+| R3 | Colour system, register-safe | G1 | **Blocks the brief** |
+| R4 | Spain-only scope, three levels, data-driven | G3 | **Blocks the brief** |
+| R5 | First-viewport recomposition and page order | G2, G5 | **Blocks the brief** |
+| R6 | Reproducir advertises only what exists | G4 | **Blocks launch** (correctness defect) |
+| R7 | The alarm vocabulary that is refused | G1, G2 | Degrades quality if omitted |
+
+G6 is the finding nobody named out loud. It is the substantive one: the pension argument is demographic, the page publishes two fiscal ratios, and the demography is invisible. The owner asked for pyramids and got something better than they asked for, which is a population pyramid that is the actual input to every other figure on the page.
+
+### Dial values: unchanged, and why
+
+`DESIGN_VARIANCE 5`, `MOTION_INTENSITY 4`, `VISUAL_DENSITY 5` stand. This is a deliberate answer to "hay que atraer a la gente", not an oversight.
+
+- **Variance stays 5.** What changes is scale and colour, not composition. The pyramid is a wide, full-bleed three-panel instrument, which is more composition than the page has ever carried, but its grid is straight. Raising variance to 6 or 7 would add offset for its own sake, and offset is the cheapest kind of energy: it makes a page look designed to impress, which is the accusation this site cannot survive.
+- **Motion stays 4, and this is the load-bearing refusal.** Owner pressure for drama produces animation nine times out of ten: a ticking counter, a scroll-triggered fuse, a number that counts up. All three are banned here (anti-patterns 5 and 6, and §R7). The countdown adds **zero** motion primitives. The three primitives from Revision 1 are unchanged and no new one is introduced. A static integer that a reader can verify is more alarming than an odometer, because the reader cannot dismiss it as a gimmick.
+- **Density stays 5.** The pyramid plate is dense in the way the existing plates are dense: numbers, a table, a provenance strip. Nothing about this revision licenses page furniture.
+
+### R1 (blocks the brief): the population pyramid, as the page's centrepiece. Findings G2, G6.
+
+A three-panel age-structure view, server-rendered SVG, no JavaScript, carrying its own manifest. It is the largest single visual object on the site and it is the answer to "pirámides invertidas" that survives being checked.
+
+**Not `fig-08`. A distinct component with its own manifest.** Recommended, and the reason is structural, not aesthetic:
+
+- `FigureId` is a closed union of seven (`web/ingest/types.ts`) and each id maps to a metric's copy, edge cases, definitions and hero eligibility. A demography view is none of those: it is not one of the five metrics, it has no "national definition" counterpart, and it has no place in the `T3`–`T7` edge-case contract.
+- Numbering it would invite the hero ladder (D2), the "no single headline implicit-debt number" rule (AC-001-25) and the thesis cross-reference set to start treating a population chart as a metric, which would blur both the metric set and the register boundary.
+- Provenance is not optional, so the component carries the same `Manifest` shape from `web/manifest/types.ts` (whose `figureId` is already `string`), with its own `formulaId` and `definitionId` added to the documented closed sets, its own `inputHash`, its own `reproducePath`. It appears in Reproducir as its own group (§R6). Nothing about it is unverifiable.
+
+**Data contract (semantics fixed here; the JSON schema is T17's job).**
+
+- Two Eurostat datasets, both verified machine-readable on 2026-10-26 against the dissemination API:
+  - `demo_pjan`, "Population on 1 January by age and sex". Dimensions `freq, unit, age, sex, geo, time`. Spain: 1960–2025. Age codes `Y_LT1`, `Y1`…`Y99`, `Y_OPEN`, plus `TOTAL` and `UNK`; sex codes `T`, `M`, `F`.
+  - `proj_23np`, "Population on 1st January by age, sex and type of projection". Dimensions `freq, projection, sex, age, unit, geo, time`. Spain: 2022–2100. Age codes `Y_LT1`, `Y1`…`Y99`, `Y_GE100` (note: **not** `Y_OPEN`), no `UNK`; `projection` ∈ {`BSL`, `LFRT`, `LMRT`, `HMIGR`, `LMIGR`, `NMIGR`}.
+- **The variant is pinned to `BSL`** (baseline) and named on the page. The other five are not decoration: they produce the range printed beside the countdown (§R2).
+- Years shown: **1995, 2025, 2050.** 1995 is the earliest year the page already publishes (`fig-02` first observation), so the reader meets one past year rather than two; 2025 is the latest `demo_pjan` observation; 2050 is the year the 65-and-over share reaches its plateau (32.7% in 2050, 32.9% by 2055, and it stays between 32.7% and 33.1% for the next two decades), and it sits inside `T7`'s 2026–2070 horizon.
+- 1995 and 2025 are labelled `observado`; 2050 is labelled `proyectado`. The label is a word, not a colour.
+- **Granularity: 5-year bands, 21 rows** (0–4 … 95–99, 100+). Not single years: 101 rows × 2 sexes × 3 years is 606 bars, a 1.2px band pitch at 320px, and roughly triple the inline-SVG budget in §Chart strategy. 5-year bands keep a 3px minimum bar at 320px, keep the shape legible at every width, and put the single-year fidelity where it belongs, in the committed data file behind `reproducePath`. Stated cost: the 5-year bands smooth the 1970s cohort echo. A pyramid is read as a shape; that is the trade and it is deliberate.
+- **Encoding: share of that year's total population, per band, per sex, in percent.** Not absolute counts. Absolute counts would make the panels incomparable (the population *grows*: 39.6M → 49.1M → 50.5M) and would let the 2050 panel look merely bigger when what changed is its composition. This is also the honest frame: the pyramid inverts while the population rises, and the caption says so in generated words, so no reader can carry away "Spain is emptying" from a chart that says the opposite.
+- **Shared x axis across all three panels, 0 to 4.5% per side**, ticks at 2% and 4%. Shared scale is a hard rule: a bar of the same length must mean the same share in every panel. The observed maximum side share across the three years is 4.34% (1995, band 20–24), so 4.5% clips nothing.
+- **Orientation: age increases upward.** 0–4 at the bottom, 100+ at the top. Deliberately *not* flipped. The inversion this directive is about is in the data — by 2050 the widest band sits at 70–74 and the 80–84 band is wider than the 0–4 band — and drawing the axis upside down would force the reader to translate before comparing, hand a critic the sentence "they drew it upside down to make a point", and buy nothing. The drama is that the real shape becomes a top-heavy pyramid; the drawing stays conventional so the shape can be believed.
+- **Both sexes mirrored**, males left of the centre line, females right. The two sides differ by up to 0.7 points of total population in the same band at 2050 (80–84: 2.39% male, 3.09% female), which is a real component of the story, and mirroring is how every statistical office draws it. **Both sides use the same colour.** Sex is encoded by side and by the column header, never by hue: a pink/blue sex palette is the single most clichéd move in data visualisation and it would spend the page's scarce hue budget on something position already says.
+- **One hue per panel**: 1995 `--chart-series-2` (the past as reference), 2025 `--chart-series-1` (measured now), 2050 `--chart-projection` (projected). The reader is never asked to compare hues inside one panel, only across panels, and each panel is also labelled with its year and its `observado`/`proyectado` word.
+
+**Layout.**
+
+- Block 4 of the page inventory, immediately after the source strip and **before** the register key. The register key still precedes every prose register, which is the ordering that protects the consensus/dispute/thesis separation; what moves ahead of it is an instrument, and the hero has been showing an instrument above it since Revision 1. Amended scroll contract row, which supersedes the corresponding row of the original table:
+
+  | Stage | Reader's state on arrival | What the design must produce | What must NOT happen |
+  |---|---|---|---|
+  | Viewport 2, the pyramid | Cold but hooked by the countdown | "That shape is the reason the money numbers look like that, and I can check it." The claim as one generated sentence, then the three shapes. | No adjective, no "collapse", no projection presented as an observation, no fourth panel |
+
+- ≥1024px: three panels side by side, equal width, `--space-6` gutters, a shared centre line, one age-label gutter on the outer left only.
+- 1024–768px: three panels stacked, same scale, 8px band pitch.
+- <768px: three panels stacked, 6px band pitch, age labels every 20 years only (0, 20, 40, 60, 80, 100+), percentage axis hidden. Three panels stay visible rather than a one-at-a-time selector: the argument is the *change between* them, and a selector would hide exactly the comparison the block exists for. The panels total about 440px at 320px and the block with its heading, sentence and readout about 560px, which is under one and a half screens.
+- Above the panels: the `<h2>`, then the generated finding sentence at `--text-plate`, then the always-visible readout strip (six values, `--text-num-m` mono, two lines at <768px): `65+` and `<20` share for each of the three years. The readout is the claim; the charts are the evidence for it. This ordering also puts the *sentence* at the fold when the block peeks, instead of the empty apex of the 2050 pyramid (§R5).
+- `<figure>` inside `<section id="demografia" aria-labelledby>`. The `<figcaption>` carries the mono label `DEMOGRAFÍA` (not `FIG. 0N`; it does not borrow the metric numbering), the `<h2>`, and the finding sentence.
+
+**Provenance, and the trap in the file layout.**
+
+- The public strip uses the D6 form, extended for a multi-source, multi-year view: three rows of `Fuente · Serie · Dato de` (1995 and 2025 from `demo_pjan`; 2050 from `proj_23np`, baseline variant named in the `Serie` cell), then `Fuente original ↗` and `Cómo se calcula`. The disclosure carries `fórmula`, `fuente`, `serie`, `dato de`, `huella sha256`, `ruta de reproducción`, `ventana de frescura`, plus the exclusion the definition requires: `UNK` age rows are excluded (`0` persons in both observation years) and the definition string says so.
+- **The derived file lives at `data/derived/series/pyramid.json`, never at `data/derived/pyramid.json`.** `createFileDerivedStore().readAll()` parses every top-level `*.json` in that directory and casts `figureId` to the closed union; a top-level file would be read as a metric figure and would either crash or be published as one. The subdirectory is skipped by the flat `readdirSync`, which is the entire reason for it. Add a comment in the store naming that reason, so the next person who "tidies" the layout does not delete the constraint.
+
+**States.** `computed` (the three-panel plate) and `unavailable` (a D1 ledger row named as a data view, no chart, no table, one sentence, no empty frames). Never `null-value`: the two datasets have no null cells in either observation year, and a partially populated pyramid would be a false shape. `withheld` if the manifest fails. The build fails loudly if either dataset fails to fetch (AC-001-05/06 unchanged); `unavailable` here means the series has never been specified, which is not today's state.
+
+**Accessibility.** The table is emitted if and only if the chart is (§D5, AC-001-44/45), one component produces both. `<details>` summary labelled with the row count (`Ver los 21 grupos de edad`). Table: `<caption>` naming both datasets, the variant, and the three year totals; seven columns (`Grupo de edad | H 1995 | M 1995 | H 2025 | M 2025 | H 2050 | M 2050`); `<th scope="col">` on every column and `<th scope="row">` on the band; values right-aligned mono with `tabular-nums`; header labels from locale keys, never `H`/`M` literals. At <640px the table scrolls inside its own container. The SVG is `role="img"` with `aria-labelledby` the caption title and `aria-describedby` the readout strip; nothing exists in the SVG that is not in the readout or the table.
+
+**Anti-patterns for this plate.** A fourth panel ("what if"); a projection drawn in the same colour as an observation; a silhouette or "ghost" pyramid overlay; a percentage-change callout; the word `colapso`, `invierno demográfico`, `hecatombe` or any other noun from the doom vocabulary (that vocabulary is thesis-only, AC-001-41); an inverted axis used as a visual pun; a single headline "2050" number in display type.
+
+**Watch items the Coder must check.** (1) `Y_OPEN` versus `Y_GE100`: the two datasets spell the open-ended band differently. A hardcoded code silently drops the 100+ band from one dataset, which is precisely the quiet omission this page cannot afford. Resolve both by label, per the existing `resolveCategoryCode` discipline. (2) The `sex` dimension contains `T` alongside `M` and `F`; summing every sex code double-counts. Use `M` + `F` resolved by label, and assert `M + F == T` as a property test. (3) Band shares per year must sum to 100 ± 0.1 (property test). (4) The 2050 panel must render whenever 2025 does, and a missing third year is a build failure, not a two-panel plate.
+
+### R2 (blocks the brief): the countdown, computed, with its uncertainty printed beside it. Findings G2, G5.
+
+**What is being counted, exactly.** The year in which the **old-age dependency ratio** first reaches **50** under Eurostat's baseline projection: population aged 65 and over per 100 people aged **15 to 64**, Spain, `proj_23np`, `projection = BSL`, series 2022–2100.
+
+- **15–64, not 20–64, and this is a checkability decision.** 15–64 is the age class behind Eurostat's own old-age dependency ratio, so a reader can put this number beside the publisher's published indicator and get the same answer. A 20–64 denominator would be our own definition, defensible but not printed by anyone, and the first critic to recompute it would find a different figure and be right to ask why. It is also the exact band this repository already resolves from labels for `lfsi_emp_a` ("From 15 to 64 years", `web/sources/eurostat.ts`), so one resolved age class serves the page twice.
+- Threshold **50** because it is exact, one-clause expressible (`dos personas en edad de trabajar por cada persona de 65 o más`), and it is crossed cleanly and never re-crossed inside the horizon, so the answer is a single year rather than a first-of-many.
+- **Verified values** (computed from the live dataset, 2026-10-26; the Coder should reproduce them and treat a mismatch as a pipeline defect, not as a copy problem): ratio 31.9 in 2025; 36.2 in 2030; 40.5 in 2034; 45.6 in 2038; **51.3 in 2042**; 59.0 in 2050; maximum 65.8 across the horizon.
+- **The answer today: 2042, which is 16 years from the snapshot year 2026.** Arithmetic rule, fixed so nobody invents precision: `years = thresholdYear − snapshotYear`, both integers, both printed. Not months, not days, not a difference of dates. This is why the block cannot become a ticker: the underlying quantity changes when the projection is revised, not when the clock moves.
+- **The range is printed beside the number, and it is not optional.** Across the six published variants the crossing lands: `NMIGR` 2039, `LMIGR` 2040, `LFRT` 2041, `LMRT` 2041, `BSL` 2042, `HMIGR` 2043. So the block prints `2042` and, in `--text-micro` mono directly under it, `variantes 2039–2043`. This is the single most credibility-preserving element in the whole revision: it refuses to pick the worst case, it survives "you chose the scary projection", and it strengthens rather than weakens the point, because a range of two years either side says the crossing is not a modelling artefact of one variant.
+
+**Copy slots (keys, with the `es` exemplar).**
+
+| Key | `es` exemplar | Slot |
+|---|---|---|
+| `countdown.eyebrow` | `Proyección central · Eurostat` | names source and variant in the label, before the number |
+| `countdown.value` | `16` | `--text-num-xl` mono, `--ink-1` |
+| `countdown.unit` | `años` | `--text-num-m` sans, `--ink-2`, beside the numeral, never inside it |
+| `countdown.year` | `2042` | `--text-num-m` mono, `--data-projection` |
+| `countdown.yearLabel` | `año del umbral` | `--text-micro` mono, `--ink-3` |
+| `countdown.definition` | `Años hasta que la población de 65 y más años alcance 50 por cada 100 personas de 15 a 64 años.` | `--text-small`, `--ink-2`, one sentence, what is counted |
+| `countdown.range` | `variantes 2039–2043` | `--text-micro` mono, `--ink-3` |
+| `countdown.source` | `Eurostat, proyecciones demográficas 2024` · `Dato de 2025` | `--text-micro` mono, `--ink-3` |
+
+Banned in every locale: `faltan`, `quedan`, `solo`, `apenas`, `ya`, `cuenta atrás`, `bomba`, `explota`, any exclamation mark, any second-person address, and any verb in the future tense other than the declarative `alcanza`/`cruza`. The sentence states what a projection says. It does not tell the reader what to feel, and the words `bomba de relojería` appear nowhere on the public surface: the owner's metaphor is the brief, not the copy.
+
+**Where it lives.** Inside the hero instrument panel (§R5), above the figure strip. It is not repeated anywhere else on the page, and no other surface carries a "time is running out" line.
+
+**States.**
+
+| State | Cause | Rendering |
+|---|---|---|
+| `computed` | `thresholdYear` found within the horizon | full block as above |
+| `not-crossed` | the pinned variant never reaches 50 inside 2022–2100 | **no numeral at all.** The projection-coloured rule, the eyebrow, and one sentence: the baseline projection does not reach the threshold before the horizon ends in 2100. Never substitute a different threshold to keep a number |
+| `unavailable` | `proj_23np` never specified or never resolved | the block does not render; the hero falls back to the D2 ladder with no countdown, and the figure value returns to `--text-num-xl` |
+| `withheld` | manifest invalid | same as `unavailable`; the block is a number carrier, so it renders nothing rather than an unprovenanced number |
+
+The countdown is never a hero fallback carrier: if there is no figure subject and no countdown, the propositional hero (D2 tier 3) renders unchanged and the pyramid is still the pull below it.
+
+**Why this and not the other two candidates.** (a) "Year the projected working-age population falls below a stated level" is honestly computable (peak 32.140M in 2027, 26.553M by 2070) but the *level* is arbitrary, and a level in millions is a magnitude a reader cannot calibrate; the ratio 50 per 100 is one a reader can hold. Instead of a second threshold, the block's disclosure prints the one real inflection it already has: the working-age population peaks in 2027 and declines afterwards. (b) "Countdown to the end of the projection horizon" is refused outright: that counts Eurostat's publication horizon, not a Spanish fact, and dressing a dataset boundary as a national deadline is exactly the kind of invention this site exists to not do.
+
+**Provenance.** Own manifest, own `formulaId`/`definitionId`, own digest and reproduce path, and its own group in Reproducir (§R6). The definition string names what is counted and excluded in instrument vocabulary: `población de 65 y más años dividida por la población de 15 a 64 años, por año, proyección central de Eurostat`; it contains no adjective and no conclusion (AC-001-92).
+
+**Anti-patterns.** A ticking clock; a fuse, bomb, hourglass or siren icon; `DÍAS` or `HORAS` beneath the number; a red number; a progress bar toward 2042; a "cuenta atrás" heading; the number appearing in the meta description or the share card (a cached share image with a countdown in it becomes a false claim within weeks, D7).
+
+**Watch items.** (1) The series must be drawn entirely from `proj_23np`, including its own 2025 value (31.9), which differs from the `demo_pjan` 2025 observation on the same definition (31.2). Mixing an observation into a projection series is the small dishonesty that would discredit the large honest one; the disclosure states that the projection's 2025 back-cast and the observation differ, and by how much. (2) `thresholdYear` must be derived, not authored: change the threshold parameter and the year must move. (3) The variant range is computed over all six variants at build time, not typed as `2039–2043`. (4) The ratio depends on the age band; the band is a documented parameter beside the threshold, not a literal buried in the aggregation loop.
+
+### R3 (blocks the brief): colour, without collapsing the three registers. Finding G1.
+
+The page gets colour and gains exactly one hue. Three hues exist on the public surface, each bound to one meaning, and nothing else carries a hue (the last row of the table is the neutral set, listed only to close the list):
+
+| Hue | Token | Means | May be used as | May never be used as |
+|---|---|---|---|---|
+| Teal | `--accent` (unchanged) | measured data and interaction | series stroke for observed values, links, focus ring, primary fill | decoration, a register marker, an urgency signal |
+| Terracotta | `--data-deficit` (unchanged) | an adverse quantity | 2px rule, 3px border, small text at 4.5:1+ | a fill, a large area, anything inside a plot area |
+| Olive-gold | `--data-projection` (**new**) | a projected extent, not yet measured | stroke or fill for a projected series, the countdown threshold rule, the threshold year numeral | any observation, any deficit mark, any text that is not about a projection |
+| Neutrals | `--ink-*`, `--rule-*`, `--surface-*` | everything structural | text, rules, grounds, axes | — |
+
+Why olive-gold, with evidence rather than taste:
+
+- **It is the only hue left.** Red is banned (anti-pattern 1), purple and indigo are banned (anti-pattern 7), and pink/blue for sex is refused (R1). Blue was the other candidate and it fails on accessibility, not on style. Simulated deuteranopia and protanopia (Machado severity 1.0), CIE76 ΔE against the existing teal accent: olive-gold **45.3 / 42.9 deutan / 59.8 protan**; a slate blue `#2B4A5E` **24.5 / 12.5 / 14.1**. Blue collapses into the accent for a dichromat reader; olive-gold does not. That is why the hue is warm.
+- **And it collides with terracotta for the same readers** — ΔE olive-gold vs terracotta is 33.6 normal but **10.8 under deuteranopia**. So the separation between "projected" and "adverse" cannot rest on hue for everyone. It rests on three redundancies that are therefore mandatory, not optional: a **dash pattern** (`--dash-projection: 6 4`) on every projected line, **position** (a projected panel is its own panel; a deficit mark is never inside a plot), and a **printed word** (`proyectado`, `umbral`). Colour is the third encoding, never the first.
+
+**Allowed meanings, enforced at review.**
+
+| Surface | `--data-projection` | Urgency language |
+|---|---|---|
+| Hero countdown | yes: the threshold rule and the year numeral | yes, declarative only (§R2 copy rules) |
+| Pyramid, 2050 panel | yes: the only projection-coloured fill on the page | no |
+| Figures 1–7 plates | only for a projected *extent*. `fig-05`'s `g_proj` is a single reference marker, so it stays `--ink-1` | no |
+| Register key, consensus, dispute | no | no |
+| **Thesis** | **no, and this is the rule that keeps the register** | n/a |
+| Reproduce, assumptions, revisions, footer, share card | no | no |
+| `/admin` | separate palette, unchanged | separate vocabulary |
+
+**The rule that keeps the thesis distinguishable, now that colour exists.** Before this revision, colour was absent everywhere, so it could not blur the registers. Now it exists, so the thesis becomes the one block where hue is *forbidden*: `--surface-3` ground, `--ink-1` text, the 4px ink rule, the serif, the signature, no hue of any kind, and no projection-coloured area adjacent to it without a 1px `--rule-1` separator. The absence is now a marker rather than a default. A reader who has learned that warm-gold means "a projection, not a measurement" learns, one block later, that nothing here is gold: the site's opinion is not a projection and does not get to look like data. That is a stronger separation than the page had when it was monochrome.
+
+**Where urgency may not appear, stated as bans.** No urgency in the metric plates, the dispute, the thesis, the reproduce block, the assumptions ledger, the footer, or the share card. No urgency icon, badge, pill, siren, countdown chip or "act now" phrasing anywhere. Urgency is legal in exactly one block, and inside it urgency is carried by scale and by the datum, never by colour temperature.
+
+**Contrast verification for every new pair** (WCAG 2.1, computed; AA 4.5:1 text, 3:1 non-text):
+
+| Pair | Ratio | Verdict |
+|---|---|---|
+| light `--data-projection` on `--surface-1` | 6.22 | AA |
+| light `--data-projection` on `--surface-2` | 5.82 | AA |
+| light `--data-projection` on `--surface-3` | 5.45 | AA |
+| light `--data-projection` on `--data-projection-ground` | 5.23 | AA |
+| light `--ink-1` on `--data-projection-ground` | 13.51 | AAA |
+| light `--ink-2` on `--data-projection-ground` | 7.74 | AAA |
+| light `--ink-3` on `--data-projection-ground` | 4.51 | AA |
+| dark `--data-projection` on `--surface-1` | 10.26 | AAA |
+| dark `--data-projection` on `--surface-2` | 9.53 | AAA |
+| dark `--data-projection` on `--surface-3` | 8.72 | AAA |
+| dark `--data-projection` on `--data-projection-ground` | 8.17 | AAA |
+| dark `--ink-1` on `--data-projection-ground` | 12.48 | AAA |
+| dark `--ink-2` on `--data-projection-ground` | 8.10 | AAA |
+| dark `--ink-3` on `--data-projection-ground` | 5.06 | AA |
+| `--data-projection` vs `--accent`, dichromacy | ΔE 45.3 / 42.9 / 59.8 | distinguishable with the dash rule |
+| `--data-projection` vs `--data-deficit`, deuteranopia | ΔE 10.8 | **not** distinguishable by hue: dash, position and the printed word are mandatory |
+
+`--data-projection-ground` is 12% of the hue over `--surface-1` in each theme, and only over `--surface-1`: at 12% over `--surface-2` the `--ink-3` pair drops to 4.24 and fails AA, so a plate needing the tint takes it over `--surface-1`, not over an inset.
+
+### R4 (blocks the brief): Spain only, at three levels, from data. Finding G3.
+
+The marker is **typographic, in a locale key, and derived from the country record**. No flag, no map silhouette, no badge, no pill (anti-pattern 2's stock-imagery ban covers flags; a pill is the most recognisable template signature this design spends effort avoiding).
+
+**Level 1, the first viewport.** Two mechanisms, redundant on purpose:
+
+1. **The `<h1>` itself names the scope.** Content-model validation: in every locale, `hero.statement` must contain the country's display name (`country.ES.name` in that locale). Not "should", must: a build that fails this check fails. The headline is the only string a social visitor reads, so the scope belongs in it, and this is the one place where the marker cannot be a separate element.
+2. **A scope line directly under the `<h1>`**, above the subtext: `ESPAÑA` in `--font-mono` at `--text-meta` with `--tracking-label`, `--ink-2` (9.21:1 on `--surface-1`), followed by a `·` and the coverage clause (`sistema contributivo de la Seguridad Social`) in the same line. Uppercase is permitted here for the same reason it is permitted for the two-letter locale codes: it is a label, not a headline. 24px of vertical presence, no border, no ground, no icon.
+
+**Level 2, every figure.** The D6 public provenance strip gains a fourth field, `Ámbito`, rendered in the same labelled grid (`Fuente · Serie · Dato de · Ámbito`), value `España`. It is generated from the country record like every other strip field. The pyramid gets the same field. The figure tables' `<caption>` sentence also names the scope, because a table can be read out of context.
+
+**Level 3, shared and social artefacts.** The `<title>` template takes a scope suffix from the country record (`… · España`); `og:title` uses the same derived string; the share card (§D7) gains one line, the scope mark, in the card's existing type system. D7's rule stands unchanged: **no metric, no number, no date on the share card.** A country name is none of those, and it is the one string that survives every revision of every figure.
+
+**How it degrades when a second country arrives.** The marker is not the string "España"; it is `country.<GEO>.name` resolved through the content model for the requested `(country, locale)`, and the coverage clause is `country.<GEO>.scopeClause`. Adding France is a content row plus a `geo` in `PUBLISHED_GEOS`, and every level picks it up with no code change:
+
+| Published geos | Header and hero mark | Share card and `<title>` |
+|---|---|---|
+| exactly 1 (today) | plain text, not a control. Anti-pattern 18 stands: a single-option switcher is worse than none | that country's name |
+| 2 or more | the mark becomes the country index, the same bare `<details>` pattern as the mobile site index, no flags, no dropdown styling | the requested country's name |
+
+Two failure modes, both loud: a country record missing `name` or `scopeClause` in any published locale fails the build (it is a content bug, and silently falling back to `ES` would relabel a French page as Spanish); and `Ámbito` never renders an empty cell, because a strip with a blank field is a claim without a scope.
+
+**Anti-patterns.** A flag (any flag); a map outline; the EU stars; `España` in the wordmark (the wordmark is the publication, the scope is the data); a "coming soon: more countries" line; a disabled country selector; the scope mark repeated in a footer only.
+
+### R5 (blocks the brief): the first 900px. Findings G2, G5.
+
+The problem is structural, not cosmetic: the hero is *defined* to be a full viewport (`min-height: calc(100dvh - var(--header-h))` at ≥768px), so at any common laptop height the next section cannot appear at the fold by construction, and there is nothing to scroll toward. Three changes, and no modal, no interstitial, no scroll cue, nothing hidden behind interaction.
+
+1. **`--hero-min-h: 560px` at ≥1024px, replacing `min-height: calc(100dvh - var(--header-h))`.** This supersedes the D2 hero-height rule and the corresponding line in §Page shell. At 1280×800 that leaves roughly 176px of the pyramid block visible at the fold: its heading, its generated finding sentence, and the top of the readout strip. The reader is pulled by a *sentence about the data*, not by the empty apex of a chart, which is why the sentence sits above the panels (R1) rather than below them.
+2. **The hero panel becomes one plate carrying two instruments, in strict hierarchy.** Supersedes the hero instrument panel description in §Page shell for the case where the countdown is `computed`:
+   1. `countdown.eyebrow` mono micro;
+   2. a 3px `--data-projection` rule, full panel width, top edge of the countdown block;
+   3. the countdown row: `16` at `--text-num-xl` with `años` beside it, `2042` at `--text-num-m` in `--data-projection` under `año del umbral`;
+   4. `countdown.definition`, one sentence, `--text-small`;
+   5. `countdown.range` and `countdown.source`, `--text-micro` mono;
+   6. a 1px `--rule-1`, then the figure strip: the ladder's figure label, its value at **`--text-num-l`** (demoted from `--text-num-xl`), the three dated comparisons, `Cómo se calcula`, and the snapshot stamp.
+
+   Two numerals at `--text-num-xl` would be two headlines and therefore no hierarchy; the countdown takes the largest size because it is the only number on the page whose *scale* is unfamiliar, and because it is unconditional (it does not depend on which metric is computable). When the countdown is not `computed`, the figure value returns to `--text-num-xl` and the panel is exactly as Revision 1 shipped it. One boolean, tested both ways, no third composition.
+3. **Colour placement in the first viewport, as a budget of two.** The only coloured elements above the fold are the 3px threshold rule and the `2042` numeral, both `--data-projection`. Everything else is ink on paper. This is what makes the colour read as a signal: a page with two coloured marks in its first screen has a hierarchy that a page with ten does not.
+
+**What the hero must show, complete list.** Skip link; stale banner if stale; header; scope line; `<h1>` naming Spain; subtext ≤20 words; one primary CTA and one secondary link; the countdown; the figure strip with its three comparisons and the snapshot stamp. That is all. **What it must not show:** the pyramid itself (it is the destination, not the hook), any chart in the hero, a scroll cue, a badge, an icon, a second countdown, a "share" control, and any number without its provenance link within one click.
+
+**The propositional hero (D2 tier 3), amended.** It keeps its 8/4 grid, its method-first ordering and its status summary, and it gains the scope line and the countdown. Because the countdown numeral is a projection-derived fact rather than a figure, D2's rule that no numeral larger than `--text-micro` appears above the fold is **superseded for the countdown only**, and the countdown renders at `--text-num-l` (32px) so the `<h1>` remains the largest type on the page. The hierarchy claim D2 was protecting, that the site never spends its largest type announcing an absence, still holds: the countdown is not an absence.
+
+**Nav.** No fifth anchor. The countdown links to `#demografia`, and that is the only new path into the block. D8's 1024px width budget (298px at 320px, one row) is not disturbed, which is the reason for this restriction.
+
+**Anti-patterns.** A full-viewport hero; a scroll arrow; a hero image of any kind; a `16` that counts up on load; a sticky countdown bar; a modal; a "¿Sabías que…?" interstitial.
+
+**Watch items.** (1) The 560px minimum must not clip the panel at 1024×620 with a stale banner present: measure with the banner and at 200% zoom. (2) If the two-instrument panel starts to read as a dashboard, the fix is fewer elements inside one plate, never a second card. (3) The `<h1>` scope validation must be a build-time check, not a review habit.
+
+### R6 (blocks launch): Reproducir advertises only what exists. Finding G4.
+
+Measured defect: `ReproduceBlock` maps over every derived figure, so five `unavailable` figures render a title, a `formulaId`, a snapshot date, a 64-character digest and a reproduce command, none of which describes a value that exists. It advertises reproducibility for numbers the site does not publish. On a page whose entire promise is "everything here is checkable", that is the most damaging possible bug, because it is a false claim in the section whose job is to prove nothing is a false claim.
+
+**Rendered form.**
+
+- Rows are rendered for `availability === 'computed'` figures only (today: two), grouped, followed by one group for the derived series (the pyramid, if `computed`). Row content is unchanged from §Page shell.
+- Above the groups, one generated count line in `--text-micro` mono: `2 figuras calculadas · 1 serie derivada` (both numbers from data, no authored plural).
+- Below the last group, **one** line in `--text-small` `--ink-2`, from the `reproduce.omitted` key with `{unavailable}` and `{total}` slots: `5 de las 7 figuras no tienen valor calculado en este despliegue y no tienen huella ni comando de reproducción. Arriba aparecen con su método.` The count is derived. The line renders nothing when `unavailable === 0`, so the sentence can never become false.
+- **No row, no cell, no chip and no placeholder for an `unavailable` figure in this section.** The five already have their canonical rendering one screen up, as D1 ledger rows with a state word, a reason and a method link. Duplicating them here would add five rows whose only content is an absence, which is exactly what D1 was written to stop.
+- `data-operator="true"` stays: this is operator vocabulary by D3's definition, and the gate must keep ignoring it.
+
+**Invariants, testable.** `rendered row count === figures.filter(computed).length + series.filter(computed).length`; no `<code>` element inside the section matches `[0-9a-f]{16,}` unless its row's figure is `computed`; the omitted line's number equals the unavailable count; nothing in the section names a figure as reproducible unless a digest for it is rendered.
+
+**Watch item, and it is a live trap.** The block derives each row's public title with `Number(figure.figureId.slice(-1))`. That works only while every id is `fig-0N`. It breaks the moment a non-numbered derived artefact enters the section, which R1 introduces. Route the label through an id-to-key lookup, not an arithmetic slice on the id string.
+
+### R7 (degrades quality if omitted): the alarm vocabulary that is refused.
+
+Written down because a future maintainer, told "make it more dramatic" and shown a page with a warm-gold rule at the top, will reach for an icon, and the icon is the whole difference between this site and the ones it criticises. The refusals are enumerated in the closing block of this revision; what belongs here is the rule that generates them, so the next judgement call does not need to be escalated:
+
+> **Anything a reader could not verify is decoration. Anything a reader can verify is drama.**
+>
+> A drawn bomb, a red badge, a siren, an arrow, a silhouette, a pulsing dot, a counter that moves: none of these can be checked against a source, so they add only assertion. A year, a share, a range of variants, a pyramid whose bars can be summed: all of them can be checked, so they are permitted at any scale the layout can carry.
+
+Three consequences, for the Coder:
+
+- The visual intensity of this page is permitted to come from **size, density and contrast**, and from nothing else.
+- Any element that exists to add feeling without adding a verifiable quantity is out, regardless of how good it looks. That includes the temptation to make the countdown numeral warm-red at the last minute.
+- The anti-pattern list in §"Anti-patterns banned on this product" is extended, not weakened: item 6 (no live semantics) now explicitly covers countdowns rendered as tickers; item 7's hue ban stands, and `--data-projection` is not an exception to it because it is not violet, indigo, red or neon.
+
+### New tokens (Revision 2)
+
+Nine, and nothing else. The declarations are authoritative here; §Colour points at them.
+
+```css
+/* Revision 2 — the alarm register. One hue, two aliases, layout only beyond that. */
+--data-projection:        #6A5A12;   /* dark: #D8C05C. Projected extent. Hue 49deg */
+--data-projection-ground: color-mix(in srgb, var(--data-projection) 12%, var(--surface-1));
+--data-projection-edge:   color-mix(in srgb, var(--data-projection) 40%, transparent);
+
+--chart-observed:         var(--accent);            /* measured; aliased so the pair is symmetric in code */
+--chart-projection:       var(--data-projection);   /* projected; never used without --dash-projection */
+--dash-projection:        6 4;                      /* stroke-dasharray on every projected line */
+
+--rule-projection:        3px;       /* the countdown threshold rule */
+--hero-min-h:             560px;     /* supersedes min-height: calc(100dvh - var(--header-h)) >=1024px */
+--pyramid-band-h:         14px;      /* 5-year band pitch; 8px <1024px, 6px <768px */
+```
+
+Dark-mode declaration, to be added inside the existing `[data-theme='dark']` block:
+
+```css
+--data-projection: #D8C05C;
+```
+
+`--radius`, `--shadow`, the type scale, the space scale and every existing colour value are untouched. The pyramid's axis maximum (4.5) and the share-card dimensions stay constants in their chart module and build script, not tokens, for the reason Revision 1 gives: a token invites its use in layout.
+
+### Scenarios that need amending
+
+| Scenario | Status | What the specifier must do |
+|---|---|---|
+| **AC-001-44**, **AC-001-45** | Unchanged, and the pyramid is their first real test | The pyramid's table must carry the same 21 bands × 3 years × 2 sexes as the chart. No text change needed; add the pyramid as an explicit example so the coupling is exercised on a chart that is not a metric |
+| **AC-001-25** | Unchanged | The countdown is not implicit debt and does not relax the single-headline ban there. Nothing to do |
+| **AC-001-35** | Unchanged | R4 adds a validation rule (scope strings from the country record). AC-001-35 already forbids the literal, so this is enforcement, not amendment |
+| **AC-001-78** | Unchanged, but blocks R1/R2 until the data exists | The pyramid and the countdown need new `formulaId` and `definitionId` entries in the documented closed sets, or their manifests fail validation. Data change plus the documented set, no scenario change |
+| **AC-001-80** | Unchanged | The scope mark must not become a country control while only `ES` is published (R4's degradation table) |
+| **AC-001-92** | Unchanged | Applies to the two new definition strings, which are instrument vocabulary |
+| **AC-001-01**, **AC-001-02**, **AC-001-03** | Unchanged | The pyramid and countdown carry the same `Manifest` shape; their digests are computed over their own input snapshots |
+| **AC-001-05**, **AC-001-06** | Unchanged | A failed `proj_23np` or `demo_pjan` fetch fails the build; neither new artefact may publish `unavailable` to dodge a fetch failure |
+
+### What this revision contradicts
+
+Declared rather than buried, because each one is a directive someone could otherwise cite against this work.
+
+1. **The scroll contract's viewport-1 row.** It says the hero must produce "no argument, no adjective, no urgency" and specifically forbids urgency. R2 puts a countdown in the hero, which is urgency. The row is superseded for the hero only, and the justification is narrow: the urgency is a computed integer with its source, its variant range and its definition printed beside it, and it carries no evaluative adjective. Every other row of that table stands, including "no urgency" for the metric plates.
+2. **D2 tier 3's no-numeral rule.** `--text-num-l` is larger than `--text-micro`. Superseded for the countdown only, at a size below the `<h1>`, with the reasoning in R5.
+3. **D2's hero `min-height`.** `calc(100dvh - var(--header-h))` is replaced by `--hero-min-h: 560px` at ≥1024px. The full-viewport hero is the structural cause of the "nothing to scroll toward" reading.
+4. **§Page shell's hero instrument panel.** Its contents are reordered and its figure numeral demoted when the countdown renders. The panel's construction, ground, border and stamp are unchanged.
+5. **§Page inventory gains one block** (the pyramid, inserted as block 4), so the count goes from sixteen to seventeen. Section count 13 to 14, eyebrow count still 3, budget `ceil(14/3) = 5`. The inventory's numbering shifts by one from block 4 onward; no block id changes.
+
+Nothing else is contradicted. In particular the three-register table, the token values, the chart forms, the four-rate implicit-debt rule, the `<details>`-over-modal discipline, the thesis confinement rule and the admin surface are all untouched.
+
+### New tasks and scenarios the Specifier must formalise
+
+Five additions, plus two rendering invariants. Scenario numbers start at `AC-001-93` (the highest in use is 92).
+
+**T17 (new, implements R1) — population age structure.** Ingest `demo_pjan` and `proj_23np`, band to 21 five-year groups, compute per-sex shares of each year's total, select 1995/2025/2050, write `data/derived/series/pyramid.json` with its own manifest, and expose the axis maximum. Scenarios:
+- `AC-001-93` — band aggregation: single-year codes resolve to 5-year bands, the open-ended band resolves from **either** `Y_OPEN` or `Y_GE100` by label, and the 100+ band is present for every year (this is the scenario that catches the dropped band).
+- `AC-001-94` — `M + F == T` per band and per year; band shares sum to 100 ± 0.1; `UNK` excluded and recorded in the definition string.
+- `AC-001-95` — the derived file carries a complete manifest with a `formulaId` and `definitionId` from the documented sets, its own `inputHash`, and a `reproducePath` that resolves; an unknown id fails validation.
+- `AC-001-96` — the file is written to `data/derived/series/`, and `readDerivedFigures()` does not pick it up as a metric figure.
+- `AC-001-97` — the chart and the table are emitted together or not at all (the AC-001-44 coupling, exercised on the pyramid).
+
+**T18 (new, implements R2) — projected threshold crossing.** Compute the old-age dependency ratio per year from `proj_23np` `BSL`, find the first year at or above the documented threshold, compute the countdown against the snapshot year, and compute the crossing year for all six variants. Scenarios:
+- `AC-001-98` — the ratio is computed from the pinned variant and pinned age definition, and the threshold is a documented parameter, not a literal: changing it changes the year.
+- `AC-001-99` — `years = thresholdYear − snapshotYear`, both integers, both printed with the number; a check that no sub-annual unit appears.
+- `AC-001-100` — the variant range is computed over all six variants and printed; a variant that never crosses is excluded from the range and does not make the block fail.
+- `AC-001-101` — when the pinned variant never crosses the threshold inside the horizon, the block renders no numeral and the fixed sentence; it never substitutes a different threshold, and the hero falls back to the D2 ladder.
+
+**T19 (new, implements R4) — country scope mark.** `country.<GEO>.name` and `.scopeClause` in five locales, the `<ScopeMark>` component at the three levels, the `hero.statement` validation, the `<title>`/`og:title` derivation, and the share-card line. Scenarios:
+- `AC-001-102` — the scope mark renders from the country record in all five locales; no hardcoded country string exists in any component.
+- `AC-001-103` — a build whose `hero.statement` does not contain the country name in some locale fails.
+- `AC-001-104` — with exactly one published geo the mark is text and not a control; with two or more it is the country index; it is never a disabled or single-option control.
+
+**T2 (amended, implements R6) — Reproducir truthfulness.** One scenario: `AC-001-105` — the reproduce section renders a row only for a `computed` figure or series, its omitted-count line equals the unavailable count, no digest or command is rendered for an unavailable figure, and the section's rows are labelled without deriving a key from the id string.
+
+**T8 (amended, implements R4) — scope content.** No new scenario beyond `AC-001-102`/`AC-001-103`; the country record's two new fields are additive content, and the existing locale-completeness scenario covers their presence once the fields are listed in it.
+
+**R3 and R5 (no new task).** The colour tokens land in the rendered tasks that use them (T3–T7, T11, T17), and R5's composition lands in the existing hero work, which already has a task. Two invariants belong as scenarios anyway:
+- `AC-001-106` — every projected value is encoded by dash and by a printed word as well as by hue, so no projected data is distinguished by colour alone (R3).
+- `AC-001-107` — at 1280×800 and 390×844 the hero does not occupy the full viewport, and the demography block's heading and its finding sentence are visible without scrolling (R5).
+
+**Suggested order.** T19 and the T2 amendment first (small, immediately visible, and the Reproducir fix is the launch blocker); then T17 (ingest plus plate, the largest piece); then T18, which depends on T17's dataset reader and nothing else; then R3's tokens and R5's hero, which can land against whichever figure state exists at that point.
+
+### What this revision refuses to specify, with the reason
+
+1. **A clock bomb, fuse, hourglass, siren, alarm bell, or any illustration of time running out.** Reason: it is unfalsifiable, so it adds assertion and no evidence, and it is the exact crank tell the informal spec names. R7's rule generates the refusal.
+2. **A ticking, animating or sub-annual countdown.** Reason: it would imply the number changes as the clock moves, when it changes only when the projection is revised; it violates anti-pattern 6 (a snapshot is a snapshot) and 5 (no animated counters), and precision below a year would be false precision, since the crossing year moves by up to three years across the six official variants.
+3. **Red, alarm red, or any "critical" hue for the countdown.** Reason: the page may not assert that a threshold crossing is bad; that judgement belongs to the thesis register and is labelled there. Terracotta stays reserved for quantities the data itself marks as adverse.
+4. **A literally inverted axis, or an upside-down pyramid drawn for effect.** Reason: it costs the reader a translation, buys no information, and hands a critic the sentence "they drew it upside down to make a point". The inversion must be the data's.
+5. **A flag, a map, or the EU stars in the scope mark.** Reason: a flag is the stock cliché banned in anti-pattern 2, it equates a state with the system being measured, and one flag cannot represent five locales.
+6. **The countdown number on the share card, in the meta description, or in any OG image.** Reason: third parties cache share images for weeks, so a number there becomes a false claim the first week after a revision (D7's standing rule).
+7. **An international ranking ("Spain is second worst in the EU").** It is computable from the same dataset and it would pull readers hard. Reason: it changes the site's subject from "here is the arithmetic for Spain" to "Spain versus others", requires a sourcing and definition contract for every peer, and collides with v1's single-country scope (AC-001-80). Proposed instead as a follow-up spec with its own data contract and its own dispute section.
+8. **A regional (CCAA) pyramid.** Reason: INE regional data is a document/manual source in this project's source classes, it triples the ingest surface, and a regional age map invites a political reading the instrument register cannot carry. Follow-up spec at most.
+9. **A second threshold, or a selector over thresholds.** Reason: one threshold with its range is evidence; a slider over thresholds is a toy that lets the reader manufacture the answer they prefer, which is the opposite of what this page is for.
+10. **A warm section ground for the demography block.** Reason: grounds encode register. A fourth tint would dilute a system that currently works precisely because there are exactly three, and the block is an instrument, which already has a ground.
+11. **An alternative projection variant rendered side by side as a fourth panel.** Reason: it is the most tempting addition and it would be decoration dressed as rigour. The uncertainty is stated as a range beside the number; six panels of "what if" would bury the one shape that makes the argument.
 

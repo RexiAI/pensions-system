@@ -4,6 +4,7 @@
 Given country `ES`
 When content is requested for each of `es`, `en`, `fr`, `de`, and `it`
 Then each locale returns complete content (no locale is missing)
+And the country record's `name` and `scopeClause` fields are present in each locale
 
 ## AC-001-34 — An unsupported locale yields a defined error
 Given country `ES`
