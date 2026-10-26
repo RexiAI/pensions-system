@@ -1,0 +1,52 @@
+{
+  "citations": [
+    {
+      "id": "ine-tabla-27150",
+      "publisher": "Instituto Nacional de Estadística",
+      "document": "Tablas de mortalidad",
+      "reference": "tabla 27150, esperanza de vida a los 65 años",
+      "date": "2026-10-25",
+      "url": "https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736176993"
+    },
+    {
+      "id": "ine-proyecciones-36643",
+      "publisher": "Instituto Nacional de Estadística",
+      "document": "Proyecciones de Población",
+      "reference": "tabla 36643, población de 16 a 64 años",
+      "date": "2026-10-25",
+      "url": "https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736176953"
+    },
+    {
+      "id": "eurostat-spr-exp-pens",
+      "publisher": "Eurostat",
+      "document": "Expenditure on pensions (ESSPROS)",
+      "reference": "spr_exp_pens, geo=ES, unit=MIO_EUR",
+      "date": "2026-10-25",
+      "url": "https://ec.europa.eu/eurostat/databrowser/view/spr_exp_pens/defaulttable"
+    },
+    {
+      "id": "ss-estadisticas-pensiones",
+      "publisher": "Seguridad Social",
+      "document": "Estadísticas de pensiones contributivas",
+      "reference": "alta mensual de pensiones contributivas",
+      "date": "2026-10-25",
+      "url": "https://www.seg-social.es/wps/portal/wss/internet/EstadisticasPresupuestosEstudios/Estadisticas"
+    },
+    {
+      "id": "igae-cuentas-ss",
+      "publisher": "Intervención General de la Administración del Estado",
+      "document": "Cuentas del sistema de la Seguridad Social",
+      "reference": "cotizaciones sociales y transferencias corrientes",
+      "date": "2026-10-25",
+      "url": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Paginas/Inicio.aspx"
+    },
+    {
+      "id": "airef-proyecciones",
+      "publisher": "Autoridad Independiente de Responsabilidad Fiscal",
+      "document": "Proyecciones de gasto público en pensiones",
+      "reference": "escenario central de largo plazo",
+      "date": "2026-10-25",
+      "url": "https://www.airef.es/"
+    }
+  ]
+}
