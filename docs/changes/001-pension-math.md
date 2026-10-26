@@ -3272,6 +3272,16 @@ R3/R5/R6) is still uncommitted on the working tree and belongs to stage 5b, whic
 same `spec/001-pension-math` branch. The spec is **not** archived in this PR: `scripts/archive-spec.sh`
 is stage 5d, which runs after stage 5c's deploy verification.
 
+Revision 2 record (stages 5b + 5d, appended after the PR was already open):
+
+PR: https://github.com/RexiAI/pensions-system/pull/3
+
+Commits: 9 on `spec/001-pension-math` for revision 2 (T17, T18, T19, the R6 fix, the
+`dynamicParams` refactor, the mutation-gap tests, the revision-2 spec record, the re-archive of
+this file, and this record commit); 29 on the branch against `main` in total. Revision 2's spec is
+archived **in this same PR**: `docs/changes/001-pension-math.md` replaces the pre-revision
+one-pager and `specs/001-pension-math/` no longer exists on the branch.
+
 ## 15-design.md
 
 # Design Spec: pension-math
