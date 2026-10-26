@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="p">
+  <rect width="32" height="32" fill="#141a1b" />
+  <text x="16" y="17" text-anchor="middle" dominant-baseline="central" fill="#f4f5f2"
+        font-family="Instrument Sans, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="600" font-size="21">p</text>
+</svg>

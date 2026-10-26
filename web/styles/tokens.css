@@ -1,0 +1,104 @@
+/* Design tokens (spec 001, 15-design.md §Global Tokens). No component may use a literal. */
+:root {
+  --font-sans: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font-serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
+
+  --text-display: clamp(2.25rem, 4.6vw, 3.75rem);
+  --text-h2: clamp(1.5rem, 2.1vw, 2rem);
+  --text-h3: 1.25rem;
+  --text-plate: clamp(1.125rem, 1.4vw, 1.375rem);
+  --text-body-lg: 1.1875rem;
+  --text-body: 1.0625rem;
+  --text-small: 0.9375rem;
+  --text-meta: 0.8125rem;
+  --text-micro: 0.75rem;
+  --text-num-xl: clamp(2.75rem, 6.4vw, 5rem);
+  --text-num-l: 2rem;
+  --text-num-m: 1.25rem;
+
+  --leading-tight: 1.04;
+  --leading-snug: 1.18;
+  --leading-body: 1.62;
+  --leading-meta: 1.45;
+  --tracking-display: -0.018em;
+  --tracking-label: 0.06em;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+
+  --grid-max: 1240px;
+  --gutter: clamp(16px, 4vw, 32px);
+  --measure: 64ch;
+  --header-h: 64px;
+
+  /* Revision 1 (D4, D8): the 320px floor, the mobile header row, and the state row. */
+  --bp-min: 320px;
+  --locale-cell: 36px;
+  --header-h-mobile: 56px;
+  --chart-compact-w: 320;
+  --figure-state-row-min: 48px;
+
+  --surface-1: #f4f5f2;
+  --surface-2: #eceee8;
+  --surface-3: #e4e7df;
+  --ink-1: #141a1b;
+  --ink-2: #384446;
+  --ink-3: #5a6769;
+  --rule-1: #c9cfc7;
+  --rule-2: #a9b2a8;
+  --accent: #17564a;
+  --on-accent: #f4f5f2;
+  --data-deficit: #96472a;
+
+  --chart-series-1: var(--accent);
+  --chart-ref: var(--ink-3);
+  --chart-grid: var(--rule-1);
+  --chart-hatch: repeating-linear-gradient(45deg, transparent 0 3px, color-mix(in srgb, var(--ink-1) 16%, transparent) 3px 4px);
+
+  --ground-instrument: var(--surface-1);
+  --ground-consensus: var(--surface-1);
+  --ground-dispute: var(--surface-2);
+  --ground-thesis: var(--surface-3);
+
+  --radius: 0;
+  --border-hair: 1px solid var(--rule-1);
+  --border-strong: 1px solid var(--rule-2);
+  --border-register: 4px solid var(--ink-1);
+  --shadow: none;
+  --focus: 2px solid var(--accent);
+  --focus-offset: 2px;
+
+  --state-pending: #7a5310;
+  --state-danger: #8a2c1e;
+  --admin-max: 1440px;
+  --admin-row-h: 40px;
+  --admin-gap: var(--space-5);
+  --operator-bar-h: 48px;
+  --z-sticky: 20;
+  --z-operator: 30;
+}
+
+[data-theme='dark'] {
+  --surface-1: #0f1416;
+  --surface-2: #161c1e;
+  --surface-3: #1d2426;
+  --ink-1: #e9ede8;
+  --ink-2: #b9c2be;
+  --ink-3: #8d9a96;
+  --rule-1: #2a3335;
+  --rule-2: #3c4747;
+  --accent: #56b39a;
+  --on-accent: #0f1416;
+  --data-deficit: #d08a63;
+  --state-pending: #e0b25c;
+  --state-danger: #e7907e;
+}
