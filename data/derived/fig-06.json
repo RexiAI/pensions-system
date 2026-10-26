@@ -1,0 +1,25 @@
+{
+  "assumptions": {},
+  "availability": "unavailable",
+  "definition": "Counts all contributory pensioners in force in Spain (jubilación, viudedad, incapacidad, orfandad) divided by contributing affiliates in employment. Excludes non-contributory pensions and persons who do not contribute.",
+  "definitionId": "dependency-ratio.national",
+  "figureId": "fig-06",
+  "formulaId": "dependency-ratio.v1",
+  "manifest": {
+    "definitionId": "dependency-ratio.national",
+    "fetchedAt": "2026-10-25T00:00:00Z",
+    "formulaId": "dependency-ratio.v1",
+    "inputHash": "fb6bd0026f94c99832d44438c7a57b8b67c5c2d8ea1d57f51697b93618fccc94",
+    "reproducePath": "scripts/compute.ts",
+    "sourceUrl": [
+      "https://www.seg-social.es/wps/portal/wss/internet/EstadisticasPresupuestosEstudios/Estadisticas"
+    ]
+  },
+  "unit": "ratio",
+  "unresolvedReason": "ss-pensioners: Serie mensual de pensiones contributivas en vigor: el código de serie no está resuelto (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con tabla y fecha exactas.; ss-affiliates: Serie mensual de afiliados medios: el código de serie no está resuelto (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con tabla y fecha exactas.",
+  "unresolvedSources": [
+    "ss-pensioners",
+    "ss-affiliates"
+  ],
+  "value": null
+}
