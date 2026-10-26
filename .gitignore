@@ -1,3 +1,23 @@
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
 
 # Per-machine direnv file (spec 025): never committed.
 .envrc
+.env
+.env.local
+
+# Runtime scratch: pending revisions and proposals are produced by the admin flow.
+data/pending/*.json
+data/proposals/*.json
+
+# Vitest cache
+.vitest/
+
+# Stryker mutation-testing scratch (the sandbox copy, never the report)
+.stryker-tmp/
+
+# Browser-automation scratch (Playwright MCP screenshots, console logs)
+.playwright-mcp/

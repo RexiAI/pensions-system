@@ -1,0 +1,48 @@
+{
+  "name": "pensions-system",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "prebuild": "tsx scripts/verify-derived.ts && tsx scripts/check-public-vocabulary.ts",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "compute": "tsx scripts/compute.ts",
+    "ingest": "tsx scripts/ingest-snapshots.ts && tsx scripts/ingest-population-projection.ts",
+    "verify:derived": "tsx scripts/verify-derived.ts",
+    "check:client-secrets": "tsx scripts/check-client-secrets.ts",
+    "sitemap:check": "tsx scripts/check-sitemap.ts",
+    "check:public-vocabulary": "tsx scripts/check-public-vocabulary.ts"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "2.2.2",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/vitest-runner": "10.1.1",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "24.10.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "10.13.0",
+    "fast-check": "^4.5.0",
+    "postcss": "8.5.31",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.0",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

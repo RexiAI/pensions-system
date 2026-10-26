@@ -22,3 +22,10 @@ Then the result is −200 (a negative value, not clamped to zero)
 Given a fixed obligation stream and fixed assets
 When the discount rate increases
 Then the computed implicit debt decreases
+
+## AC-001-89 — No internationally-comparable implicit debt is presented
+Given the implicit-debt metric
+When its international rendering is requested
+Then it renders `availability: 'unavailable'` with the reason "no internationally comparable
+  source for accrued obligations and system assets"
+And no internationally-comparable implicit-debt figure is presented

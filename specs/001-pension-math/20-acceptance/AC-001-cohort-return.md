@@ -2,7 +2,7 @@
 
 ## AC-001-18 — IRR solves NPV to tolerance
 Given a cohort paying 100 per year for 40 years (ages 25–65)
-And drawing 150 per year for 20 years in retirement
+And drawing 210 per year for 20 years in retirement
 When the IRR is computed
 Then the returned rate makes the net present value zero to within an absolute tolerance of 1e-6
 And the rate is a unique, finite, positive value
@@ -33,3 +33,21 @@ Then the computed IRR increases
 Given a fixed pension and fixed life expectancy at retirement
 When the average contribution increases
 Then the computed IRR decreases
+
+## AC-001-76 — A negative return is computed and reported as negative when flows are inverted
+Given a cohort paying 100 per year for 40 years (ages 25–65)
+And drawing 150 per year for 20 years in retirement, so total paid in (4 000) exceeds total drawn
+  out (3 000)
+When the IRR is computed
+Then the returned rate makes the net present value zero to within an absolute tolerance of 1e-6
+And the rate is a unique, finite, negative value with a single sign change (contributions
+  negative, then benefits positive)
+And the negative rate is reported as a negative value, never clamped to zero and never reported
+  as undefined
+
+## AC-001-88 — No internationally-comparable cohort return is presented
+Given the cohort-return metric
+When its international rendering is requested
+Then it renders `availability: 'unavailable'` with the reason "no internationally comparable
+  source for average contributions"
+And no internationally-comparable IRR figure is presented (ESSPROS has no contributions series)

@@ -27,3 +27,10 @@ Then `r_paid_real`, `g_wage`, `g_proj`, and the projection horizon are present a
 Given fixed `g_wage`
 When `r_paid_real` increases, the gap increases
 And when `g_proj` increases, the gap decreases
+
+## AC-001-90 — No internationally-comparable required base growth is presented
+Given the required-base-growth metric
+When its international rendering is requested
+Then it renders `availability: 'unavailable'` with the reason "depends on the cohort return,
+  which has no internationally comparable computation"
+And the internationally-comparable `g_proj` input is not published as a substitute metric

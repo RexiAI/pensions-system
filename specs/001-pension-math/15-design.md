@@ -1,5 +1,7 @@
 # Design Spec: pension-math
 
+> **Amendment status:** §Revision 1 (live E2E findings) amends this document. Where a directive in Revision 1 disagrees with an earlier section, Revision 1 wins. Everything else stands.
+
 ## Design Read
 
 Reading this as: an editorial data-journalism publication for a skeptical cold visitor arriving from a social feed, with a statistical-bulletin language (paper, ink, mono numerals, hairline rules, no photography), leaning toward native CSS + Tailwind v4 tokens + server-rendered SVG charts, deliberately no component library and almost no client JavaScript.
@@ -931,3 +933,243 @@ Seven tasks are partially or wholly backend, and only their rendering surface is
 - **T16 log persistence:** JSONL storage, the chained hash, and the verification job are out of design scope. In scope: the audit table, the filter form, the chain-status line, and the rule that the table accepts no actions.
 
 No task has zero frontend surface, so no task is skipped entirely.
+
+## Revision 1: live E2E findings
+
+Measured against the built app (Chromium, 1440×900 and 390×844, `es` and `de`, plus `/admin`). This section is additive: it does not restate anything that already works, and it does not touch the token palette, the dial values, the three-register system, the admin surface, or the chart forms (those are unexercised, not wrong).
+
+**What the pass confirmed and this revision preserves unchanged:** the register separation reads correctly at a glance (instrument plate / untinted consensus prose / `--surface-3` thesis inset with the serif and an `OPINIÓN` label); German does not overflow; `/admin` returns 503 with no nav, no form, and no password field. Do not redesign any of those.
+
+### Severity ranking
+
+| # | Directive | Finding | Severity |
+|---|---|---|---|
+| D4 | Overflow containment, 320px floor | F3 | **Blocks launch** |
+| D1 | Unresolved figure state, promoted to first-class | F1, F6, F8 | **Blocks launch** |
+| D2 | Hero subject ladder | F1, F6 | **Blocks launch** |
+| D3 | Public vs operator vocabulary boundary | F2 | **Blocks launch** |
+| D5 | Empty-state accessibility contract | F4 | **Blocks launch** |
+| D6 | Provenance strip, designed form | F7 | Degrades quality |
+| D8 | Locale switcher and mobile header budget | F9, F10 | Degrades quality |
+| D7 | Mark, favicon, share card | F5 | Degrades quality (share card), polish (favicon) |
+
+The five blocking items share one root cause: the app was built for the state where data exists, and shipped in the state where it does not. Fixing D1 and D2 collapses the measured 7674px page to roughly 2600px at 390 and 2200px at 1440 with nothing computed, and removes the "unfinished product" reading without inventing a single claim.
+
+### D1 (blocks launch): the unresolved figure state. Findings F1, F6, F8.
+
+Supersedes the *rendering* of the `null-value` and `withheld` rows in §State model, and adds one state. The states keep their names; what changes is the space they are allowed to occupy.
+
+**When data is absent, the figure stops being a figure.** A figure in a non-computed state does not render a plate, a chart frame, a hatched area, a dashed "coming soon" box, or any numeral at any scale. It renders one row.
+
+| State | Cause | Public rendering | Vertical budget |
+|---|---|---|---|
+| `computed` | manifest valid, value present, inside freshness window | full plate: caption, readout, chart, table, provenance strip | 420 to 560px |
+| `null-value` | the formula returns no value (T3, T4, T5 edge cases: zero denominator, zero contributions) | full plate; the chart renders with the gap hatched by `--chart-null`; the table row reads `no definido` plus a public-words reason | full plate |
+| `unavailable` **(new)** | the figure has never been computed in this deployment (its source series is not yet specified or resolved) | one ledger row | 48px row plus `--space-5` gap |
+| `withheld` | the manifest fails validation (T1) | one ledger row, different sentence | 48px row plus `--space-5` gap |
+| `stale` | snapshot outside the freshness window | must not reach production (T2 fails the build); preview banner only | n/a |
+
+**`<FigureStatusRow>`**, the whole design of an unresolved figure:
+
+- One row, `min-height: var(--figure-state-row-min)` (48px), `border-top: 1px solid var(--rule-1)`, nothing else. No ground change, no icon, no illustration.
+- Grid `[1fr auto]`: left, the figure's name as a link to its own anchor (`id="fig-03"` stays on the row, so every cross-reference from the thesis and the dispute section still resolves); right, a state chip.
+- State chip: `--text-micro` mono, 1px `--rule-1`, `--ink-3`, one of exactly two words: `sin calcular` (`unavailable`) or `no verificado` (`withheld`). `null-value` has no chip because it is not a ledger state: it renders a full plate, and a plate carries its provenance strip instead of a status word.
+- One reason line under the name, `--text-small`, `--ink-3`, maximum two lines at 390px, from a locale key per state (see copy rules below).
+- Then one link, `Cómo se calcula`, to the methodology anchor for that figure.
+
+**`<FigureLedgerNote>`**, rendered exactly once per page, above the first unresolved figure: one short paragraph in `--text-body-lg` at `--measure`, on `--surface-1`, no border. It states the situation once so the rows do not have to: "Algunas cifras todavía no se calculan en este despliegue. Las que faltan están marcadas y su método está publicado." Nothing more. It is not an apology and it is not a promise.
+
+**Ordering.** Strict figure order, `fig-01` to `fig-05`, interleaving plates and rows. Grouping the unresolved rows together would reorder the narrative and put `fig-05` above `fig-03`; the note above the first one is enough.
+
+**Copy rules, enforced as review + a content test:**
+
+- Three locale keys, one per state, and every one of them names the state, never the mechanism: `figure.unavailable.reason`, `figure.null.reason`, `figure.withheld.reason`.
+- Banned words in all three, in every locale: `resolver`, `serie`, `parse`, `fetch`, `null`, `undefined`, `JSON`, `hash`, `manifiesto`, `rev`, `build`, `deploy`, `pronto`, `en breve`, `estamos trabajando`, `disculpas`.
+- Banned permanently: any forward-looking promise. The site does not know when a figure will exist, so it never says. `sin calcular` is a state; `próximamente` is a claim.
+- **No state word may use a display or numeral token.** `Serie sin resolver` at 90px is the failure this directive exists to prevent. Mechanically checkable: a component that renders any of the three state words may not reference `--text-display`, `--text-h2`, `--text-num-xl`, `--text-num-l`, or `--text-num-m`.
+
+**Why this does not look broken.** A ruled row with a name, a state word, a sentence, and a link is a *deliberate absence*, the way a statistical bulletin prints a dash and a footnote rather than an empty chart frame. An empty chart frame is a wireframe tell; a ruled row is a document. The measured alternative, five chart-shaped holes at plate weight, is what produced the bug reading.
+
+**`<NullPlate>` is retired.** §State model's whole-plate null rendering goes away: a figure is either `computed` (and may contain null *data points*, hatched inside an otherwise normal chart) or `unavailable` (a ledger row). A computed figure whose every data point is null is treated as `unavailable`, with the null reason preserved in the row's reason line, so there is no state in which a plate renders empty axes.
+
+**Interaction with T11:** see D5. A table is emitted if and only if a chart is emitted.
+
+### D2 (blocks launch): hero subject ladder. Findings F1, F6.
+
+The hero must never spend the largest type on the page announcing an absence. Supersedes §Page shell's hero description, which assumed `fig-01` unconditionally.
+
+**`selectHeroSubject(derived)`**, a pure function evaluated at build time, first match wins. It returns a discriminated union, `{ kind: 'figure', figureId, value, comparisons }` or `{ kind: 'proposition' }`, so it can be unit-tested and so the hero variant is fixed at build time with no CLS and no client JavaScript.
+
+Eligibility, and the exclusions are the point:
+
+```
+eligible(figure) := figure.state === 'computed'
+                 && figure.headlineValue is a single scalar
+                 && figure.id in ['fig-02', 'fig-01']     // fixed priority order
+```
+
+- `fig-03` is excluded because its headline is the central value of a band, and a hero that shows the central value without its band would publish the thing AC-001-21 exists to prevent.
+- `fig-04` is excluded because AC-001-25 forbids a single headline implicit-debt number, and the hero is the loudest single-value slot on the site.
+- `fig-05` is excluded because it carries the thesis, and promoting a thesis-adjacent number to the hero would blur the register boundary that AC-001-41 and AC-001-42 protect. The site does not lead with its conclusion, even when the number is available.
+
+**Tier 1, `fig-02` computed:** the same numeric hero, relabelled to pension expenditure as a share of GDP, showing the current value, the first and peak observations, and three dated comparisons. Leads with this figure because the computed series carries a visible trend where the dependency ratio is flat across the recent decade (0.3293 in 2016, 0.3314 in 2024) — a flat headline invites "so what" in the first viewport.
+
+**Tier 2, `fig-01` computed:** the numeric hero as originally specified, showing the ratio, three dated comparisons and the sparkline.
+
+**Product-owner decision (2026-10-26), recorded here rather than inferred:** tier order is `fig-02` then `fig-01`. The rationale is the measured series, not aesthetics — `fig-02` rises from 9.82% of GDP in 1995 to 13.23% in 2024 (peak 14.39% in 2020), while `fig-01` is effectively flat over the last decade. Do not revert this ordering without the same evidence.
+
+**Tier 3, no eligible figure (today's state): propositional hero.**
+
+- Layout 8/4, not 7/5. The extra column goes to the sentence, because there is no number to give it to.
+- Left column: `<h1>` from the `hero.proposition` slot (budget 90 chars `es`, 115 `de`; two lines at desktop, three at 390), a subtext capped at 20 words, one primary link `Leer el método` to `#metodo`, one secondary link `Qué cifras publicamos` to `#figuras`. Method first, and never the thesis: the credibility order a cold reader needs is method, then evidence, then opinion.
+- Right column: the **status summary**, not an empty plate. A five-row list, one row per figure, each `name` plus its state chip, then one line in `--text-micro`: `5 figuras · 0 calculadas`, with the count computed from data, not authored. Rows link to their anchors. No frame, no border on the block, no chart placeholder.
+- The largest type on the page is the proposition. No numeral larger than `--text-micro` appears above the fold, and the only one at that size is the snapshot date; the status summary's counts are `--text-micro` too.
+- `min-height`: the `calc(100dvh - var(--header-h))` rule applies to the numeric hero only. The propositional hero takes its content height. This removes the measured dead space; the next section becomes visible at the fold, which is what invites the scroll.
+
+**When the proposition slot is missing:** the build fails. A missing content key is a content bug, and silently falling back to a state word would recreate exactly the failure this directive fixes.
+
+**The thesis is never a hero fallback.** If there is no number, the site leads with what it does, not with what it thinks.
+
+### D3 (blocks launch): public vs operator vocabulary. Finding F2.
+
+The rule, in one sentence: **if a string's meaning is defined by this repository rather than by the publisher, it is operator vocabulary and does not appear on a public page.**
+
+| Operator vocabulary (public page: never) | Public replacement |
+|---|---|
+| `10-tasks.md`, `(pregunta abierta 1)`, `open question 1` | the reader-facing reason sentence from D1 |
+| `T3`, `AC-001-08`, `spec 001` | nothing. These never have a reader-facing equivalent |
+| `ss-pensioners`, `ss-affiliates`, `ine-tempus3`, any internal source slug | publisher + dataset as the publisher titles it + observation date |
+| `dep-ratio-v1`, any formula id | `Cómo se calcula`, linking to the methodology anchor |
+| a 64-character digest, a run id, a revision id | nothing on the public surface; `Cómo se calcula` if the reader asks for provenance depth |
+| `data/derived/dependency.json`, any repo path | nothing; the reproduce path lives in the disclosure |
+| env key names (`ADMIN_PASSWORD_HASH`) | nothing, ever, anywhere, including `/admin` |
+
+**The public form of a source**, three fields in this order, rendered as the labelled grid in D6 (not as a dot-joined string):
+
+```
+Fuente     Seguridad Social
+Serie      Afiliados a la Seguridad Social
+Dato de    octubre de 2026
+```
+
+**The test that decides a grey area:** can a reader paste the identifier into the publisher's own site and land on the source? Yes means public. An INE table number, a Eurostat dataset code (`spr_exp_pens`), and a BOE article number all pass, and they belong on the page because they are how a reader finds the data. An internal slug, a formula id, a hash, and a spec filename all fail, because they resolve only inside this repository.
+
+**Where operator vocabulary is acceptable:** `/admin/*`; the reproduce panel and the provenance disclosure (both marked `data-operator="true"` on their subtree); the audit log; code comments and commit messages; `data-*` attributes. Nowhere else, including captions, notices, alt text, `aria-label`, meta descriptions, and the share card.
+
+**Enforcement (a build-time gate, not a review habit):** for every public route, take the rendered text, drop every `[data-operator="true"]` subtree, and fail the build on a match for: `\.md\b`, `AC-\d{3}-\d{2}`, `pregunta abierta`, `open question`, `[0-9a-f]{16,}`, and any value of any `sourceKey` field present in `data/derived/*.json`. The last clause is the one that would have caught `ss-pensioners:` and it stays current as sources are added.
+
+**F2's specific strings** are not to be translated or softened: `(10-tasks.md, pregunta abierta 1)` is deleted outright. The need behind it, telling a reader why a figure is missing, is served by D1's reason line in public vocabulary.
+
+### D4 (blocks launch): overflow containment and the 320px floor. Finding F3.
+
+Measured: `documentElement.scrollWidth` 713 against a 390 window, with the plate clipped. Primary offender: `code.hash--full`, a 64-character digest in a `<code>` with default wrapping.
+
+**Minimum supported width is 320px**, token `--bp-min`. Zero horizontal overflow is required at 320, 390, 768, and 1440.
+
+Rules, in the order a Coder should apply them:
+
+1. **Identifiers wrap anywhere.** `code, samp, kbd, .identifier, .hash, .url` get `overflow-wrap: anywhere; word-break: break-word; max-inline-size: 100%;`. This is the direct fix for the measured offender.
+2. **Grid and flex children that can contain a table, `<pre>`, `<code>`, or `<svg>` get `min-inline-size: 0`.** This is the cause of most overflow that "should not" happen: the default `min-width: auto` refuses to shrink below content.
+3. **SVG never forces width.** `svg { display: block; max-inline-size: 100%; height: auto; }`.
+4. **Tables scroll inside themselves, never the page.** The container keeps `overflow-x: auto`, `overscroll-behavior-x: contain`, `scrollbar-gutter: stable`, `tabindex="0"`, and an `aria-label`.
+5. **The compact chart viewBox is 320 wide**, token `--chart-compact-w`, replacing the 360 in §Chart strategy. At 320 it renders 1:1, so a 12px axis label stays 12px. At 390 it scales up by 1.22, which is acceptable; it can never scale down below the floor.
+6. **Prose wraps like prose.** `hyphens: auto` with the correct `lang`, plus `overflow-wrap: break-word`. Never `anywhere` in prose: it breaks words mid-syllable and reads as a bug even when it is not.
+7. **No `overflow-x: hidden` on `html` or `body`.** It hides the next regression instead of containing it, and it breaks sticky positioning in some engines.
+8. **No ellipsis on any identifier, title, date, or figure name.** Wrap, or move it into a disclosure. Truncation on a credibility surface is a defect, not a layout compromise.
+
+**Acceptance, as an automated check** (Playwright, four widths, both locales): `documentElement.scrollWidth === document.documentElement.clientWidth`, and no element's `getBoundingClientRect().right` exceeds `innerWidth + 1`. Run it on `/`, a resolved-figure route when one exists, and `/admin`.
+
+### D5 (blocks launch): empty-state accessibility contract. Finding F4.
+
+Measured: 0 `<table>`, 0 `<svg>`, 0 `<canvas>`, 0 chart hosts, and 9 `<details>` with nothing inside them.
+
+**Decision: an unresolved figure renders no chart and no table. The status section is the non-visual equivalent.** A table with headers and zero data rows is worse than nothing: a screen-reader user is told "table, 3 columns, 0 rows" and learns the same fact they already heard from the heading, twice, with more ceremony.
+
+**One rule makes the coupling unconditional:** a table is emitted **if and only if** a chart is emitted. One component produces both; there is no code path that renders one without the other. That is what prevents the measured state from recurring the moment a chart is re-enabled, and it is the whole of T11's guarantee expressed as a structural invariant.
+
+What a screen-reader user encounters, per state:
+
+| State | Encountered |
+|---|---|
+| `computed` | `<section id="fig-0N" aria-labelledby="fig-0N-title">`, heading, caption sentence, the chart with `role="img"` and `aria-describedby` the readout, then the `<details>` disclosure whose summary names the row count, containing the table with `<caption>`, scoped headers, and values |
+| `null-value` | the same, with `no definido` cells and the reason in the caption |
+| `unavailable` | heading (level 2, naming the figure), one sentence stating it is not calculated in this deployment, one link `Cómo se calcula`. Nothing else: no empty table, no `role="img"` on nothing, no live region |
+| `withheld` | heading, one sentence stating it is not published because it did not pass the source check, one link |
+
+No `aria-live` region anywhere on the public site: pages are static, so nothing appears or disappears without a navigation, and a live region would announce nothing but its own emptiness.
+
+**Scenario note:** AC-001-44 and AC-001-45 hold under the conditional reading ("every chart renders a non-visual representation" is vacuously satisfied where no chart renders). The specifier should add the words *when a chart renders* to both, so the conditional reading is explicit rather than inferred. No contradiction, one clarification.
+
+### D6 (degrades quality): provenance strip, designed form. Finding F7.
+
+Measured: raw source URLs as a dense row of small text, reading as a log dump. The strip is the product's central credibility device; it cannot look accidental. Supersedes §Task 1's field list for the **public** strip; the disclosure keeps every field.
+
+**Public strip** (rendered on `computed` figures only), directly under the plate's table, inside the `<figure>`:
+
+- A 1px `--rule-1` above, `--space-3` padding-top, no ground change, no box.
+- A three-field labelled grid at ≥1024px (`1fr 1fr 1fr auto`) and three stacked field pairs below 768px: label in `--text-micro` mono `--ink-3`, value in `--text-meta` `--ink-2`. The `Serie` value may take two lines; it is never truncated.
+- The trailing cell holds two links, each a 44px hit target: `Fuente original ↗` (external icon 16px) and `Cómo se calcula`. More than three sources collapse to `Fuentes (3)` opening a three-item list; never an inline URL run.
+- Fields, exactly: `Fuente`, `Serie`, `Dato de`. Nothing else. No hash, no formula id, no path, no slug, no JSON pointer, no spec reference on the public strip.
+
+**Disclosure** (`Cómo se calcula`), marked `data-operator="true"`, `--surface-3` ground, 1px `--rule-1`, radius 0:
+
+- A six-row `<dl>`: `fórmula`, `fuente`, `serie`, `dato de`, `huella sha256`, `ruta de reproducción`, `ventana de frescura`, all values in `--font-mono` `--text-meta`.
+- The digest in a bordered `<code>` block, full 64 characters, `overflow-wrap: anywhere`, with a copy control and an `aria-live="polite"` confirmation.
+- One sentence explaining what a changed digest means. That sentence is the only prose in the disclosure.
+
+**Banned:** a list of URLs presented as provenance. A URL is not provenance; a named publisher, a named dataset, and a date are. The URL is reachable in one click from `Fuente original`, which is a different affordance from a wall of raw links.
+
+**Compliance note:** AC-001-01 constrains the *manifest data* (`sourceUrl`, `fetchedAt`, `formulaId`, `inputHash`, `reproducePath` must all be non-empty in `data/derived/*.json`). It says nothing about the DOM. Moving four of those five fields into the disclosure is therefore compliant, and the disclosure must still render every one of them.
+
+### D7 (degrades quality for the share card, polish for the favicon): mark, favicon, share card. Finding F5.
+
+Measured: `favicon.ico` 404 on every route, and no icon declared. A blank tab, and worse, a blank share card, on a product whose traffic arrives from social feeds.
+
+- **The mark is typographic, not illustrative.** One glyph: the site's initial letter, set in `--font-sans` weight 600, optically centred, on an `--ink-1` ground with an `--surface-1` letter, **`border-radius: 0`** to match the shape lock. No symbol, no shield, no chart glyph, no hand-drawn shape.
+- **Files, all generated from one committed script** (`scripts/build-brand.mjs`) so they cannot drift: `app/icon.svg` (32, scales), `app/apple-icon.png` (180), `app/favicon.ico` (32, which stops the measured 404), and `app/manifest.ts` with 192 and 512 PNGs. Letter and colours come from tokens, not literals.
+- **Declarations:** `<link rel="icon" type="image/svg+xml" href="/icon.svg">`, `<link rel="apple-touch-icon" href="/apple-icon.png">`, and `theme-color` meta with a light and a dark `media` variant.
+- **Share card:** one static 1200×630 per locale, build-generated from the same tokens: `--ink-1` ground, the lettermark small in one corner, the wordmark, the `hero.proposition` string, and one line listing the five official sources. **No metric, no number, no date on the share card.** Third parties cache share images for weeks, so a number there becomes a false claim the first time the figure changes, and today there is no number to put there. The card's job is to state what the site is and that it cites official sources, which is true in every state.
+- `og:image:alt` carries the site name and the proposition. Do not put a figure name in it.
+
+### D8 (degrades quality): locale switcher and mobile header. Findings F9, F10.
+
+**Locale switcher, ≥1024px.** Five 36×36 cells (`--locale-cell`) in one bordered group: 1px `--rule-1` outer border, 1px hairlines between cells, radius 0, 2-letter code in mono 13px. The active cell is **inverted** (`--ink-1` ground, `--surface-1` text) with `aria-current="page"`; inactive cells are `--ink-2` on transparent with a `--surface-2` hover. A 2px accent underline at 36px is a one-in-five cue and that is precisely what failed; a filled cell is unmistakable at a glance. The group carries `role="group"` and `aria-label="Idioma"`; each cell's accessible name is the language name in the current locale (`Cambiar a alemán`), while the visible label stays the two-letter code. 36px clears WCAG 2.5.8 (24px); `--touch: 44px` continues to apply to primary actions only, and this is not one.
+
+**Header below 768px.** Exactly **56px**, one row, from 320 up. Token `--header-h-mobile: 56px`, which supersedes the 88px in §Page shell.
+
+- Left to right: wordmark (text, ≤96px), the snapshot date in **ISO 8601** (`2026-10-01`, `--text-micro` mono, `title` and `aria-label` carrying the long localised form), the index trigger (40px, `caret-down` icon, `aria-label="Índice"`), the theme toggle (40px).
+- **No navigation links and no locale cells in the bar.** The measured 49-links-0-buttons header is the symptom of building navigation out of anchors; every control that performs an action is a `<button>` or a `<summary>`, and only navigation is an `<a>`.
+- Index panel: a native `<details>` opening a full-width panel under the header, `--surface-2`, 1px bottom rule, `max-height: min(70dvh, 420px)`, `overflow-y: auto`, no JavaScript, no overlay, no drawer. Contents in order: the four anchors at 48px rows; a hairline; `Idioma` as five full-width 44px rows showing language names (`Español`, `English`, `Français`, `Deutsch`, `Italiano`) with the active one marked `aria-current="page"` and a check icon; a hairline; the full snapshot stamp (`Datos: 1 de octubre de 2026 · ventana 45 días`) at `--text-meta`; a hairline; the theme choice as a three-row radio group (`Sistema`, `Claro`, `Oscuro`).
+- Width budget to verify rather than guess, at 320: gutters 32 + wordmark 90 + ISO date 72 + index 40 + theme 40 + three 8px gaps 24 = **298px**, which fits. If the wordmark exceeds 96px in `de`, shorten the wordmark, not the date.
+- **768 to 1023px** keeps the 64px header and the index panel from §Page shell, with the full snapshot stamp inline. Only below 768px does the 56px row apply. One header component, two density modes, one breakpoint token.
+- `check` joins the icon set (eight total) for the active locale row in the index panel.
+
+### New tokens
+
+Five, and nothing else:
+
+```css
+--bp-min: 320px;              /* minimum supported width; the overflow floor */
+--locale-cell: 36px;          /* switcher cell */
+--header-h-mobile: 56px;      /* supersedes the 88px in §Page shell */
+--chart-compact-w: 320;       /* compact SVG viewBox width, was 360 */
+--figure-state-row-min: 48px; /* unresolved figure row */
+```
+
+Share-card dimensions (1200×630) stay constants inside `scripts/build-brand.mjs` with a comment pointing here: they are a build-script concern, not a component token, and putting them in `tokens.css` would invite their use in layout.
+
+### Scenarios that need amending
+
+| Scenario | Status | What the specifier must do |
+|---|---|---|
+| **AC-001-04** | Gap, and my design depends on closing it | Add a per-figure `availability: 'computed' \| 'unavailable'` field to the derived-JSON contract (T1/T2) and a scenario for the `unavailable` state. As written, the scenario cannot distinguish "a required source failed to fetch" (build must fail) from "this figure has never been specified" (a data state that publishes a ledger row). The deployed app satisfies neither reading, which is why the absence read as a bug |
+| **AC-001-05**, **AC-001-06** | Amendment required | Both forbid publishing a partial snapshot. They are correct for *fetch failures* and must keep failing the build. Add one sentence to each: a figure explicitly marked `unavailable` in the committed data is not a partial snapshot, is never labelled current, and does not trigger the failure path. Without that sentence, the D1 rendering is arguably prohibited by the letter of the scenario |
+| **AC-001-44**, **AC-001-45** | No contradiction, one clarification | Prefix both with *when a chart renders*. The conditional reading is already correct; the words make it explicit |
+| **AC-001-07** | Unchanged | A stale snapshot still fails the build. D1 does not weaken it: `stale` is not `unavailable` |
+| **AC-001-21**, **AC-001-25**, **AC-001-31**, **AC-001-41**, **AC-001-42** | Unchanged, and D2 is derived from them | Figure 3, 4, and 5 hero exclusions exist to keep these true |
+| **AC-001-52**, **AC-001-53**, **AC-001-54**, **AC-001-55**, **AC-001-56** | Unchanged | The admin surface was confirmed working and this revision does not touch it |
+
+### Not changing
+
+The register system and its three labels; the token palette and every contrast pair verified above; the dial values `5 / 4 / 5` and the admin dialect `8 / 2 / 2`; the chart forms for all five metrics (unexercised, not disproven); the admin surface, including the 503 view confirmed in the pass; the thesis confinement rule; the citation requirement; the four-rate implicit-debt rule; the `<details>`-over-modal discipline; the no-photography decision.
+

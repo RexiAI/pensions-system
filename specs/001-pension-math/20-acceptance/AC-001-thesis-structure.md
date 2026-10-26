@@ -14,3 +14,11 @@ Then it contains no reference to (and renders none of) the thesis language
 Given the editorial content
 When it is rendered
 Then agreement, dispute, and thesis are three distinct sections with distinct content types, not one merged block
+
+## AC-001-91 — A heading's count matches the registers actually rendered
+Given a section heading that names a count (e.g. "Las tres voces de esta página")
+And the number of registers rendered beneath it
+When the section is rendered
+Then the heading's count equals the number of rendered registers
+And a heading whose prose count contradicts the rendered register count is a defect (rejected,
+  not shipped)

@@ -26,8 +26,22 @@ number renders without provenance and a reproduce path.
   - `sourceUrl`: one or more named official source URLs (string array, ≥1 entry).
   - `fetchedAt`: ISO-8601 UTC timestamp (string matching `YYYY-MM-DDTHH:MM:SSZ`).
   - `formulaId`: a stable identifier drawn from a fixed, documented set (not free text).
+  - `definitionId`: a stable identifier naming exactly which published definition produced the
+    value, drawn from the same fixed documented set of definitions (not free text).
   - `inputHash`: hex digest (string, fixed length) of the raw ingested input snapshot bytes.
   - `reproducePath`: a repo-relative path to the committed script that reproduces the figure.
+
+- Every figure entry in `data/derived/*.json` additionally carries an `availability` field
+  (a sibling of `manifest`, not a manifest field) with exactly two values:
+  - `computed`: the figure has a computed headline value and a complete, valid manifest; it
+    renders as a full plate (caption, readout, chart, table, provenance strip).
+  - `unavailable`: the figure has never been computed in this deployment (its source series is
+    not yet specified or resolved); it carries no headline value, renders no chart and no table,
+    renders as a ledger row, and is never labelled current.
+- `availability` invariants (no loophole): a figure marked `computed` without a complete manifest
+  fails validation; a figure marked `unavailable` that carries a headline value fails validation.
+  `unavailable` is a state of "no value exists", never a path to publish a value without a
+  manifest or citation.
 - The hash is computed over the exact input snapshot bytes, not a derived value; two
   different input snapshots never yield the same hash (collision is a test failure for the
   fixtures used).
@@ -35,6 +49,15 @@ number renders without provenance and a reproduce path.
   or empty required field fails validation (rejected, not silently accepted).
 - `reproducePath` must resolve to a file committed in the repo (validation checks existence).
 - `formulaId` is validated against the documented set; an unknown id fails validation.
+- Every derived-figure entry carries a `definitionId` and a published `definition` string; the
+  manifest records which `definitionId` produced the value, so two numbers computed on different
+  definitions can never be compared without the difference being visible.
+- `definitionId` is validated against the documented set; an unknown id fails validation, and a
+  figure whose `definition` string does not match the definition its `definitionId` names fails
+  validation.
+- The `definition` string is instrument vocabulary (what is counted, what is excluded), never
+  thesis vocabulary: it carries no adjectives and no conclusion — "fraud", "pyramid",
+  "insostenible", "injusto", and like terms are not permitted in a definition string.
 - A figure published via an admin-approved revision (T14) carries a manifest of the same
   shape; there is no publication path (build-time or revision) that emits a figure without
   a manifest.
@@ -58,6 +81,12 @@ current.
   or unresolvable source yields a non-zero exit.
 - A partial ingest (some sources resolved, some failed) is treated as failure: the build
   fails loudly and does **not** emit a figure marked "current" that lacks its inputs.
+
+- A figure explicitly marked `availability: 'unavailable'` in the committed derived data is a
+  valid published data state, distinct from a fetch failure: it does not trigger the
+  fetch-failure path, the build exits `0` for it, and the figure is never labelled current. A
+  required source that failed to fetch still fails the build (non-zero exit) regardless of any
+  `unavailable` marker on an unrelated figure.
 - Stale data is never rendered as current: a snapshot whose `fetchedAt` is older than the
   configured freshness window is treated as a failure (non-zero exit), not silently reused.
 - Derived JSON is committed and diffable (plain JSON, deterministic key order).
@@ -68,62 +97,109 @@ current.
 - The compute step is a single committed script with two triggers: (1) at build time, and
   (2) on admin-triggered dispatch via a GitHub Actions workflow (T14). The dispatch path
   writes a **pending revision** and never overwrites published `data/derived/` directly.
+- The international path takes `geo` (country code) as a data parameter to source resolution and
+  computation; computing a second country is a data/config change (a new `geo` value plus its
+  sources), never a new code path. v1 publishes only `geo = ES`; a non-`ES` geo is not silently
+  rendered or assumed.
+- Cross-country honesty: when a second country is configured, a definition whose source exists
+  for one country but not another renders `availability: 'unavailable'` for the country where the
+  source is absent. The `definitionId` is unchanged, so the reader sees that this country has no
+  value for that exact definition — never a silently different definition substituted for it.
 
 ---
 
-## T3 — Dependency ratio (metric 1)
+## T3 — Dependency ratio (metric 1, two labelled definitions)
 
-**Goal.** Compute the monthly dependency ratio: contributory pensioners ÷ contributing
-affiliates, and reject the undefined cases.
+**Goal.** Publish two dependency figures side by side with their definitions visible: an
+internationally comparable one (computable today from Eurostat) and a national Spanish
+contributory one (unavailable until its exact table is captured). They measure different
+concepts and are never merged into one number.
 
-**Inputs.** T2 (affiliate and pensioner counts, committed snapshot).
+**Inputs.** T2 (beneficiary and employment counts, committed snapshot).
 
 **Acceptance file.** `20-acceptance/AC-001-dependency-ratio.md`
 
 **Acceptance criteria.**
-- Formula: `dependency_ratio = pensioners / affiliates`, computed per calendar month.
-- `pensioners` = number of contributory pensioners (pensiones contributivas en vigor), Spain.
-- `affiliates` = number of contributing affiliates (afiliados a la Seguridad Social, total), Spain.
-- Source class: **Seguridad Social, document/manual for v1** (committed snapshot; exact series
-  codes are an open question — see below). Rounding: ratio reported to 2 decimal places.
-- Edge cases: `affiliates == 0` → result is `undefined` (serialised as `null`, never `Infinity`
-  or `NaN`); `pensioners == 0` → `0.00`; `affiliates == 0 && pensioners == 0` → `undefined`.
-- Invariants for property tests: the ratio is never negative for valid inputs; the ratio is
-  monotonic increasing in `pensioners` (affiliates held constant) and monotonic decreasing in
-  `affiliates` (pensioners held constant).
+- Figure 1 — international, `computed`: **"Ratio de dependencia — beneficiarios de pensiones de
+  vejez por persona ocupada"**. Formula `old_age_pension_beneficiaries / employed_persons`, per
+  year.
+  - `old_age_pension_beneficiaries` = Eurostat `spr_pns_ben`, filtered to pension type *old age*,
+    headcount. `employed_persons` = Eurostat `lfsi_emp_a`, annual employment.
+  - Definition (instrument vocabulary): counts old-age pension beneficiaries; excludes survivor
+    and disability beneficiaries from the numerator and non-employed persons from the denominator.
+  - Source class: **Eurostat, machine-verified**. Rounding: 2 decimal places.
+- Figure 2 — national, `unavailable` in v1: **"Ratio de dependencia contributiva"**. Formula
+  `contributory_pensioners / contributing_affiliates`, per calendar month.
+  - `contributory_pensioners` = pensiones contributivas en vigor, all types (jubilación, viudedad,
+    incapacidad, orfandad), Spain. `contributing_affiliates` = afiliados a la Seguridad Social en
+    alta, total, Spain.
+  - Definition (instrument vocabulary): counts all contributory pensioners; excludes
+    non-contributory pensions.
+  - Source class: **Seguridad Social, document/manual** (committed snapshot; exact series codes are
+    an open question). Rounding: 2 decimal places.
+- The two figures are **not variants of one number**: they measure different concepts
+  (beneficiaries ≠ contributory pensioners; employed persons ≠ affiliates). Each carries its own
+  `definitionId`, label, and definition string; rendering them as one merged value is rejected.
+- Edge cases apply to each figure independently (both are ratios): `denominator == 0` →
+  `undefined` (serialised as `null`, never `Infinity` or `NaN`); `numerator == 0` → `0.00`;
+  both zero → `undefined`.
+- Invariants for property tests: each ratio is never negative for valid inputs; monotonic
+  increasing in the numerator (denominator held constant) and monotonic decreasing in the
+  denominator (numerator held constant).
 
 ---
+## T4 — Contribution cover (metric 2, two labelled definitions — not variants)
 
-## T4 — Contribution cover (metric 2)
+**Goal.** Publish two distinct figures because the internationally available quantity and the
+national quantity measure different concepts and must never be presented as variants of one
+number: Figure 1 is pension expenditure as % of GDP (international, computable now); Figure 2
+is contributions ÷ expenditure (national, unavailable).
 
-**Goal.** Compute contribution cover: social contributions ÷ contributory pension
-expenditure, and encode the below/at/above-1 semantics.
-
-**Inputs.** T2 (contributions and expenditure figures).
+**Inputs.** T2 (expenditure figures).
 
 **Acceptance file.** `20-acceptance/AC-001-contribution-cover.md`
 
 **Acceptance criteria.**
-- Formula: `cover = social_contributions / contributory_pension_expenditure`.
-- `social_contributions` = total social contributions funding contributory pensions (IGAE system
-  accounts; **document/manual for v1**).
-- `contributory_pension_expenditure` = contributory pension expenditure (Eurostat ESSPROS
-  `spr_exp_pens`, machine-verified; IGAE as manual fallback).
-- Semantics: `cover < 1` → a gap exists (the shortfall is filled from taxation or debt, computed
-  as `expenditure − contributions > 0`); `cover == 1` → break-even; `cover > 1` → surplus.
-  Rounding: 2 decimal places.
-- Edge cases: `expenditure == 0` → `undefined`; `contributions == 0` → `0.00`; both zero → `undefined`.
-- Invariants: `cover` is never negative for valid inputs; monotonic increasing in
-  `contributions`, monotonic decreasing in `expenditure`.
+- Figure 1 — international, `computed`: **"Gasto público en pensiones (% del PIB)"**. Formula
+  `pension_expenditure / GDP × 100`, from Eurostat `spr_exp_pens` in the %-of-GDP unit
+  (machine-verified). Definition (instrument vocabulary): counts total public pension expenditure
+  as a share of GDP; excludes non-pension social expenditure. Rounding: 2 decimal places.
+- Figure 2 — national, `unavailable` in v1: **"Cobertura de las cotizaciones"**. Formula
+  `social_contributions / contributory_pension_expenditure`.
+  - `social_contributions` = total social contributions funding contributory pensions (IGAE system
+    accounts; **document/manual for v1**).
+  - `contributory_pension_expenditure` = contributory pension expenditure (IGAE as manual
+    fallback). No ESSPROS contributions/receipts series exists (`spr_rec_pens` returns 404), so
+    this figure has no international computation.
+  - Definition (instrument vocabulary): counts social contributions divided by contributory
+    pension expenditure; excludes transfers from general taxation and debt.
+  - Semantics: `cover < 1` → gap (shortfall filled from taxation/debt, computed as
+    `expenditure − contributions > 0`); `cover == 1` → break-even; `cover > 1` → surplus.
+    Rounding: 2 decimal places.
+- **Explicitly not a two-variant figure**: % of GDP is an effort measure and says nothing about
+  whether contributions cover the bill; contributions ÷ expenditure is a coverage measure.
+  Collapsing them into one number would imply comparability that does not exist. Each carries its
+  own `definitionId`, label, and definition string; rendering them as one merged value is
+  rejected.
+- Edge cases (Figure 2; Figure 1 also rejects `GDP == 0` as `undefined`): `expenditure == 0` →
+  `undefined`; `contributions == 0` → `0.00`; both zero → `undefined`.
+- Invariants: `cover` is never negative for valid inputs; monotonic increasing in contributions,
+  monotonic decreasing in expenditure.
 
 ---
-
 ## T5 — Cohort return, IRR (metric 3)
 
 **Goal.** Compute the internal rate of return of contributions paid in vs benefits drawn out
 for a representative cohort, published with a sensitivity band.
 
 **Inputs.** T2 (average contribution, average pension, life expectancy at retirement).
+
+**No internationally-comparable computation.** The cohort IRR needs an average *contribution*
+(what a worker pays in). ESSPROS has no contributions/receipts series (`spr_rec_pens` returns
+404), so there is no Eurostat source for the contribution side. The cohort return is therefore a
+single national definition with no international counterpart — not a two-definition figure. Its
+international rendering is `availability: 'unavailable'` with the reason "no internationally
+comparable source for average contributions", never a silently different definition.
 
 **Acceptance file.** `20-acceptance/AC-001-cohort-return.md`
 
@@ -146,6 +222,11 @@ for a representative cohort, published with a sensitivity band.
   `pension` (contributions and `R` held constant) and decreases with `contribution` (pension and
   `R` held constant); the sign change in cash flows is exactly one, so the root is unique.
 
+- A finite negative IRR is a valid result, reported as negative: when total contributions exceed
+  total benefits over the cohort's lifetime, the computed IRR is negative and is reported as a
+  negative value — never clamped to zero and never reported as `undefined` (which is reserved for
+  zero contributions).
+
 ---
 
 ## T6 — Implicit debt (metric 4)
@@ -154,6 +235,15 @@ for a representative cohort, published with a sensitivity band.
 1%, 2%, 3%, 4%, always as a four-value set, never a single headline.
 
 **Inputs.** T2 (accrued obligation stream; Fondo de Reserva balance).
+
+**No internationally-comparable computation.** Implicit debt needs accrued pension obligations
+and system assets. None of the verified Eurostat datasets (`spr_pns_ben`, `spr_exp_pens`,
+`proj_23np`, `lfsi_emp_a`) carries accrued obligations or pension-fund assets, so there is no
+internationally comparable implicit-debt figure. This metric is a single national definition with
+no international counterpart; its international rendering is `availability: 'unavailable'` with
+the reason "no internationally comparable source for accrued obligations and system assets". (The
+European Commission Ageing Report would be a candidate future source; it is a document, not a
+verified machine source, and out of scope for v1.)
 
 **Acceptance file.** `20-acceptance/AC-001-implicit-debt.md`
 
@@ -177,6 +267,15 @@ for a representative cohort, published with a sensitivity band.
 it promises, and compare it against the growth implied by INE population projections.
 
 **Inputs.** T5 (real cohort return) and T2 (INE population projections).
+
+**No internationally-comparable computation (transitive).** `g_required = r_paid_real − g_wage`
+depends on the cohort return `r_paid_real` (T5), which has no internationally comparable
+computation (no ESSPROS contribution series). The *projected* base growth `g_proj` is itself
+internationally comparable (Eurostat `proj_23np`), but the required-growth metric cannot be
+computed internationally without the return. This metric is a single national definition; its
+international rendering is `availability: 'unavailable'` with the reason "depends on the cohort
+return, which has no internationally comparable computation". The `g_proj` input is not published
+as a substitute metric.
 
 **Acceptance file.** `20-acceptance/AC-001-required-base-growth.md`
 
@@ -266,6 +365,11 @@ scheme" reading to its designated thesis section, away from computed findings.
 - Metric components have no reference to thesis content (no import/string/render of thesis
   language from within a metric component).
 - Each section is its own component/content type, not a free-text blob shared with metrics.
+- A section heading that names a count ("Las tres voces de esta página", "The three voices…",
+  etc.) must match the number of registers actually rendered beneath it. The heading's count is
+  derived from the rendered registers, never hardcoded prose: if four registers render, the
+  heading says four, and a prose count that contradicts the DOM is a defect (rejected, not
+  silently shipped). Enforced at render/test time as a content-count invariant.
 
 ---
 
@@ -283,6 +387,13 @@ screen reader and text-only rendering.
   table, an `aria-label`/text alternative, or equivalent) alongside the visual chart.
 - The non-visual representation is present in the DOM with an accessible name/role and carries
   the same values as the visual chart (no figure is visual-only).
+
+- A table is emitted if and only if a chart is emitted: one component produces both, and there is
+  no code path that renders one without the other.
+- An unresolved figure (no chart — `availability: 'unavailable'` or `withheld`) emits no chart
+  and no table. A screen-reader user encounters instead a level-2 heading naming the figure, one
+  sentence stating it is not calculated (or not published) in this deployment, and a link to its
+  methodology. That absence is deliberate — never an empty table, never an empty chart frame.
 
 ---
 
@@ -474,3 +585,10 @@ decisions; a human confirms before `/build`.
     across all IPs.
 17. **CSRF token strategy.** *Recommended default:* synchronizer token, one per session, required
     as an `X-CSRF-Token` header on every state-changing request; rejected on mismatch/absence.
+18. **International sources for M3/M4/M5.** Three metrics (cohort return, implicit debt, required
+    base growth) have no internationally comparable computation in v1: ESSPROS has no
+    contributions/receipts series (`spr_rec_pens` 404), and no verified Eurostat dataset carries
+    accrued obligations or pension-fund assets. *Recommended default:* accept
+    `availability: 'unavailable'` with an explicit reason for these metrics' international
+    rendering; revisit if the European Commission Ageing Report (AWG) or a new ESSPROS series is
+    captured as a verified source in a later spec.
