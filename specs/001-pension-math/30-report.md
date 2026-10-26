@@ -560,3 +560,17 @@ unreachable/dead, 31 reachable residuals named), with 14 runtime errors excluded
 F1-unblocked block measures **83.33 % (15/18, 100 % of its killable mutants)**, up from 0 % when the
 first report was written. Final suite **415/415 green across 33 files**, app builds, `tsc` and ESLint
 clean, traceability 92/92 intact, audit-trail gate exit 0.
+
+---
+
+## PR
+
+PR: https://github.com/RexiAI/pensions-system/pull/3
+
+Commits: 16 (one per task T1–T16; 17 including this record commit).
+
+Opened as a draft against `main` from `spec/001-pension-math`. The spec is **not** archived in
+this PR — `scripts/archive-spec.sh 001-pension-math` is stage 5d, which runs after the stage 5c
+deploy verification. `scripts/check-specs-archived.sh` therefore exits 1 at this stage
+(`001-pension-math is finished … but not archived`), which is the expected intermediate state;
+the repo's own `ci.yml` does not run that gate.
