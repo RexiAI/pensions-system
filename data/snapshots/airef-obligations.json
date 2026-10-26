@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "sourceId": "airef-obligations",
+    "sourceClass": "document",
+    "publisher": "Autoridad Independiente de Responsabilidad Fiscal (AIReF)",
+    "dataset": "Proyecciones de gasto en pensiones, obligaciones acumuladas",
+    "sourceUrl": "https://www.airef.es/",
+    "retrievedAt": "2026-10-25T00:00:00Z"
+  },
+  "resolved": false,
+  "unresolvedReason": "Flujo anual de obligaciones acumuladas (AIReF): la tabla no está resuelta (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con tabla y fecha exactas."
+}

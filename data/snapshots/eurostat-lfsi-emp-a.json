@@ -1,0 +1,413 @@
+{
+  "meta": {
+    "dataset": "lfsi_emp_a, personas ocupadas de 15 a 64 años (EPA), España",
+    "filter": "format=JSON&lang=EN&geo=ES&indic_em=EMP_LFS&sex=T&unit=THS_PER",
+    "publisher": "Eurostat",
+    "retrievedAt": "2026-10-25T22:26:02Z",
+    "sourceClass": "machine",
+    "sourceId": "eurostat-lfsi-emp-a",
+    "sourceUrl": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?format=JSON&lang=EN&geo=ES&indic_em=EMP_LFS&sex=T&unit=THS_PER"
+  },
+  "payload": {
+    "class": "dataset",
+    "dimension": {
+      "age": {
+        "category": {
+          "index": {
+            "Y15-24": 0,
+            "Y15-29": 1,
+            "Y15-64": 2,
+            "Y20-64": 3,
+            "Y25-54": 4,
+            "Y55-64": 5
+          },
+          "label": {
+            "Y15-24": "From 15 to 24 years",
+            "Y15-29": "From 15 to 29 years",
+            "Y15-64": "From 15 to 64 years",
+            "Y20-64": "From 20 to 64 years",
+            "Y25-54": "From 25 to 54 years",
+            "Y55-64": "From 55 to 64 years"
+          }
+        },
+        "label": "Age class"
+      },
+      "freq": {
+        "category": {
+          "index": {
+            "A": 0
+          },
+          "label": {
+            "A": "Annual"
+          }
+        },
+        "label": "Time frequency"
+      },
+      "geo": {
+        "category": {
+          "index": {
+            "ES": 0
+          },
+          "label": {
+            "ES": "Spain"
+          }
+        },
+        "label": "Geopolitical entity (reporting)"
+      },
+      "indic_em": {
+        "category": {
+          "index": {
+            "EMP_LFS": 0
+          },
+          "label": {
+            "EMP_LFS": "Total employment (resident population concept - LFS)"
+          }
+        },
+        "label": "Employment indicator"
+      },
+      "sex": {
+        "category": {
+          "index": {
+            "T": 0
+          },
+          "label": {
+            "T": "Total"
+          }
+        },
+        "label": "Sex"
+      },
+      "time": {
+        "category": {
+          "index": {
+            "2003": 0,
+            "2004": 1,
+            "2005": 2,
+            "2006": 3,
+            "2007": 4,
+            "2008": 5,
+            "2009": 6,
+            "2010": 7,
+            "2011": 8,
+            "2012": 9,
+            "2013": 10,
+            "2014": 11,
+            "2015": 12,
+            "2016": 13,
+            "2017": 14,
+            "2018": 15,
+            "2019": 16,
+            "2020": 17,
+            "2021": 18,
+            "2022": 19,
+            "2023": 20,
+            "2024": 21,
+            "2025": 22
+          },
+          "label": {
+            "2003": "2003",
+            "2004": "2004",
+            "2005": "2005",
+            "2006": "2006",
+            "2007": "2007",
+            "2008": "2008",
+            "2009": "2009",
+            "2010": "2010",
+            "2011": "2011",
+            "2012": "2012",
+            "2013": "2013",
+            "2014": "2014",
+            "2015": "2015",
+            "2016": "2016",
+            "2017": "2017",
+            "2018": "2018",
+            "2019": "2019",
+            "2020": "2020",
+            "2021": "2021",
+            "2022": "2022",
+            "2023": "2023",
+            "2024": "2024",
+            "2025": "2025"
+          }
+        },
+        "label": "Time"
+      },
+      "unit": {
+        "category": {
+          "index": {
+            "THS_PER": 0
+          },
+          "label": {
+            "THS_PER": "Thousand persons"
+          }
+        },
+        "label": "Unit of measure"
+      }
+    },
+    "extension": {
+      "agencyId": "ESTAT",
+      "annotation": [
+        {
+          "date": "2021-07-14T13:09:27+0200",
+          "type": "CREATED"
+        },
+        {
+          "title": "<adms:identifier xmlns:adms=\"http://www.w3.org/ns/adms#\" xmlns:skos=\"http://www.w3.org/2004/02/skos/core.html\" xmlns:dct=\"http://purl.org/dc/terms/\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"><adms:Identifier rdf:about=\"https://doi.org/10.2908/LFSI_EMP_A\"><skos:notation rdf:datatype=\"http://purl.org/spar/datacite/doi\">10.2908/LFSI_EMP_A</skos:notation><dct:creator rdf:resource=\"http://publications.europa.eu/resource/authority/corporate-body/ESTAT\"/><dct:issued rdf:datatype=\"http://www.w3.org/2001/XMLSchema#date\">2023-01-19</dct:issued></adms:Identifier></adms:identifier>",
+          "type": "DISSEMINATION_DOI_XML"
+        },
+        {
+          "href": "https://ec.europa.eu/eurostat/databrowser-backend/api/public/explanatory-notes/get/Info_note_LFSQ_20240604.pdf",
+          "text": "Information note",
+          "title": "text-category",
+          "type": "DISSEMINATION_EXPLANATORY_LINK"
+        },
+        {
+          "href": "https://ec.europa.eu/eurostat/databrowser-backend/api/public/explanatory-notes/get/Info_note_LFSQ_20240604.pdf",
+          "title": "text-category",
+          "type": "DISSEMINATION_EXPLANATORY_LINK"
+        },
+        {
+          "href": "https://ec.europa.eu/eurostat/databrowser-backend/api/public/explanatory-notes/get/Info_note_LFSQ_20240604.pdf",
+          "title": "text-category",
+          "type": "DISSEMINATION_EXPLANATORY_LINK"
+        },
+        {
+          "title": "DATASET",
+          "type": "DISSEMINATION_OBJECT_TYPE"
+        },
+        {
+          "date": "2026-09-10T23:00:00+0200",
+          "type": "DISSEMINATION_TIMESTAMP_DATA"
+        },
+        {
+          "date": "2026-09-10T23:00:00+0200",
+          "type": "DISSEMINATION_TIMESTAMP_GLOBAL"
+        },
+        {
+          "date": "2026-09-10T23:00:00+0200",
+          "type": "DISSEMINATION_TIMESTAMP_PLANNED"
+        },
+        {
+          "href": "https://ec.europa.eu/eurostat/cache/metadata/en/lfsi_esms.htm",
+          "title": "Explanatory texts (metadata)",
+          "type": "ESMS_HTML"
+        },
+        {
+          "href": "https://ec.europa.eu/eurostat/api/dissemination/files?file=metadata/lfsi_esms.sdmx.zip",
+          "title": "Explanatory texts (metadata)",
+          "type": "ESMS_SDMX"
+        },
+        {
+          "title": "45624",
+          "type": "OBS_COUNT"
+        },
+        {
+          "title": "2025",
+          "type": "OBS_PERIOD_OVERALL_LATEST"
+        },
+        {
+          "title": "2003",
+          "type": "OBS_PERIOD_OVERALL_OLDEST"
+        },
+        {
+          "text": "Eurostat",
+          "type": "SOURCE_INSTITUTIONS"
+        },
+        {
+          "date": "2026-09-10T23:00:00+0200",
+          "type": "UPDATE_DATA"
+        },
+        {
+          "date": "2026-03-12T23:00:00+0100",
+          "type": "UPDATE_STRUCTURE"
+        }
+      ],
+      "datastructure": {
+        "agencyId": "ESTAT",
+        "id": "LFSI_EMP_A",
+        "version": "48.0"
+      },
+      "id": "LFSI_EMP_A",
+      "lang": "EN",
+      "positions-with-no-data": {
+        "age": [],
+        "freq": [],
+        "geo": [],
+        "indic_em": [],
+        "sex": [],
+        "time": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "unit": []
+      },
+      "status": {
+        "label": {
+          "d": "definition differs (see metadata)"
+        }
+      },
+      "version": "1.0"
+    },
+    "id": [
+      "freq",
+      "indic_em",
+      "sex",
+      "age",
+      "unit",
+      "geo",
+      "time"
+    ],
+    "label": "Employment and labour force by sex and age - annual data",
+    "size": [
+      1,
+      1,
+      1,
+      6,
+      1,
+      1,
+      23
+    ],
+    "source": "ESTAT",
+    "status": {
+      "18": "d",
+      "19": "d",
+      "20": "d",
+      "21": "d",
+      "22": "d",
+      "41": "d",
+      "42": "d",
+      "43": "d",
+      "44": "d",
+      "45": "d",
+      "64": "d",
+      "65": "d",
+      "66": "d",
+      "67": "d",
+      "68": "d",
+      "87": "d",
+      "88": "d",
+      "89": "d",
+      "90": "d",
+      "91": "d",
+      "110": "d",
+      "111": "d",
+      "112": "d",
+      "113": "d",
+      "114": "d",
+      "133": "d",
+      "134": "d",
+      "135": "d",
+      "136": "d",
+      "137": "d"
+    },
+    "updated": "2026-09-10T23:00:00+0200",
+    "value": {
+      "6": 1397,
+      "7": 1210,
+      "8": 1042,
+      "9": 853,
+      "10": 763,
+      "11": 749,
+      "12": 803,
+      "13": 820,
+      "14": 921,
+      "15": 989,
+      "16": 1039,
+      "17": 884,
+      "18": 984,
+      "19": 1133,
+      "20": 1210,
+      "21": 1311,
+      "22": 1370,
+      "29": 3754,
+      "30": 3371,
+      "31": 3040,
+      "32": 2624,
+      "33": 2391,
+      "34": 2365,
+      "35": 2380,
+      "36": 2413,
+      "37": 2547,
+      "38": 2662,
+      "39": 2740,
+      "40": 2478,
+      "41": 2642,
+      "42": 2902,
+      "43": 3053,
+      "44": 3187,
+      "45": 3344,
+      "52": 18957,
+      "53": 18574,
+      "54": 18271,
+      "55": 17477,
+      "56": 17002,
+      "57": 17211,
+      "58": 17717,
+      "59": 18183,
+      "60": 18649,
+      "61": 19136,
+      "62": 19568,
+      "63": 18958,
+      "64": 19546,
+      "65": 20235,
+      "66": 20851,
+      "67": 21300,
+      "68": 21792,
+      "75": 18753,
+      "76": 18422,
+      "77": 18147,
+      "78": 17393,
+      "79": 16927,
+      "80": 17131,
+      "81": 17634,
+      "82": 18087,
+      "83": 18531,
+      "84": 19002,
+      "85": 19417,
+      "86": 18851,
+      "87": 19420,
+      "88": 20076,
+      "89": 20684,
+      "90": 21107,
+      "91": 21603,
+      "98": 15376,
+      "99": 15174,
+      "100": 14955,
+      "101": 14335,
+      "102": 13944,
+      "103": 14067,
+      "104": 14320,
+      "105": 14571,
+      "106": 14786,
+      "107": 15032,
+      "108": 15214,
+      "109": 14609,
+      "110": 14951,
+      "111": 15278,
+      "112": 15610,
+      "113": 15771,
+      "114": 16038,
+      "121": 2185,
+      "122": 2190,
+      "123": 2274,
+      "124": 2289,
+      "125": 2295,
+      "126": 2395,
+      "127": 2595,
+      "128": 2791,
+      "129": 2942,
+      "130": 3115,
+      "131": 3315,
+      "132": 3465,
+      "133": 3612,
+      "134": 3823,
+      "135": 4031,
+      "136": 4218,
+      "137": 4385
+    },
+    "version": "2.0"
+  }
+}

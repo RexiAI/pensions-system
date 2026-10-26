@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "dataset": "Tablas de mortalidad, tabla 27150, esperanza de vida a los 65 años",
+    "filter": "nult=5",
+    "publisher": "Instituto Nacional de Estadística (INE)",
+    "retrievedAt": "2026-10-25T22:26:02Z",
+    "sourceClass": "machine",
+    "sourceId": "ine-life-expectancy-at-65",
+    "sourceUrl": "https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/TM1657?nult=5"
+  },
+  "payload": {
+    "COD": "TM1657",
+    "Data": [
+      {
+        "Anyo": 2020,
+        "FK_Periodo": 28,
+        "FK_TipoDato": 1,
+        "Fecha": 1577833200000,
+        "Secreto": false,
+        "Valor": 20.354342
+      },
+      {
+        "Anyo": 2021,
+        "FK_Periodo": 28,
+        "FK_TipoDato": 1,
+        "Fecha": 1609455600000,
+        "Secreto": false,
+        "Valor": 21.093087
+      },
+      {
+        "Anyo": 2022,
+        "FK_Periodo": 28,
+        "FK_TipoDato": 1,
+        "Fecha": 1640991600000,
+        "Secreto": false,
+        "Valor": 21.110134
+      },
+      {
+        "Anyo": 2023,
+        "FK_Periodo": 28,
+        "FK_TipoDato": 1,
+        "Fecha": 1672527600000,
+        "Secreto": false,
+        "Valor": 21.684928
+      },
+      {
+        "Anyo": 2024,
+        "FK_Periodo": 28,
+        "FK_TipoDato": 1,
+        "Fecha": 1704063600000,
+        "Secreto": false,
+        "Valor": 21.867925
+      }
+    ],
+    "FK_Escala": 1,
+    "FK_Unidad": 108,
+    "Nombre": "Total Nacional. Total. 65 años. Esperanza de vida. Dato base. "
+  }
+}

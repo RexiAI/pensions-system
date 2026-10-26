@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "sourceId": "igae-pension-expenditure",
+    "sourceClass": "document",
+    "publisher": "Intervención General de la Administración del Estado (IGAE)",
+    "dataset": "Cuentas del sistema de la Seguridad Social, gasto en pensiones contributivas",
+    "sourceUrl": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Paginas/Inicio.aspx",
+    "retrievedAt": "2026-10-25T00:00:00Z"
+  },
+  "resolved": false,
+  "unresolvedReason": "Gasto en pensiones contributivas (cuentas de la IGAE): la línea no está resuelta (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con línea y fecha exactas."
+}

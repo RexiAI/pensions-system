@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "sourceId": "ss-affiliates",
+    "sourceClass": "document",
+    "publisher": "Seguridad Social (Ministerio de Inclusión, Seguridad Social y Migraciones)",
+    "dataset": "Afiliados a la Seguridad Social, alta mensual, total sistema",
+    "sourceUrl": "https://www.seg-social.es/wps/portal/wss/internet/EstadisticasPresupuestosEstudios/Estadisticas",
+    "retrievedAt": "2026-10-25T00:00:00Z"
+  },
+  "resolved": false,
+  "unresolvedReason": "Serie mensual de afiliados medios: el código de serie no está resuelto (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con tabla y fecha exactas."
+}

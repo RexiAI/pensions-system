@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "sourceId": "fondo-de-reserva",
+    "sourceClass": "document",
+    "publisher": "Seguridad Social, Fondo de Reserva",
+    "dataset": "Saldo del Fondo de Reserva de la Seguridad Social",
+    "sourceUrl": "https://www.seg-social.es/wps/portal/wss/internet/EstadisticasPresupuestosEstudios/Estadisticas",
+    "retrievedAt": "2026-10-25T00:00:00Z"
+  },
+  "resolved": false,
+  "unresolvedReason": "Saldo del Fondo de Reserva en una fecha exacta: la serie no está resuelta (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con fecha exacta."
+}
