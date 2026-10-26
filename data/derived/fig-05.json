@@ -1,0 +1,26 @@
+{
+  "assumptions": {},
+  "availability": "unavailable",
+  "definition": "Counts the contributor-base growth the scheme must sustain to pay the cohort return it promises, minus the projected growth of that base. Excludes migration effects and employment-policy effects.",
+  "definitionId": "required-base-growth.national",
+  "figureId": "fig-05",
+  "formulaId": "required-base-growth.v1",
+  "manifest": {
+    "definitionId": "required-base-growth.national",
+    "fetchedAt": "2026-10-25T00:00:00Z",
+    "formulaId": "required-base-growth.v1",
+    "inputHash": "35d168fdafd6411eb98fbff8bd512edfc6d31314c8880762f00c43234d5ad8b7",
+    "reproducePath": "scripts/compute.ts",
+    "sourceUrl": [
+      "https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/TM1657?nult=5",
+      "https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/36643",
+      "https://www.seg-social.es/wps/portal/wss/internet/EstadisticasPresupuestosEstudios/Estadisticas"
+    ]
+  },
+  "unit": "percent",
+  "unresolvedReason": "ss-average-contribution-pension: Cotización y pensión medias de la cohorte: el código de serie no está resuelto (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con tabla y fecha exactas.",
+  "unresolvedSources": [
+    "ss-average-contribution-pension"
+  ],
+  "value": null
+}
