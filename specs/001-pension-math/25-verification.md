@@ -799,3 +799,106 @@ source — the BLOCK condition "right digits under the wrong label" does not hol
 Flagged to the Architect (non-blocking, WARN-level, carried forward unchanged): 29 project-source
 KISS/DRY WARNs (see attempt-1 design-principles evidence block for the full file:line list), plus the
 single out-of-scope `.standards` FAIL.
+
+---
+
+## Phase 2 CI — round 1
+
+**CI Verdict: FAIL** (post-PR CI, round 1 of 3; phase-2 counter independent of phase-1)
+
+### Query
+
+```
+command: gh pr checks 3 --json name,state,bucket,workflow,link
+exit: 0
+at: 2026-10-26T08:35:55Z
+```
+
+Raw output (verbatim, terminal state after polling):
+
+```json
+[{"bucket":"skipping","link":"https://github.com/RexiAI/pensions-system/actions/runs/40292263277/job/121470381726","name":"frontend-ci / Docker Build & Push","state":"SKIPPED","workflow":"CI"},
+ {"bucket":"pass","link":"https://github.com/RexiAI/pensions-system/actions/runs/40292263277/job/121470125396","name":"frontend-ci / Build","state":"SUCCESS","workflow":"CI"},
+ {"bucket":"pass","link":"https://github.com/RexiAI/pensions-system/actions/runs/40292263277/job/121469854491","name":"frontend-ci / Unit Tests","state":"SUCCESS","workflow":"CI"},
+ {"bucket":"pass","link":"https://github.com/RexiAI/pensions-system/actions/runs/40292263277/job/121469854271","name":"frontend-ci / Lint & Format","state":"SUCCESS","workflow":"CI"},
+ {"bucket":"cancel","link":"https://github.com/RexiAI/pensions-system/actions/runs/40292263277/job/121469860107","name":"backend-ci-go / Contract Tests","state":"CANCELLED","workflow":"CI"},
+ {"bucket":"cancel","link":"https://github.com/RexiAI/pensions-system/actions/runs/40292263277/job/121469860809","name":"backend-ci-go / Integration Tests","state":"CANCELLED","workflow":"CI"},
+ {"bucket":"cancel","link":"https://github.com/RexiAI/pensions-system/actions/runs/40292263277/job/121469860355","name":"backend-ci-go / Build & Release","state":"CANCELLED","workflow":"CI"},
+ {"bucket":"cancel","link":"https://github.com/RexiAI/pensions-system/actions/runs/40292263277/job/121469860535","name":"backend-ci-go / Docker Build & Push","state":"CANCELLED","workflow":"CI"},
+ {"bucket":"cancel","link":"https://github.com/RexiAI/pensions-system/actions/runs/40292263277/job/121469854107","name":"backend-ci-go / Unit Tests","state":"CANCELLED","workflow":"CI"},
+ {"bucket":"cancel","link":"https://github.com/RexiAI/pensions-system/actions/runs/40292263277/job/121469854057","name":"backend-ci-go / Lint","state":"CANCELLED","workflow":"CI"}]
+```
+
+### Per-check table (current head `6c642d7`, run 40292263277)
+
+| Check | bucket | state | verdict |
+|---|---|---|---|
+| frontend-ci / Unit Tests | pass | SUCCESS | PASS |
+| frontend-ci / Lint & Format | pass | SUCCESS | PASS |
+| frontend-ci / Build | pass | SUCCESS | PASS |
+| frontend-ci / Docker Build & Push | skipping | SKIPPED | PASS (skipped, non-blocking) |
+| backend-ci-go / Lint | cancel | CANCELLED | **FAIL** |
+| backend-ci-go / Unit Tests | cancel | CANCELLED | **FAIL** |
+| backend-ci-go / Contract Tests | cancel | CANCELLED | **FAIL** |
+| backend-ci-go / Integration Tests | cancel | CANCELLED | **FAIL** |
+| backend-ci-go / Build & Release | cancel | CANCELLED | **FAIL** |
+| backend-ci-go / Docker Build & Push | cancel | CANCELLED | **FAIL** |
+
+The frontend checks (the spec's actual deliverable — 415 tests / 92 scenarios, build, typecheck, lint) are all green. The six `backend-ci-go` checks are all `cancel`, not `pass`. A cancelled check is not a pass, and the prior run proves the backend job fails when it actually executes (see below).
+
+### Concrete failure evidence
+
+The current head's run has no `conclusion == "failure"` check-runs (backend jobs are cancelled before any step runs). The failure is proven in the immediately preceding run on the same branch, one commit earlier:
+
+```
+command: gh run view 40292230968 --log-failed
+exit: 0
+at: 2026-10-26T08:35:55Z
+```
+
+Concrete error lines (verbatim):
+
+```
+backend-ci-go / Lint	UNKNOWN STEP	2026-10-26T08:26:13.0763086Z ##[error]The specified go version file at: go.mod does not exist
+backend-ci-go / Unit Tests	UNKNOWN STEP	2026-10-26T08:26:13.4928170Z ##[error]The specified go version file at: go.mod does not exist
+```
+
+Failing check IDs (from head `731ca15`, run 40292230968 — the run that actually reached a `failure` conclusion):
+
+```
+command: gh api repos/RexiAI/pensions-system/commits/731ca15c3a06c1b44b51be499c2086f795dcd770/check-runs
+```
+
+| check | id | conclusion |
+|---|---|---|
+| backend-ci-go / Lint | 121469746018 | failure |
+| backend-ci-go / Unit Tests | 121469746153 | failure |
+
+### Root cause (deterministic)
+
+This repo is **TypeScript / Next.js only** — `git ls-files` shows no `go.mod`, no `go.sum`, and no `.go` files; the project is `package.json` + `tsconfig.json` + `next.config.ts` + Vitest/Stryker. Yet `.github/workflows/ci.yml` invokes the **Go** backend CI reusable workflow:
+
+```yaml
+jobs:
+  backend-ci-go:
+    uses: RexiAI/my-engineering-standards/.github/workflows/ci-go.yml@21046d9...  # Go CI
+  frontend-ci:
+    uses: RexiAI/my-engineering-standards/.github/workflows/ci-nextjs.yml@21046d9...  # Next.js CI
+```
+
+`ci-go.yml` runs `actions/setup-go` with `go-version-file: go.mod`; since `go.mod` does not exist, the job fails with `##[error]The specified go version file at: go.mod does not exist`. This wiring is **pre-existing** — `.github/workflows/ci.yml` was created in the bootstrap commit `d7f976e` ("standards") and is byte-identical on `main`; the spec branch only *added* `.github/workflows/refresh-derived.yml` (27 insertions) and did not touch `ci.yml`.
+
+Secondary observation (not the primary failure): both reusable workflows declare `concurrency: { group: ${{ github.workflow }}-${{ github.ref }}, cancel-in-progress: true }`. When invoked from the same caller workflow `CI`, `github.workflow` resolves to `CI` for both, so the Go and Next.js workflows share one concurrency group and `cancel-in-progress` cancels each other's in-progress jobs — the likely reason the current run shows the backend jobs cancelled 1 s after queueing (empty `steps: []`) while the frontend jobs completed. This masks the deterministic `go.mod` failure in the current head rather than causing it.
+
+### Archive-gate claim — verified
+
+The PR Opener's claim is **TRUE**: `check-specs-archived.sh` is **not** run by this repo's `ci.yml`. That script exists only in the standards repo and is wired into `self-ci.yml` (`.standards/.github/workflows/self-ci.yml:125`), not into `ci-go.yml` or `ci-nextjs.yml`. So the finished-but-unarchived spec does **not** produce a red archive-gate check here — no archive ordering violation, no escalation on that axis. (Verified: `grep -rn check-specs-archived .standards/.github/workflows/` → only `self-ci.yml`.)
+
+### Routing recommendation
+
+This is **neither a behaviour/test failure nor a structural/complexity failure** — it is a repo-level CI configuration defect that predates the spec and sits outside the spec deliverable:
+
+- The frontend checks (the spec's code) are green: 415 tests, build, typecheck, lint all PASS.
+- The failure is `backend-ci-go` failing on a missing `go.mod` — a build-environment/config problem, not a test assertion, not a complexity/duplication issue.
+
+The deterministic fix-routing rules do not cover "CI workflow wired for the wrong language stack". Recommend **escalation to the human / PR Opener** (repo-config owner) rather than `spec-coder` or `spec-refactorer`: the fix is to remove the `backend-ci-go` job from `.github/workflows/ci.yml` (or condition it on `go.mod` presence) for this TypeScript-only repo. This is a `main`-shared config change, not a `spec/001-pension-math` code change, and should not be bundled into the spec's tasks.
