@@ -22,6 +22,10 @@ export default {
     'web/manifest/**/*.ts',
     'web/sources/**/*.ts',
     'web/ingest/**/*.ts',
+    // Revision 2's calculation surface (T17 age structure, T18 countdown). Widened deliberately
+    // when those modules shipped: they carry the product's newest numeric claims, so leaving them
+    // out would let an aggregate score describe a tree that no longer exists.
+    'web/series/**/*.ts',
   ],
   // Sandbox copy exclusions. `stryker.config.mjs` itself lives outside the mutate globs, and
   // none of these directories is needed to run the suite: `.opencode` and `.standards` in
