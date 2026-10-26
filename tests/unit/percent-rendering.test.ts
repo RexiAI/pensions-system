@@ -49,7 +49,7 @@ function heroPanel(locale: Locale): string {
   return region(
     renderComponent(Hero, { content: content(locale), figures: [dependencyFigure(), shareFigure()] }),
     '<div class="hero__panel">',
-    '</section>',
+    '</div></section>',
   );
 }
 
@@ -152,7 +152,7 @@ describe('the committed page carries the published percentage points', () => {
     const html = committedPage('es');
     const plate = figureRegion(html, 2);
 
-    expect(region(html, '<div class="hero__panel">', '</section>')).toContain(`13,23${NBSP}%`);
+    expect(region(html, '<div class="hero__panel">', '</div></section>')).toContain(`13,23${NBSP}%`);
     expect(readout(plate, 2)).toContain(`13,23${NBSP}%`);
     expect(readout(plate, 2)).toContain(`9,82${NBSP}%`);
     expect(readout(plate, 2)).toContain(`14,39${NBSP}%`);
@@ -170,7 +170,7 @@ describe('the committed page carries the published percentage points', () => {
     const html = committedPage('en');
     const plate = figureRegion(html, 2);
 
-    expect(region(html, '<div class="hero__panel">', '</section>')).toContain('13.23%');
+    expect(region(html, '<div class="hero__panel">', '</div></section>')).toContain('13.23%');
     expect(readout(plate, 2)).toContain('13.23%');
     expect(readout(plate, 2)).toContain('9.82%');
     expect(readout(plate, 2)).toContain('14.39%');

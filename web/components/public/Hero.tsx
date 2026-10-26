@@ -7,10 +7,18 @@ import { chipKey } from '../metrics/figure-state';
 import { viewStateFor } from '../metrics/views';
 import { selectHeroSubject, heroFigureNumber } from './hero-subject';
 import type { HeroSubject } from './hero-subject';
+import { CountdownBlock } from '../series/CountdownBlock';
+import type { CountdownValue } from '../../series/countdown';
+import { ScopeMark } from './ScopeMark';
+import type { ScopeEntry } from './ScopeMark';
 
 export interface HeroProps {
   content: CountryLocaleContent;
   figures: readonly DerivedFigure[];
+  /** Rendered when the projection resolved; absent means the panel is exactly Revision 1's. */
+  countdown?: CountdownValue;
+  /** The published countries, resolved from the content model (one renders as plain text). */
+  countries?: readonly ScopeEntry[];
 }
 
 type FigureSubject = Extract<HeroSubject, { kind: 'figure' }>;
@@ -57,14 +65,26 @@ function SubjectFacts({ content, subject }: { content: CountryLocaleContent; sub
  * which tier is decided by the ladder in `hero-subject.ts`; the label, the definition and
  * the unit always come from the figure itself, so a reordered ladder cannot relabel it.
  */
-function NumericHero({ content, subject }: { content: CountryLocaleContent; subject: FigureSubject }) {
+function NumericHero({
+  content,
+  subject,
+  countdown,
+  countries,
+}: {
+  content: CountryLocaleContent;
+  subject: FigureSubject;
+  countdown?: CountdownValue;
+  countries?: readonly ScopeEntry[];
+}) {
   const keys = subjectKeys(subject);
+  const demoted = countdown?.state === 'computed';
   return (
     <section className="hero hero--numeric" aria-labelledby="hero-title">
       <div>
         <h1 className="hero__title" id="hero-title">
           {content.t('hero.statement')}
         </h1>
+        <ScopeMark content={content} countries={countries ?? [{ geo: content.country.code, name: content.country.name, href: '#' }]} />
         <p className="hero__sub">{content.t('hero.sub')}</p>
         <div className="hero__actions">
           <a className="hero__cta" href="#figuras">
@@ -74,8 +94,16 @@ function NumericHero({ content, subject }: { content: CountryLocaleContent; subj
         </div>
       </div>
       <div className="hero__panel">
+        {countdown === undefined ? null : (
+          <>
+            <CountdownBlock content={content} countdown={countdown} />
+            <hr className="hero__panel-rule" />
+          </>
+        )}
         <p className="hero__panel-label">{content.t(keys.title)}</p>
-        <p className="hero__value">{valueText(content, subject, subject.headline)}</p>
+        <p className={demoted ? 'hero__value hero__value--demoted' : 'hero__value'}>
+          {valueText(content, subject, subject.headline)}
+        </p>
         <dl className="hero__comparisons">
           {subject.comparisons.map((comparison) => (
             <div className="hero__comparison" key={comparison.label}>
@@ -107,7 +135,7 @@ function StatusRow({ content, figure }: { content: CountryLocaleContent; figure:
 }
 
 /** Tier 3: no eligible figure, so the largest type on the page is the proposition. */
-function PropositionHero({ content, figures }: HeroProps) {
+function PropositionHero({ content, figures, countdown, countries }: HeroProps) {
   const computed = figures.filter((figure) => viewStateFor({ figure, content }) === 'computed').length;
   return (
     <section className="hero hero--proposition" aria-labelledby="hero-title">
@@ -115,6 +143,7 @@ function PropositionHero({ content, figures }: HeroProps) {
         <h1 className="hero__title" id="hero-title">
           {content.t('hero.statement')}
         </h1>
+        <ScopeMark content={content} countries={countries ?? [{ geo: content.country.code, name: content.country.name, href: '#' }]} />
         <p className="hero__sub">{content.t('hero.sub')}</p>
         <div className="hero__actions">
           <a className="hero__cta" href="#metodo">
@@ -124,6 +153,7 @@ function PropositionHero({ content, figures }: HeroProps) {
         </div>
       </div>
       <div className="hero__status">
+        {countdown === undefined ? null : <CountdownBlock content={content} countdown={countdown} />}
         <ul className="hero__status-list" aria-label={content.t('figure.statusLabel')}>
           {figures.map((figure) => (
             <StatusRow content={content} figure={figure} key={figure.figureId} />
@@ -142,8 +172,10 @@ function PropositionHero({ content, figures }: HeroProps) {
  * that either figure exists: the largest type on the page is never spent announcing an
  * absence.
  */
-export function Hero({ content, figures }: HeroProps) {
+export function Hero({ content, figures, countdown, countries }: HeroProps) {
   const subject = selectHeroSubject(figures);
-  if (subject.kind === 'proposition') return <PropositionHero content={content} figures={figures} />;
-  return <NumericHero content={content} subject={subject} />;
+  if (subject.kind === 'proposition') {
+    return <PropositionHero content={content} figures={figures} countdown={countdown} countries={countries} />;
+  }
+  return <NumericHero content={content} subject={subject} countdown={countdown} countries={countries} />;
 }
