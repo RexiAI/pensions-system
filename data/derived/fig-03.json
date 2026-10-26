@@ -1,0 +1,25 @@
+{
+  "assumptions": {},
+  "availability": "unavailable",
+  "definition": "Counts the internal rate of return of a representative cohort: contributions paid over the contributing years against pensions drawn over the expected years of retirement. Excludes survivor and disability benefits and taxes.",
+  "definitionId": "cohort-return.national",
+  "figureId": "fig-03",
+  "formulaId": "cohort-irr.v1",
+  "manifest": {
+    "definitionId": "cohort-return.national",
+    "fetchedAt": "2026-10-25T00:00:00Z",
+    "formulaId": "cohort-irr.v1",
+    "inputHash": "ab27d7298983315a8f00bc15a19fcf29643225bb04f7d0732e3072464641e3ab",
+    "reproducePath": "scripts/compute.ts",
+    "sourceUrl": [
+      "https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/TM1657?nult=5",
+      "https://www.seg-social.es/wps/portal/wss/internet/EstadisticasPresupuestosEstudios/Estadisticas"
+    ]
+  },
+  "unit": "percent",
+  "unresolvedReason": "ss-average-contribution-pension: Cotización y pensión medias de la cohorte: el código de serie no está resuelto (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con tabla y fecha exactas.",
+  "unresolvedSources": [
+    "ss-average-contribution-pension"
+  ],
+  "value": null
+}
