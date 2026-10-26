@@ -213,6 +213,37 @@ export const REQUIRED_KEYS = [
   'table.beneficiaries',
   'table.employed',
   'table.share',
+  // Revision 2: the countdown, the age structure, the scope mark and the truthful reproduce
+  // section. Every public string on those surfaces resolves through one of these keys.
+  'countdown.eyebrow',
+  'countdown.unit',
+  'countdown.yearLabel',
+  'countdown.definition',
+  'countdown.range',
+  'countdown.source',
+  'countdown.notCrossed',
+  'countdown.backCast',
+  'demography.eyebrow',
+  'demography.heading',
+  'demography.finding',
+  'demography.readout.over65',
+  'demography.readout.under20',
+  'demography.year.observed',
+  'demography.year.projected',
+  'demography.variant',
+  'demography.table.summary',
+  'demography.table.caption',
+  'demography.axis.percent',
+  'demography.sex.male',
+  'demography.sex.female',
+  'provenance.scope',
+  'series.pyramid.title',
+  'series.countdown.title',
+  'reproduce.count.figures',
+  'reproduce.count.figure',
+  'reproduce.count.series',
+  'reproduce.count.serie',
+  'reproduce.omitted',
 ] as const;
 
 export type LocaleKey = (typeof REQUIRED_KEYS)[number];
@@ -312,3 +343,24 @@ const FIGURE_REASON_KEYS: Partial<Record<FigureNumber, LocaleKey>> = {
 export function figureReasonKey(number: FigureNumber): LocaleKey {
   return FIGURE_REASON_KEYS[number] ?? 'figure.unavailable.reason';
 }
+
+/**
+ * The figure key set for a figure id, by lookup. R6's watch item: deriving a key from the id
+ * string (`Number(id.slice(-1))`) works only while every id is `fig-0N`, and the moment a
+ * non-numbered artefact enters the section it silently picks the wrong label.
+ */
+export const FIGURE_ID_KEYS: Readonly<Record<string, FigureKeys>> = {
+  'fig-01': FIGURE_KEYS[1],
+  'fig-02': FIGURE_KEYS[2],
+  'fig-03': FIGURE_KEYS[3],
+  'fig-04': FIGURE_KEYS[4],
+  'fig-05': FIGURE_KEYS[5],
+  'fig-06': FIGURE_KEYS[6],
+  'fig-07': FIGURE_KEYS[7],
+};
+
+/** The derived series' public titles, by lookup, for the same reason. */
+export const SERIES_TITLE_KEYS: Readonly<Record<string, LocaleKey>> = {
+  pyramid: 'series.pyramid.title',
+  countdown: 'series.countdown.title',
+};

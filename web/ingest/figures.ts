@@ -1,5 +1,5 @@
 import { definitionFor } from '../manifest/definitions';
-import type { DefinitionId } from '../manifest/definitions';
+import type { MetricDefinitionId } from '../manifest/definitions';
 import { contributionCoverSeries } from '../metrics/contribution-cover';
 import { dependencyRatioSeries } from '../metrics/dependency-ratio';
 import type { DependencyRatioPoint } from '../metrics/dependency-ratio';
@@ -36,7 +36,7 @@ function payload<T>(inputs: ReadonlyMap<string, SourceSnapshot>, sourceId: strin
 
 function define(params: {
   figureId: FigureId;
-  definitionId: DefinitionId;
+  definitionId: MetricDefinitionId;
   unit: string;
   requirementSources: readonly string[];
   compute: (inputs: ReadonlyMap<string, SourceSnapshot>) => {

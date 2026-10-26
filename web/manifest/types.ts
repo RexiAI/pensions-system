@@ -22,6 +22,13 @@ export interface Manifest {
   inputHash: string;
   /** Repo-relative path to the committed script that reproduces the figure. */
   reproducePath: string;
+  /**
+   * The data vintage year, recorded at ingest from the snapshot date (OQ19). Present only on a
+   * series whose value is anchored to a year — the countdown's `snapshotYear`. It is never
+   * derived at render time: a year recomputed from the wall clock would drift annually while
+   * the number stood still, which is a lie about provenance.
+   */
+  snapshotYear?: number;
 }
 
 export type ManifestField = keyof Manifest;

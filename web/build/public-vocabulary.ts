@@ -1,4 +1,5 @@
 import type { DerivedFigure } from '../ingest/types';
+import type { DerivedSeries } from '../ingest/series-types';
 
 /**
  * The public/operator vocabulary boundary (D3), as a checkable rule rather than a review
@@ -99,16 +100,19 @@ export function scanPublicText(html: string, internalTerms: readonly string[]): 
   return hits;
 }
 
-/** Every repository-defined identifier the committed derived data carries. */
-export function internalTermsOf(figures: readonly DerivedFigure[]): string[] {
+/**
+ * Every repository-defined identifier the committed derived data carries — the figures' and the
+ * series' alike, so a new artefact cannot leak an identifier the gate does not know about.
+ */
+export function internalTermsOf(figures: readonly DerivedFigure[], series: readonly DerivedSeries[] = []): string[] {
   const terms = new Set<string>();
-  for (const figure of figures) {
-    terms.add(figure.formulaId);
+  for (const entry of [...figures, ...series]) {
+    terms.add(entry.formulaId);
     // A definition id is a repository identifier: the reader sees the definition's words,
     // never the dotted key behind them.
-    terms.add(figure.definitionId);
-    for (const source of figure.unresolvedSources) terms.add(source);
-    const declared = (figure as unknown as Record<string, unknown>)['sourceKey'];
+    terms.add(entry.definitionId);
+    for (const source of entry.unresolvedSources) terms.add(source);
+    const declared = (entry as unknown as Record<string, unknown>)['sourceKey'];
     if (typeof declared === 'string') terms.add(declared);
   }
   return [...terms].sort();

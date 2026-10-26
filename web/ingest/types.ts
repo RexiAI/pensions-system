@@ -1,4 +1,4 @@
-import type { DefinitionId } from '../manifest/definitions';
+import type { MetricDefinitionId } from '../manifest/definitions';
 import type { FormulaId } from '../manifest/formula-ids';
 import type { Manifest } from '../manifest/types';
 import type { SourceSnapshot } from '../sources/types';
@@ -48,7 +48,7 @@ export interface FigureDefinition {
   figureId: FigureId;
   formulaId: FormulaId;
   /** Which published definition produces this figure's value (T1, AC-001-77). */
-  definitionId: DefinitionId;
+  definitionId: MetricDefinitionId;
   /**
    * `international` definitions resolve their sources through the requested country
    * (`geo`); `national` definitions carry a fixed source list for their one country.
@@ -66,7 +66,7 @@ export interface DerivedFigure {
   /** `computed` ships a value and a complete manifest; `unavailable` ships neither. */
   availability: FigureAvailability;
   /** The published definition that produced the value (AC-001-77). */
-  definitionId: DefinitionId;
+  definitionId: MetricDefinitionId;
   /** Canonical instrument vocabulary for that definition, recorded beside the value. */
   definition: string;
   unit: string;

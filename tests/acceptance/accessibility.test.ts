@@ -4,6 +4,8 @@ import type { DerivedFigure } from '../../web/ingest/types';
 import type { CohortReturnValue } from '../../web/metrics/cohort-irr';
 import type { ImplicitDebtValue } from '../../web/metrics/implicit-debt';
 import type { BaseGrowthFigureValue } from '../../web/metrics/required-base-growth';
+import { PyramidPlate } from '../../web/components/series/PyramidPlate';
+import { pyramidSeries } from '../fixtures/series';
 import {
   baseGrowthFigure,
   cohortFigure,
@@ -12,6 +14,7 @@ import {
   debtFigure,
   dependencyFigure,
   makeFigure,
+  renderComponent,
   renderPlate,
   shareFigure,
   unavailable,
@@ -40,6 +43,15 @@ function svgPart(html: string): string {
   const start = html.indexOf('<svg');
   const end = html.indexOf('</svg>');
   return start === -1 || end === -1 ? '' : html.slice(start, end);
+}
+
+/** The pyramid is a chart too, and AC-001-44/-45 apply to it first of all (R1). */
+function pyramidRendering(locale = 'es'): string {
+  return renderComponent(PyramidPlate, {
+    content: content(locale),
+    series: pyramidSeries(),
+    freshnessWindowDays: 45,
+  });
 }
 
 function readoutPart(html: string, number: number): string {
@@ -149,6 +161,37 @@ describe('accessibility: non-visual data for charts', () => {
       const plate = renderPlate(testCase.figure);
       expect(plate.includes('<svg'), testCase.label).toBe(tablePart(plate) !== '');
     }
+  });
+
+  it('AC-001-44: the pyramid emits its table with the chart, and the table carries the chart values', () => {
+    const html = pyramidRendering();
+    const table = tablePart(html);
+
+    expect(html.split('class="demography__svg"').length - 1).toBe(3);
+    expect(table).not.toBe('');
+    expect(table).toContain('<caption>');
+    // 21 age groups × 2 sexes × 3 years, all printed; the bars encode the same shares.
+    expect(table.split('scope="row"').length - 1).toBe(21);
+    expect(table.split('<td>').length - 1).toBe(21 * 6);
+    // The widest band of the observed years, as a printed share and as a bar of the same width.
+    const widest = '4,34\u00A0%';
+    expect(table).toContain(widest);
+    expect(svgPart(html)).toContain('width="144.7"');
+  });
+
+  it('AC-001-45: the pyramid chart is exposed with an accessible name and role', () => {
+    const html = pyramidRendering();
+
+    for (const year of [1995, 2025, 2050]) {
+      expect(html).toContain(`id="demography-${year}-title"`);
+      expect(html).toContain(`aria-labelledby="demography-${year}-title"`);
+    }
+    expect(html).toContain('role="img"');
+    expect(html).toContain('aria-describedby="demography-readout"');
+    expect(html).toContain('id="demography-readout"');
+    expect(tablePart(html)).toContain('role="region"');
+    expect(tablePart(html)).toContain('tabindex="0"');
+    expect(tablePart(html)).toContain('scope="col"');
   });
 
   it('AC-001-45: when a chart renders, the data is exposed with an accessible name and role', () => {

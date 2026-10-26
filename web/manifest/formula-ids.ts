@@ -9,6 +9,8 @@ export const FORMULA_IDS = [
   'cohort-irr.v1',
   'implicit-debt.v1',
   'required-base-growth.v1',
+  'age-structure.v1',
+  'old-age-dependency-threshold.v1',
 ] as const;
 
 export type FormulaId = (typeof FORMULA_IDS)[number];
@@ -25,4 +27,6 @@ export const FORMULA_ANCHORS: Readonly<Record<FormulaId, string>> = {
   'cohort-irr.v1': '#formula-cohort-irr',
   'implicit-debt.v1': '#formula-implicit-debt',
   'required-base-growth.v1': '#formula-required-base-growth',
+  'age-structure.v1': '#formula-age-structure',
+  'old-age-dependency-threshold.v1': '#formula-old-age-dependency-threshold',
 };

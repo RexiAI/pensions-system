@@ -18,10 +18,30 @@ export const DEFINITION_IDS = [
   'required-base-growth.national',
 ] as const;
 
-export type DefinitionId = (typeof DEFINITION_IDS)[number];
+export type MetricDefinitionId = (typeof DEFINITION_IDS)[number];
+
+/**
+ * The derived series' own definitions (T17, T18). A series is not one of the five metrics: it
+ * has no national/international counterpart and no place in the metric edge-case contract, so
+ * it carries its own id from a closed set rather than being numbered as a figure.
+ */
+export const SERIES_DEFINITION_IDS = ['age-structure', 'old-age-dependency-ratio'] as const;
+
+export type SeriesDefinitionId = (typeof SERIES_DEFINITION_IDS)[number];
+
+/** Every definition id a manifest may record: the metric set plus the series set. */
+export type DefinitionId = MetricDefinitionId | SeriesDefinitionId;
+
+export function isSeriesDefinitionId(value: unknown): value is SeriesDefinitionId {
+  return typeof value === 'string' && (SERIES_DEFINITION_IDS as readonly string[]).includes(value);
+}
 
 export function isDefinitionId(value: unknown): value is DefinitionId {
-  return typeof value === 'string' && (DEFINITION_IDS as readonly string[]).includes(value);
+  if (typeof value !== 'string') return false;
+  return (
+    (DEFINITION_IDS as readonly string[]).includes(value) ||
+    (SERIES_DEFINITION_IDS as readonly string[]).includes(value)
+  );
 }
 
 /** The metric a definition belongs to. Two definitions of one metric are never one value. */
@@ -36,7 +56,7 @@ export const METRIC_IDS = [
 export type MetricId = (typeof METRIC_IDS)[number];
 
 export interface PublishedDefinition {
-  definitionId: DefinitionId;
+  definitionId: MetricDefinitionId;
   /** Canonical instrument vocabulary: what is counted, what is excluded. Never an adjective. */
   definition: string;
   formulaId: FormulaId;
@@ -53,7 +73,7 @@ export interface PublishedDefinition {
   unavailableReason?: string;
 }
 
-const DEFINITIONS: Readonly<Record<DefinitionId, PublishedDefinition>> = {
+const DEFINITIONS: Readonly<Record<MetricDefinitionId, PublishedDefinition>> = {
   'dependency-ratio.international': {
     definitionId: 'dependency-ratio.international',
     definition:
@@ -121,8 +141,47 @@ const DEFINITIONS: Readonly<Record<DefinitionId, PublishedDefinition>> = {
   },
 };
 
-export function definitionFor(definitionId: DefinitionId): PublishedDefinition {
+export interface PublishedSeriesDefinition {
+  definitionId: SeriesDefinitionId;
+  definition: string;
+  formulaId: FormulaId;
+}
+
+const SERIES_DEFINITIONS: Readonly<Record<SeriesDefinitionId, PublishedSeriesDefinition>> = {
+  'age-structure': {
+    definitionId: 'age-structure',
+    definition:
+      'Counts the population of each five-year age band, by sex, as a share of the total population of the same year, for two observed years and one projected year. Excludes the unknown-age rows and every aggregate age class from the banding.',
+    formulaId: 'age-structure.v1',
+  },
+  'old-age-dependency-ratio': {
+    definitionId: 'old-age-dependency-ratio',
+    definition:
+      'Counts the population aged 65 and over divided by the population aged 15 to 64, per year, from the baseline projection. Excludes the other published projection variants from the series and reports them only as a range.',
+    formulaId: 'old-age-dependency-threshold.v1',
+  },
+};
+
+export function isMetricDefinitionId(value: unknown): value is MetricDefinitionId {
+  return typeof value === 'string' && (DEFINITION_IDS as readonly string[]).includes(value);
+}
+
+export function definitionFor(definitionId: MetricDefinitionId): PublishedDefinition {
   return DEFINITIONS[definitionId];
+}
+
+export function seriesDefinitionFor(definitionId: SeriesDefinitionId): PublishedSeriesDefinition {
+  return SERIES_DEFINITIONS[definitionId];
+}
+
+/** The published definition string behind any id, metric or series. */
+export function definitionTextFor(definitionId: DefinitionId): string {
+  return isSeriesDefinitionId(definitionId) ? seriesDefinitionFor(definitionId).definition : definitionFor(definitionId).definition;
+}
+
+/** The formula that computes any id's value, metric or series. */
+export function formulaForDefinition(definitionId: DefinitionId): FormulaId {
+  return isSeriesDefinitionId(definitionId) ? seriesDefinitionFor(definitionId).formulaId : definitionFor(definitionId).formulaId;
 }
 
 export function definitionsForMetric(metric: MetricId): PublishedDefinition[] {

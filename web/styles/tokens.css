@@ -60,9 +60,21 @@
   --data-deficit: #96472a;
 
   --chart-series-1: var(--accent);
+  --chart-series-2: #6E7A79;   /* comparison, the past as reference (dark: #A8B3B1) */
   --chart-ref: var(--ink-3);
   --chart-grid: var(--rule-1);
   --chart-hatch: repeating-linear-gradient(45deg, transparent 0 3px, color-mix(in srgb, var(--ink-1) 16%, transparent) 3px 4px);
+
+  /* Revision 2 — the alarm register. One hue, two aliases, layout only beyond that. */
+  --data-projection: #6A5A12;   /* dark: #D8C05C. Projected extent, never a measurement. */
+  --data-projection-ground: color-mix(in srgb, var(--data-projection) 12%, var(--surface-1));
+  --data-projection-edge: color-mix(in srgb, var(--data-projection) 40%, transparent);
+  --chart-observed: var(--accent);          /* measured; aliased so the pair is symmetric */
+  --chart-projection: var(--data-projection); /* projected; never used without --dash-projection */
+  --dash-projection: 6 4;                   /* stroke-dasharray on every projected line */
+  --rule-projection: 3px;                   /* the countdown threshold rule */
+  --hero-min-h: 560px;                      /* supersedes the full-viewport hero >=1024px */
+  --pyramid-band-h: 14px;                   /* 5-year band pitch; 8px <1024px, 6px <768px */
 
   --ground-instrument: var(--surface-1);
   --ground-consensus: var(--surface-1);
@@ -99,6 +111,8 @@
   --accent: #56b39a;
   --on-accent: #0f1416;
   --data-deficit: #d08a63;
+  --chart-series-2: #a8b3b1;
+  --data-projection: #d8c05c;
   --state-pending: #e0b25c;
   --state-danger: #e7907e;
 }

@@ -15,11 +15,12 @@ import { PublicPage } from '../web/components/PublicPage';
 import { publicPageProps } from '../web/components/public-page-props';
 import { LOCALES } from '../web/content/types';
 import { readDerivedFigures } from '../web/ingest/write-derived';
+import { SERIES_DIR, readDerivedSeries } from '../web/derived/series-store';
 
 const DERIVED_DIR = 'data/derived';
 
 function checkLocale(locale: string, terms: readonly string[]): number {
-  const props = publicPageProps(locale, { derivedDir: DERIVED_DIR });
+  const props = publicPageProps(locale, { derivedDir: DERIVED_DIR, seriesDir: SERIES_DIR });
   if (!props) {
     console.error(`${locale}: no complete content for this locale`);
     return 1;
@@ -36,7 +37,7 @@ function main(): number {
     console.error('no derived figures found in data/derived');
     return 1;
   }
-  const terms = internalTermsOf(figures);
+  const terms = internalTermsOf(figures, readDerivedSeries(SERIES_DIR));
   const failures = LOCALES.reduce((total, locale) => total + checkLocale(locale, terms), 0);
   if (failures > 0) {
     console.error(`public vocabulary gate: ${failures} operator term(s) reached a public page`);

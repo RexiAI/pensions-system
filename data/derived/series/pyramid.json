@@ -1,0 +1,453 @@
+{
+  "assumptions": {
+    "bands": 21,
+    "decimals": 2,
+    "encoding": "share of the year total population, percent",
+    "excludedLabels": "Total,Unknown",
+    "observedYears": "1995,2025",
+    "projectedYear": 2050,
+    "projectionVariant": "Baseline projections"
+  },
+  "availability": "computed",
+  "definition": "Counts the population of each five-year age band, by sex, as a share of the total population of the same year, for two observed years and one projected year. Excludes the unknown-age rows and every aggregate age class from the banding.",
+  "definitionId": "age-structure",
+  "formulaId": "age-structure.v1",
+  "manifest": {
+    "definitionId": "age-structure",
+    "fetchedAt": "2026-10-26T12:35:57Z",
+    "formulaId": "age-structure.v1",
+    "inputHash": "c1fd3c0da9379e10697847d084574efbef2eaee52bdeb37ca1f2ad7e34094b6b",
+    "reproducePath": "scripts/compute.ts",
+    "snapshotYear": 2026,
+    "sourceUrl": [
+      "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_pjan?format=JSON&lang=EN&geo=ES&time=1995&time=2025",
+      "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/proj_23np?format=JSON&lang=EN&geo=ES&projection=BSL&time=2050"
+    ]
+  },
+  "seriesId": "pyramid",
+  "unresolvedSources": [],
+  "value": {
+    "axisMaxPercent": 4.5,
+    "decimals": 2,
+    "excludedLabels": [
+      "Total",
+      "Unknown"
+    ],
+    "years": [
+      {
+        "bands": [
+          {
+            "band": 0,
+            "female": 2.37,
+            "male": 2.52,
+            "total": 4.89
+          },
+          {
+            "band": 5,
+            "female": 2.6,
+            "male": 2.74,
+            "total": 5.34
+          },
+          {
+            "band": 10,
+            "female": 3.23,
+            "male": 3.4,
+            "total": 6.63
+          },
+          {
+            "band": 15,
+            "female": 4.04,
+            "male": 4.24,
+            "total": 8.28
+          },
+          {
+            "band": 20,
+            "female": 4.15,
+            "male": 4.34,
+            "total": 8.49
+          },
+          {
+            "band": 25,
+            "female": 4.06,
+            "male": 4.19,
+            "total": 8.25
+          },
+          {
+            "band": 30,
+            "female": 3.9,
+            "male": 3.95,
+            "total": 7.85
+          },
+          {
+            "band": 35,
+            "female": 3.55,
+            "male": 3.55,
+            "total": 7.1
+          },
+          {
+            "band": 40,
+            "female": 3.12,
+            "male": 3.12,
+            "total": 6.24
+          },
+          {
+            "band": 45,
+            "female": 3.09,
+            "male": 3.04,
+            "total": 6.13
+          },
+          {
+            "band": 50,
+            "female": 2.74,
+            "male": 2.67,
+            "total": 5.41
+          },
+          {
+            "band": 55,
+            "female": 2.53,
+            "male": 2.37,
+            "total": 4.9
+          },
+          {
+            "band": 60,
+            "female": 2.89,
+            "male": 2.64,
+            "total": 5.53
+          },
+          {
+            "band": 65,
+            "female": 2.63,
+            "male": 2.26,
+            "total": 4.89
+          },
+          {
+            "band": 70,
+            "female": 2.28,
+            "male": 1.78,
+            "total": 4.06
+          },
+          {
+            "band": 75,
+            "female": 1.65,
+            "male": 1.05,
+            "total": 2.7
+          },
+          {
+            "band": 80,
+            "female": 1.25,
+            "male": 0.7,
+            "total": 1.95
+          },
+          {
+            "band": 85,
+            "female": 0.67,
+            "male": 0.32,
+            "total": 0.99
+          },
+          {
+            "band": 90,
+            "female": 0.24,
+            "male": 0.09,
+            "total": 0.33
+          },
+          {
+            "band": 95,
+            "female": 0.03,
+            "male": 0.01,
+            "total": 0.04
+          },
+          {
+            "band": 100,
+            "female": 0,
+            "male": 0,
+            "total": 0
+          }
+        ],
+        "hue": "reference",
+        "population": 39639726,
+        "readout": {
+          "over65": 14.98,
+          "under20": 25.14
+        },
+        "state": "observed",
+        "year": 1995
+      },
+      {
+        "bands": [
+          {
+            "band": 0,
+            "female": 1.7,
+            "male": 1.79,
+            "total": 3.49
+          },
+          {
+            "band": 5,
+            "female": 2.13,
+            "male": 2.25,
+            "total": 4.38
+          },
+          {
+            "band": 10,
+            "female": 2.45,
+            "male": 2.6,
+            "total": 5.05
+          },
+          {
+            "band": 15,
+            "female": 2.65,
+            "male": 2.84,
+            "total": 5.49
+          },
+          {
+            "band": 20,
+            "female": 2.65,
+            "male": 2.83,
+            "total": 5.48
+          },
+          {
+            "band": 25,
+            "female": 2.68,
+            "male": 2.81,
+            "total": 5.49
+          },
+          {
+            "band": 30,
+            "female": 2.88,
+            "male": 2.97,
+            "total": 5.85
+          },
+          {
+            "band": 35,
+            "female": 3.11,
+            "male": 3.12,
+            "total": 6.23
+          },
+          {
+            "band": 40,
+            "female": 3.61,
+            "male": 3.6,
+            "total": 7.21
+          },
+          {
+            "band": 45,
+            "female": 4.14,
+            "male": 4.18,
+            "total": 8.32
+          },
+          {
+            "band": 50,
+            "female": 4.01,
+            "male": 4.02,
+            "total": 8.03
+          },
+          {
+            "band": 55,
+            "female": 3.79,
+            "male": 3.69,
+            "total": 7.48
+          },
+          {
+            "band": 60,
+            "female": 3.49,
+            "male": 3.29,
+            "total": 6.78
+          },
+          {
+            "band": 65,
+            "female": 3.03,
+            "male": 2.75,
+            "total": 5.78
+          },
+          {
+            "band": 70,
+            "female": 2.51,
+            "male": 2.17,
+            "total": 4.68
+          },
+          {
+            "band": 75,
+            "female": 2.28,
+            "male": 1.81,
+            "total": 4.09
+          },
+          {
+            "band": 80,
+            "female": 1.74,
+            "male": 1.24,
+            "total": 2.98
+          },
+          {
+            "band": 85,
+            "female": 1.16,
+            "male": 0.67,
+            "total": 1.83
+          },
+          {
+            "band": 90,
+            "female": 0.72,
+            "male": 0.33,
+            "total": 1.05
+          },
+          {
+            "band": 95,
+            "female": 0.21,
+            "male": 0.07,
+            "total": 0.28
+          },
+          {
+            "band": 100,
+            "female": 0.03,
+            "male": 0.01,
+            "total": 0.04
+          }
+        ],
+        "hue": "measured",
+        "population": 49128297,
+        "readout": {
+          "over65": 20.72,
+          "under20": 18.4
+        },
+        "state": "observed",
+        "year": 2025
+      },
+      {
+        "bands": [
+          {
+            "band": 0,
+            "female": 1.83,
+            "male": 1.94,
+            "total": 3.77
+          },
+          {
+            "band": 5,
+            "female": 1.96,
+            "male": 2.07,
+            "total": 4.03
+          },
+          {
+            "band": 10,
+            "female": 1.99,
+            "male": 2.11,
+            "total": 4.1
+          },
+          {
+            "band": 15,
+            "female": 1.98,
+            "male": 2.11,
+            "total": 4.09
+          },
+          {
+            "band": 20,
+            "female": 2.08,
+            "male": 2.21,
+            "total": 4.29
+          },
+          {
+            "band": 25,
+            "female": 2.3,
+            "male": 2.39,
+            "total": 4.69
+          },
+          {
+            "band": 30,
+            "female": 2.75,
+            "male": 2.82,
+            "total": 5.57
+          },
+          {
+            "band": 35,
+            "female": 3.09,
+            "male": 3.14,
+            "total": 6.23
+          },
+          {
+            "band": 40,
+            "female": 3.31,
+            "male": 3.31,
+            "total": 6.62
+          },
+          {
+            "band": 45,
+            "female": 3.21,
+            "male": 3.11,
+            "total": 6.32
+          },
+          {
+            "band": 50,
+            "female": 3.05,
+            "male": 2.86,
+            "total": 5.91
+          },
+          {
+            "band": 55,
+            "female": 3.03,
+            "male": 2.78,
+            "total": 5.81
+          },
+          {
+            "band": 60,
+            "female": 3.13,
+            "male": 2.76,
+            "total": 5.89
+          },
+          {
+            "band": 65,
+            "female": 3.51,
+            "male": 3.09,
+            "total": 6.6
+          },
+          {
+            "band": 70,
+            "female": 3.9,
+            "male": 3.45,
+            "total": 7.35
+          },
+          {
+            "band": 75,
+            "female": 3.6,
+            "male": 3.06,
+            "total": 6.66
+          },
+          {
+            "band": 80,
+            "female": 3.09,
+            "male": 2.38,
+            "total": 5.47
+          },
+          {
+            "band": 85,
+            "female": 2.3,
+            "male": 1.53,
+            "total": 3.83
+          },
+          {
+            "band": 90,
+            "female": 1.27,
+            "male": 0.69,
+            "total": 1.96
+          },
+          {
+            "band": 95,
+            "female": 0.45,
+            "male": 0.19,
+            "total": 0.64
+          },
+          {
+            "band": 100,
+            "female": 0.12,
+            "male": 0.04,
+            "total": 0.16
+          }
+        ],
+        "hue": "projected",
+        "population": 50460161,
+        "readout": {
+          "over65": 32.68,
+          "under20": 16
+        },
+        "state": "projected",
+        "year": 2050
+      }
+    ]
+  }
+}

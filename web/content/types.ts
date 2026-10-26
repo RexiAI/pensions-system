@@ -52,8 +52,25 @@ export interface LocaleEditorial {
   thesis: ThesisEditorial;
 }
 
+/**
+ * The country a locale document describes (T8, T19). `name` and `scopeClause` are content, not
+ * code: the scope mark at all three levels is derived from them, so a second country is a new
+ * record and not a copy edit.
+ */
+export interface CountryRecord {
+  code: string;
+  /** The country's display name in this locale (`country.<GEO>.name`). */
+  name: string;
+  /** What the figures cover, in that country's own system (`country.<GEO>.scopeClause`). */
+  scopeClause: string;
+}
+
 export interface LocaleDocument {
   country: string;
+  /** The country record's display name, in this document's locale. */
+  countryName: string;
+  /** The country record's coverage clause, in this document's locale. */
+  scopeClause: string;
   locale: string;
   strings: Record<string, string>;
   editorial: LocaleEditorial;
@@ -61,7 +78,7 @@ export interface LocaleDocument {
 
 /** The typed surface every component reads: strings plus editorial units. */
 export interface CountryLocaleContent {
-  country: string;
+  country: CountryRecord;
   locale: Locale;
   strings: Readonly<Record<LocaleKey, string>>;
   editorial: LocaleEditorial;

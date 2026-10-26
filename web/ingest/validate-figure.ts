@@ -1,5 +1,5 @@
-import { definitionFor, definitionVocabularyProblems, isDefinitionId } from '../manifest/definitions';
-import type { DefinitionId } from '../manifest/definitions';
+import { definitionFor, definitionVocabularyProblems, isMetricDefinitionId } from '../manifest/definitions';
+import type { MetricDefinitionId } from '../manifest/definitions';
 import { validateManifest } from '../manifest/validate';
 import { FIGURE_AVAILABILITY } from './types';
 import type { DerivedFigure, FigureAvailability } from './types';
@@ -73,13 +73,13 @@ function definitionIdProblems(figureId: string, definitionId: unknown): FigurePr
   if (typeof definitionId !== 'string' || definitionId.trim() === '') {
     return [{ figureId, code: 'missing-definition', detail: 'no definitionId' }];
   }
-  if (!isDefinitionId(definitionId)) {
+  if (!isMetricDefinitionId(definitionId)) {
     return [{ figureId, code: 'unknown-definition', detail: definitionId }];
   }
   return [];
 }
 
-function definitionTextProblems(figureId: string, definitionId: DefinitionId, text: unknown): FigureProblem[] {
+function definitionTextProblems(figureId: string, definitionId: MetricDefinitionId, text: unknown): FigureProblem[] {
   if (typeof text !== 'string' || text.trim() === '') {
     return [{ figureId, code: 'missing-definition', detail: 'no definition string' }];
   }
@@ -101,7 +101,7 @@ function definitionTextProblems(figureId: string, definitionId: DefinitionId, te
 
 function manifestDefinitionProblems(
   figureId: string,
-  definitionId: DefinitionId,
+  definitionId: MetricDefinitionId,
   manifest: { definitionId?: unknown } | undefined,
 ): FigureProblem[] {
   if (manifest?.definitionId === definitionId) return [];
@@ -119,7 +119,7 @@ function definitionProblems(candidate: unknown): FigureProblem[] {
   const figure = candidate as Partial<DerivedFigure>;
   const figureId = String(figure.figureId ?? 'unknown');
   const identity = definitionIdProblems(figureId, figure.definitionId);
-  if (identity.length > 0 || !isDefinitionId(figure.definitionId)) return identity;
+  if (identity.length > 0 || !isMetricDefinitionId(figure.definitionId)) return identity;
   return [
     ...definitionTextProblems(figureId, figure.definitionId, figure.definition),
     ...manifestDefinitionProblems(figureId, figure.definitionId, figure.manifest),

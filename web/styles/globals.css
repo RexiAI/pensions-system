@@ -1150,3 +1150,264 @@ svg {
     --gutter: 16px;
   }
 }
+
+/* ---------- Revision 2: the countdown (R2, R5) ---------- */
+
+.countdown {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.countdown__eyebrow,
+.countdown__range,
+.countdown__source,
+.countdown__year-label,
+.countdown__backcast {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+  margin: 0;
+}
+
+.countdown__eyebrow {
+  text-transform: uppercase;
+}
+
+/* The threshold rule: one of the two coloured marks permitted above the fold. */
+.countdown__rule {
+  height: var(--rule-projection);
+  background: var(--data-projection);
+}
+
+.countdown__value {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.countdown__numeral {
+  font-family: var(--font-mono);
+  font-size: var(--text-num-xl);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-tight);
+  color: var(--ink-1);
+}
+
+.countdown__unit {
+  font-size: var(--text-num-m);
+  color: var(--ink-2);
+}
+
+.countdown__year-line {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.countdown__year {
+  font-family: var(--font-mono);
+  font-size: var(--text-num-m);
+  font-variant-numeric: tabular-nums;
+  color: var(--data-projection);
+}
+
+.countdown__definition,
+.countdown__statement {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  margin: 0;
+}
+
+.hero__panel-rule {
+  border: 0;
+  border-top: var(--border-hair);
+  margin: var(--space-4) 0;
+}
+
+/* The figure value is demoted while the countdown carries the largest type (R5). */
+.hero__value--demoted {
+  font-size: var(--text-num-l);
+}
+
+/* ---------- Revision 2: the scope mark (R4) ---------- */
+
+.scope {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-2);
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.scope__name {
+  text-transform: uppercase;
+}
+
+.scope__list {
+  display: flex;
+  gap: var(--space-4);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-2) 0 0;
+}
+
+/* ---------- Revision 2: the age structure (R1) ---------- */
+
+.demography {
+  margin: var(--space-8) 0;
+  border-top: var(--border-hair);
+  padding-top: var(--space-5);
+}
+
+.demography__figure {
+  margin: 0;
+}
+
+.demography__finding {
+  font-size: var(--text-plate);
+  max-width: var(--measure);
+}
+
+.demography__readout {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-num-m);
+  font-variant-numeric: tabular-nums;
+}
+
+.demography__readout-item dt {
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+}
+
+.demography__readout-item dd {
+  margin: 0;
+  color: var(--ink-1);
+}
+
+.demography__panels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+
+.demography__panel-head {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+}
+
+.demography__panel-year {
+  color: var(--ink-1);
+}
+
+.demography__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* One hue per panel. Sex is encoded by side and by the column header, never by hue. */
+.demography__panel--reference {
+  --demography-hue: var(--chart-series-2);
+}
+
+.demography__panel--measured {
+  --demography-hue: var(--chart-series-1);
+}
+
+.demography__panel--projected {
+  --demography-hue: var(--chart-projection);
+}
+
+.demography__bar {
+  fill: var(--demography-hue);
+}
+
+.demography__baseline,
+.demography__grid {
+  stroke: var(--rule-1);
+  stroke-width: 1;
+}
+
+/* The projected panel is dash-encoded as well as hue-encoded and panel-positioned (AC-001-106). */
+.demography__panel--projected .demography__baseline {
+  stroke-dasharray: var(--dash-projection);
+}
+
+.demography__tick,
+.demography__age {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: var(--ink-3);
+}
+
+.demography--unavailable {
+  border-top: var(--border-hair);
+}
+
+.reproduce__count,
+.reproduce__omitted {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+}
+
+.reproduce__omitted {
+  font-family: var(--font-sans);
+  font-size: var(--text-small);
+  letter-spacing: 0;
+  color: var(--ink-2);
+  margin-top: var(--space-4);
+}
+
+@media (min-width: 1024px) {
+  /* The hero stops defining itself as the whole viewport (R5). */
+  .hero {
+    min-height: var(--hero-min-h);
+    align-content: start;
+  }
+
+  /* One age-label gutter on the outer left only. */
+  .demography__panel:not(:first-child) .demography__age {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .demography__panels {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .demography__panel {
+    --pyramid-band-h: 8px;
+  }
+}
+
+@media (max-width: 767px) {
+  .demography__readout {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    font-size: var(--text-meta);
+  }
+
+  .demography__panel {
+    --pyramid-band-h: 6px;
+  }
+
+  /* Age labels every twenty years only, and no percentage axis on the smallest screen. */
+  .demography__age:not(.demography__age--major),
+  .demography__tick {
+    display: none;
+  }
+}

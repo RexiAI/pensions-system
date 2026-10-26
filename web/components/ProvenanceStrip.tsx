@@ -13,6 +13,8 @@ export interface ProvenanceStripProps {
   figureId: string;
   freshnessWindowDays: number;
   content: CountryLocaleContent;
+  /** Where the derived file lives: `data/derived` for a figure, `data/derived/series` for a series. */
+  derivedPath?: string;
 }
 
 function unique(values: readonly string[]): string[] {
@@ -52,11 +54,16 @@ function SourceList({ manifest, content }: { manifest: Manifest; content: Countr
   );
 }
 
+function derivedFile(derivedPath: string, figureId: string): string {
+  return `${derivedPath}/${figureId}.json`;
+}
+
 function Disclosure({
   manifest,
   figureId,
   freshnessWindowDays,
   content,
+  derivedPath = 'data/derived',
 }: ProvenanceStripProps) {
   const { t, locale } = content;
   return (
@@ -90,7 +97,7 @@ function Disclosure({
         </dd>
         <dt>{t('provenance.disclosure.freshness')}</dt>
         <dd>
-          <code>{`${freshnessWindowDays} · data/derived/${figureId}.json`}</code>
+          <code>{`${freshnessWindowDays} · ${derivedFile(derivedPath, figureId)}`}</code>
         </dd>
       </dl>
       <p className="provenance__meaning">{t('provenance.digestMeaning')}</p>
@@ -102,12 +109,20 @@ function Disclosure({
 }
 
 /**
- * The provenance strip in its designed form (D6): three labelled public fields — publisher,
- * dataset, observation date — and two affordances. The digest, the formula id, the source
+ * The provenance strip in its designed form (D6, extended by R4): four labelled public fields —
+ * publisher, dataset, observation date and scope — and two affordances. The scope field is
+ * rendered from the country record so it can never be blank: a strip with an empty scope is a
+ * claim without a coverage (`Ámbito` never renders an empty cell). The digest, the formula id, the source
  * URLs and the reproduce path live in the `Cómo se calcula` disclosure, which is marked
  * `data-operator` so the public-vocabulary gate does not treat them as public prose.
  */
-export function ProvenanceStrip({ manifest, figureId, freshnessWindowDays, content }: ProvenanceStripProps) {
+export function ProvenanceStrip({
+  manifest,
+  figureId,
+  freshnessWindowDays,
+  content,
+  derivedPath,
+}: ProvenanceStripProps) {
   const { t, locale } = content;
   return (
     <div className="provenance">
@@ -118,6 +133,7 @@ export function ProvenanceStrip({ manifest, figureId, freshnessWindowDays, conte
           label={t('provenance.observedAt')}
           values={[formatDate(manifest.fetchedAt, locale)]}
         />
+        <Field label={t('provenance.scope')} values={[content.country.name]} />
       </dl>
       <div className="provenance__actions">
         <a className="provenance__original" href={manifest.sourceUrl[0]} rel="noopener noreferrer">
@@ -130,6 +146,7 @@ export function ProvenanceStrip({ manifest, figureId, freshnessWindowDays, conte
           figureId={figureId}
           freshnessWindowDays={freshnessWindowDays}
           content={content}
+          derivedPath={derivedPath}
         />
       </div>
     </div>

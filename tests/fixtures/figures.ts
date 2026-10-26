@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { FIGURE_IDS } from '../../web/ingest/types';
 import type { DerivedFigure, FigureAvailability, FigureId } from '../../web/ingest/types';
 import type { Manifest } from '../../web/manifest/types';
-import type { DefinitionId } from '../../web/manifest/definitions';
+import type { MetricDefinitionId } from '../../web/manifest/definitions';
 import { definitionFor } from '../../web/manifest/definitions';
 import type { FormulaId } from '../../web/manifest/formula-ids';
 import type { CountryLocaleContent } from '../../web/content/types';
@@ -38,7 +38,7 @@ export function content(locale = 'es', country = 'ES'): CountryLocaleContent {
 }
 
 /** The definition each figure publishes, so a fixture never invents one. */
-export const FIGURE_DEFINITIONS: Readonly<Record<FigureId, DefinitionId>> = {
+export const FIGURE_DEFINITIONS: Readonly<Record<FigureId, MetricDefinitionId>> = {
   'fig-01': 'dependency-ratio.international',
   'fig-02': 'pension-expenditure-gdp.international',
   'fig-03': 'cohort-return.national',
@@ -53,7 +53,7 @@ const DEFAULT_SOURCE = 'https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/TM16
 export interface FigureParams<V> {
   figureId: FigureId;
   formulaId?: FormulaId;
-  definitionId?: DefinitionId;
+  definitionId?: MetricDefinitionId;
   unit: string;
   value: V | null;
   availability?: FigureAvailability;
@@ -63,7 +63,7 @@ export interface FigureParams<V> {
   manifest?: Manifest;
 }
 
-function manifestFor<V>(params: FigureParams<V>, formulaId: FormulaId, definitionId: DefinitionId): Manifest {
+function manifestFor<V>(params: FigureParams<V>, formulaId: FormulaId, definitionId: MetricDefinitionId): Manifest {
   if (params.manifest) return params.manifest;
   return buildManifest({
     sourceUrl: params.sourceUrl ?? [DEFAULT_SOURCE],

@@ -1,5 +1,8 @@
 import { FIGURE_IDS } from '../ingest/types';
 import type { DerivedFigure } from '../ingest/types';
+import type { DerivedSeries } from '../ingest/series-types';
+import type { CountdownValue } from '../series/countdown';
+import type { ScopeEntry } from './public/ScopeMark';
 import type { CitationRegistry } from '../content/citations';
 import type { CountryLocaleContent } from '../content/types';
 import { isLedgerState } from './metrics/figure-state';
@@ -16,6 +19,8 @@ import { ReproduceBlock } from './public/ReproduceBlock';
 import { SiteFooter } from './public/SiteFooter';
 import { SiteHeader } from './public/SiteHeader';
 import { SourceStrip } from './public/SourceStrip';
+import { PyramidPlate } from './series/PyramidPlate';
+import { findSeries } from '../derived/series-store';
 
 export interface PublicPageProps {
   content: CountryLocaleContent;
@@ -23,6 +28,10 @@ export interface PublicPageProps {
   citations: CitationRegistry;
   freshnessWindowDays: number;
   stale: boolean;
+  /** The derived series (the pyramid, the countdown); absent means none is published. */
+  series?: readonly DerivedSeries[];
+  /** The published countries, resolved from the content model, for the scope mark. */
+  countries?: readonly ScopeEntry[];
 }
 
 function orderedFigures(figures: readonly DerivedFigure[]): DerivedFigure[] {
@@ -38,6 +47,17 @@ function lifeExpectancyOf(figures: readonly DerivedFigure[]): number | null {
   return typeof value === 'number' ? value : null;
 }
 
+/**
+ * The countdown is read from the committed series, never recomputed here: its value (and the
+ * snapshot year inside it) is fixed at ingest, so a render-time clock cannot make the number
+ * disagree with its own provenance (OQ19).
+ */
+function countdownOf(series: readonly DerivedSeries[]): CountdownValue | undefined {
+  const entry = findSeries(series, 'countdown');
+  if (entry === undefined || entry.availability !== 'computed' || entry.value === null) return undefined;
+  return entry.value as CountdownValue;
+}
+
 function snapshotIsoOf(figures: readonly DerivedFigure[]): string {
   const first = figures[0];
   return first ? first.manifest.fetchedAt : '';
@@ -48,8 +68,19 @@ function snapshotIsoOf(figures: readonly DerivedFigure[]): string {
  * three registers, then the audit trail. It is composed from data and content only, so it
  * renders without any admin configuration.
  */
-export function PublicPage({ content, figures, citations, freshnessWindowDays, stale }: PublicPageProps) {
+export function PublicPage({
+  content,
+  figures,
+  citations,
+  freshnessWindowDays,
+  stale,
+  series = [],
+  countries,
+}: PublicPageProps) {
   const ordered = orderedFigures(figures);
+  const pyramid = findSeries(series, 'pyramid');
+  const countdown = countdownOf(series);
+  const scopes = countries ?? [{ geo: content.country.code, name: content.country.name, href: '#' }];
   const snapshotIso = snapshotIsoOf(ordered);
   const sources = ordered.flatMap((figure) => figure.manifest.sourceUrl);
   const firstLedger = ordered.find((figure) => isLedgerState(viewStateFor({ figure, content })));
@@ -61,8 +92,11 @@ export function PublicPage({ content, figures, citations, freshnessWindowDays, s
       {stale ? <p className="banner">{content.t('banner.stale')}</p> : null}
       <SiteHeader content={content} snapshotIso={snapshotIso} />
       <main id="main">
-        <Hero content={content} figures={ordered} />
+        <Hero content={content} figures={ordered} countdown={countdown} countries={scopes} />
         <SourceStrip content={content} sources={sources} />
+        {pyramid === undefined ? null : (
+          <PyramidPlate content={content} series={pyramid} freshnessWindowDays={freshnessWindowDays} />
+        )}
         <RegisterKey content={content} />
         <div id="figuras">
           {ordered.map((figure) => (
@@ -86,7 +120,7 @@ export function PublicPage({ content, figures, citations, freshnessWindowDays, s
         <div id="lectura">
           <ThesisSection content={content} />
         </div>
-        <ReproduceBlock content={content} figures={ordered} />
+        <ReproduceBlock content={content} figures={ordered} series={series} />
         <AssumptionsLedger
           content={content}
           freshnessWindowDays={freshnessWindowDays}

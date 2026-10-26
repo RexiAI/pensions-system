@@ -127,6 +127,9 @@ describe('the source catalogue', () => {
       'eurostat-spr-pns-ben',
       'eurostat-spr-exp-pens',
       'eurostat-lfsi-emp-a',
+      'eurostat-demo-pjan',
+      'eurostat-proj-23np',
+      'eurostat-proj-23np-ratio',
     ]);
     for (const sourceId of MACHINE_SOURCE_IDS) {
       expect(findSource(sourceId)?.sourceClass).toBe('machine');

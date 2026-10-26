@@ -111,6 +111,14 @@ export function formatDate(iso: string, locale: Locale): string {
   }).format(parsed);
 }
 
+/**
+ * A calendar year: digits only, never grouped. `Intl`'s default grouping turns 2042 into
+ * `2,042` in `en`, which reads as a quantity rather than a year.
+ */
+export function formatYear(value: number, locale: Locale): string {
+  return new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 0 }).format(value);
+}
+
 /** Counts (row counts, source counts) need no fractional digits. */
 export function formatCount(count: number, locale: Locale): string {
   return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(count);

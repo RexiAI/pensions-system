@@ -13,10 +13,12 @@ export interface ManifestBuildInput {
   /** Raw bytes of the ingested input snapshot. */
   inputBytes: Uint8Array | string;
   reproducePath: string;
+  /** The data vintage year, recorded here at ingest rather than derived at render time. */
+  snapshotYear?: number;
 }
 
 export function buildManifest(input: ManifestBuildInput): Manifest {
-  return {
+  const manifest: Manifest = {
     sourceUrl: [...input.sourceUrl],
     fetchedAt: toIsoUtcSeconds(input.fetchedAt),
     formulaId: input.formulaId,
@@ -24,6 +26,8 @@ export function buildManifest(input: ManifestBuildInput): Manifest {
     inputHash: sha256Hex(input.inputBytes),
     reproducePath: input.reproducePath,
   };
+  if (input.snapshotYear !== undefined) manifest.snapshotYear = input.snapshotYear;
+  return manifest;
 }
 
 function checkSourceEntry(entry: unknown): ManifestProblem | null {
@@ -87,6 +91,15 @@ function checkInputHash(value: unknown): ManifestProblem[] {
   return [];
 }
 
+/** `snapshotYear` is optional; when a manifest records one it must be a plausible year. */
+function checkSnapshotYear(value: unknown): ManifestProblem[] {
+  if (value === undefined) return [];
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 1900 || value > 2200) {
+    return [{ field: 'snapshotYear', code: 'malformed', detail: String(value) }];
+  }
+  return [];
+}
+
 function isBlankPath(value: unknown): boolean {
   return typeof value !== 'string' || value.trim() === '';
 }
@@ -128,6 +141,7 @@ export function manifestFieldProblems(candidate: unknown): ManifestProblem[] {
     ...checkFormulaId(record.formulaId),
     ...checkDefinitionId(record.definitionId),
     ...checkInputHash(record.inputHash),
+    ...checkSnapshotYear(record.snapshotYear),
     ...checkReproducePath(record.reproducePath, () => true).filter((problem) => problem.code !== 'missingFile'),
   ];
 }

@@ -21,7 +21,9 @@ export type DocumentProblemCode =
   | 'unsupported-locale'
   | 'missing-keys'
   | 'unknown-keys'
-  | 'heading-count';
+  | 'heading-count'
+  | 'country-record'
+  | 'scope-statement';
 
 export interface DocumentProblem {
   country: string;
@@ -30,30 +32,69 @@ export interface DocumentProblem {
   detail: string;
 }
 
-export function validateDocument(doc: LocaleDocument): DocumentProblem[] {
-  const base = { country: doc.country, locale: doc.locale };
+type Base = Pick<DocumentProblem, 'country' | 'locale'>;
+
+function localeProblems(doc: LocaleDocument, base: Base): DocumentProblem[] {
+  return isLocale(doc.locale) ? [] : [{ ...base, code: 'unsupported-locale', detail: doc.locale }];
+}
+
+function keyProblems(doc: LocaleDocument, base: Base): DocumentProblem[] {
   const problems: DocumentProblem[] = [];
-  if (!isLocale(doc.locale)) {
-    problems.push({ ...base, code: 'unsupported-locale', detail: doc.locale });
-  }
   const missing = missingKeys(doc.strings);
-  if (missing.length > 0) {
-    problems.push({ ...base, code: 'missing-keys', detail: missing.join(', ') });
-  }
+  if (missing.length > 0) problems.push({ ...base, code: 'missing-keys', detail: missing.join(', ') });
   const unknown = unknownKeys(doc.strings);
-  if (unknown.length > 0) {
-    problems.push({ ...base, code: 'unknown-keys', detail: unknown.join(', ') });
-  }
-  // AC-001-91: a heading that names a count names the number of registers rendered.
+  if (unknown.length > 0) problems.push({ ...base, code: 'unknown-keys', detail: unknown.join(', ') });
+  return problems;
+}
+
+/**
+ * AC-001-103: the scope mark is derived from the country record, so a record missing either
+ * field is a content bug that must fail here rather than fall back to another country's name.
+ */
+function countryRecordProblems(doc: LocaleDocument, base: Base): DocumentProblem[] {
+  if (!isBlank(doc.countryName) && !isBlank(doc.scopeClause)) return [];
+  return [
+    {
+      ...base,
+      code: 'country-record',
+      detail: `name "${doc.countryName ?? ''}" scopeClause "${doc.scopeClause ?? ''}"`,
+    },
+  ];
+}
+
+/**
+ * AC-001-103: the headline is the only string a social visitor reads, so the country's name
+ * belongs in it — in every locale, checked at build time, never as a review habit.
+ */
+function scopeStatementProblems(doc: LocaleDocument, base: Base): DocumentProblem[] {
+  if (isBlank(doc.countryName)) return [];
+  const statement = doc.strings['hero.statement'] ?? '';
+  if (statement.includes(doc.countryName)) return [];
+  return [{ ...base, code: 'scope-statement', detail: `hero.statement omits "${doc.countryName}"` }];
+}
+
+/** AC-001-91: a heading that names a count names the number of registers rendered. */
+function headingCountProblems(doc: LocaleDocument, base: Base): DocumentProblem[] {
   const countProblem = headingCountProblem(doc.strings, doc.locale);
-  if (countProblem) {
-    problems.push({
+  if (!countProblem) return [];
+  return [
+    {
       ...base,
       code: 'heading-count',
       detail: `${countProblem.key}: states ${countProblem.stated}, ${countProblem.rendered} registers render`,
-    });
-  }
-  return problems;
+    },
+  ];
+}
+
+export function validateDocument(doc: LocaleDocument): DocumentProblem[] {
+  const base: Base = { country: doc.country, locale: doc.locale };
+  return [
+    ...localeProblems(doc, base),
+    ...keyProblems(doc, base),
+    ...countryRecordProblems(doc, base),
+    ...scopeStatementProblems(doc, base),
+    ...headingCountProblems(doc, base),
+  ];
 }
 
 export type ContentErrorCode = 'unsupported-locale' | 'unsupported-country' | 'incomplete-content';
@@ -73,6 +114,10 @@ export interface ContentRegistry {
   locales(country: string): Locale[];
 }
 
+function isBlank(value: unknown): boolean {
+  return typeof value !== 'string' || value.trim() === '';
+}
+
 function normaliseCountry(country: string): string {
   return country.trim().toUpperCase();
 }
@@ -88,7 +133,7 @@ function problemDetail(problems: readonly DocumentProblem[]): string {
 function toContent(doc: LocaleDocument): CountryLocaleContent {
   const strings = doc.strings as Record<LocaleKey, string>;
   return {
-    country: doc.country,
+    country: { code: doc.country, name: doc.countryName, scopeClause: doc.scopeClause },
     locale: doc.locale as Locale,
     strings,
     editorial: doc.editorial,

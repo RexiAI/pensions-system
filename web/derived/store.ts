@@ -33,9 +33,7 @@ export function createMemoryDerivedStore(initial: readonly DerivedFigure[] = [])
 /** The published figures, statically scoped to `data/derived` (see admin/persistence.ts). */
 function derivedDir(): string {
   return join(process.cwd(), 'data', 'derived');
-}
-
-export function createFileDerivedStore(): DerivedFigureStore {
+}export function createFileDerivedStore(): DerivedFigureStore {
   const pathFor = (figureId: FigureId) => join(derivedDir(), `${figureId}.json`);
   return {
     read(figureId) {
@@ -47,6 +45,10 @@ export function createFileDerivedStore(): DerivedFigureStore {
     },
     readAll() {
       try {
+        // Flat by design: only top-level `*.json` files are figures. `data/derived/series/`
+        // holds the derived series (the pyramid, the countdown) and a `readdirSync` entry for a
+        // directory never ends in `.json`, so a series can never be cast to `FigureId` and
+        // published as a metric. Widening this to a recursive walk would break that guarantee.
         return readdirSync(derivedDir())
           .filter((file) => file.endsWith('.json'))
           .map((file) => JSON.parse(readFileSync(join(derivedDir(), file), 'utf8')) as DerivedFigure);

@@ -21,6 +21,17 @@ export const LIVE_URLS: Readonly<Record<string, string>> = {
     'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/spr_exp_pens?format=JSON&lang=EN&geo=ES&spdepm=TOTAL&unit=PC_GDP',
   'eurostat-lfsi-emp-a':
     'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?format=JSON&lang=EN&geo=ES&indic_em=EMP_LFS&sex=T&unit=THS_PER',
+  // The pyramid's two datasets (T17). `demo_pjan` carries the observed years and every sex; the
+  // projected panel is the baseline variant alone, named on the page and resolved by label.
+  'eurostat-demo-pjan':
+    'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_pjan?format=JSON&lang=EN&geo=ES&time=1995&time=2025',
+  'eurostat-proj-23np':
+    'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/proj_23np?format=JSON&lang=EN&geo=ES&projection=BSL&time=2050',
+  // The countdown's view of the same projection: every variant, the two dependency age classes,
+  // seventy-nine years. It is a separate snapshot because the API filters by dimension, and
+  // because the ratio must never be built from a payload that also carries single-year ages.
+  'eurostat-proj-23np-ratio':
+    'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/proj_23np?format=JSON&lang=EN&geo=ES&sex=T&age=Y_GE65&age=Y15-64',
 };
 
 function declaration(sourceId: string) {

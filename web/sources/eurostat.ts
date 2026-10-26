@@ -104,6 +104,33 @@ function labelsOf(payload: unknown, dimensionId: string): Record<string, string>
   return categories.label ?? {};
 }
 
+/** Every category label of one dimension, keyed by code. Read from the payload, never assumed. */
+export function categoryLabels(payload: unknown, dimensionId: string): Record<string, string> {
+  return labelsOf(payload, dimensionId);
+}
+
+/** The unit labels that mean "a count of persons". A share needs a count, never a converted one. */
+const COUNT_UNIT_LABELS: readonly string[] = ['number', 'person'];
+
+/**
+ * The single unit a count dataset publishes. Both `demo_pjan` (unit label `Number`) and
+ * `proj_23np` (unit label `Person`) publish persons; a dataset whose unit is anything else,
+ * or whose unit dimension is empty, fails here instead of publishing a share of the wrong
+ * denominator.
+ */
+export function resolveCountUnit(payload: unknown): { code: string; label: string } {
+  const labels = labelsOf(payload, 'unit');
+  const entries = Object.entries(labels).filter(([code]) => code.trim() !== '');
+  if (entries.length !== 1) {
+    throw new IngestError(`unit dimension has ${entries.length} categories, expected exactly one`);
+  }
+  const [code, label] = entries[0] as [string, string];
+  if (!COUNT_UNIT_LABELS.includes(normaliseLabel(label))) {
+    throw new IngestError(`unit "${label}" is not a count of persons`);
+  }
+  return { code, label };
+}
+
 function codesWithLabel(labels: Record<string, string>, expectedLabel: string): string[] {
   const wanted = normaliseLabel(expectedLabel);
   return Object.entries(labels)

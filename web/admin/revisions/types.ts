@@ -1,4 +1,4 @@
-import { definitionFor } from '../../manifest/definitions';
+import { definitionFor, isMetricDefinitionId } from '../../manifest/definitions';
 import type { DerivedFigure, FigureId } from '../../ingest/types';
 import type { Manifest } from '../../manifest/types';
 
@@ -38,14 +38,22 @@ export interface RevisionStore {
   save(revision: PendingRevision): void;
 }
 
-/** A figure ready to publish, built only from a reviewed change. */
+/**
+ * A figure ready to publish, built only from a reviewed change. A revision is a *figure*
+ * revision (T14): a manifest carrying a derived-series definition has no figure to publish, so
+ * it is rejected here rather than being coerced into the figure registry.
+ */
 export function changeToFigure(change: FigureChange): DerivedFigure {
+  const definitionId = change.manifest.definitionId;
+  if (!isMetricDefinitionId(definitionId)) {
+    throw new Error(`a figure revision cannot publish the series definition ${definitionId}`);
+  }
   return {
     figureId: change.figureId,
     formulaId: change.manifest.formulaId,
     availability: 'computed',
-    definitionId: change.manifest.definitionId,
-    definition: definitionFor(change.manifest.definitionId).definition,
+    definitionId,
+    definition: definitionFor(definitionId).definition,
     unit: change.unit,
     value: change.after,
     assumptions: change.assumptions,
