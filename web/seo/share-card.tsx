@@ -4,9 +4,10 @@ import { contentRegistry } from '../content/registry';
 import { SOURCE_DECLARATIONS } from '../sources/types';
 
 /**
- * The share card: the mark, the wordmark, the proposition and the five official publishers.
- * No metric, no number, no date (D7): a social platform caches a card for weeks, so a number
- * there becomes a false claim the first time the figure changes.
+ * The share card: the mark, the wordmark, the proposition, the five official publishers and the
+ * scope line (D7, extended by R4 level 3). No metric, no number, no date: a social platform
+ * caches a card for weeks, so a number there becomes a false claim the first time the figure
+ * changes.
  */
 export interface ShareCard {
   alt: string;
@@ -61,7 +62,12 @@ export function shareCard(locale: string): ShareCard | null {
       </div>
       <div style={{ display: 'flex', fontSize: 76, lineHeight: 1.08, fontWeight: 600 }}>{proposition}</div>
       <div style={{ display: 'flex', fontSize: 24, opacity: 0.78 }}>{publishersLine()}</div>
+      <div style={{ display: 'flex', fontSize: 28, letterSpacing: 2, textTransform: 'uppercase' }}>
+        {content.country.name}
+      </div>
     </div>
   );
+  // The proposition already names the country in every locale (validated at build time), and the
+  // card's own scope line is drawn from the country record. The alt repeats it once, never twice.
   return { alt: `${BRAND.wordmark} — ${proposition}`, element };
 }

@@ -62,6 +62,7 @@ function captionOf(input: ViewInput, number: FigureNumber): string {
     title: titleOf(input.content, number),
     unit: input.content.t(FIGURE_KEYS[number].unit),
     source: sourceSummary(input.figure),
+    scope: input.content.country.name,
   });
 }
 

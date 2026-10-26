@@ -25,6 +25,7 @@ import {
   debtFigure,
   dependencyFigure,
   makeFigure,
+  PLATE_FIXTURES,
   renderComponent,
   renderPlate,
   shareFigure,
@@ -388,7 +389,10 @@ describe('Revision 1 D3: public vs operator vocabulary', () => {
   });
 
   it('keeps every public locale clean while the operator panels still carry the identifiers', () => {
-    const figures = unresolvedFigures();
+    // Computed figures, because the operator panels only carry identifiers for artefacts that
+    // exist: since R6 the reproduce section advertises nothing for an unavailable figure, so a
+    // page made only of unresolved figures would no longer exercise the marker at all.
+    const figures = PLATE_FIXTURES.map((fixture) => fixture());
     for (const locale of LOCALES) {
       const html = pageHtml(figures, locale);
       const terms = figures.flatMap((figure) => [figure.formulaId, ...figure.unresolvedSources]);
@@ -481,11 +485,15 @@ describe('Revision 1 D6: the provenance strip', () => {
     content: ES,
   });
 
-  it('publishes exactly three labelled fields and no raw URL run', () => {
+  it('publishes exactly four labelled fields and no raw URL run', () => {
+    // R4 level 2 adds the `Ámbito` field to D6's three: every figure names the country its
+    // value covers, so a strip can never be read as country-agnostic.
     const fields = html.slice(0, html.indexOf('provenance__actions'));
-    expect(fields.split('<dt>').length - 1).toBe(3);
+    expect(fields.split('<dt>').length - 1).toBe(4);
     expect(fields).toContain(ES.t('provenance.source'));
     expect(fields).toContain(ES.t('provenance.dataset'));
+    expect(fields).toContain(ES.t('provenance.scope'));
+    expect(fields).toContain(ES.country.name);
     expect(fields).toContain(ES.t('provenance.observedAt'));
     expect(fields).not.toContain('http');
     expect(fields).not.toContain(manifest.inputHash);

@@ -1,4 +1,4 @@
-import type { DefinitionId } from '../manifest/definitions';
+import type { MetricDefinitionId } from '../manifest/definitions';
 import { DEFINITION_IDS, definitionFor } from '../manifest/definitions';
 
 /**
@@ -15,7 +15,7 @@ export interface CountryConfiguration {
    * renders `unavailable` for the country, with its `definitionId` unchanged — never a
    * substituted definition (AC-001-81).
    */
-  sources: Partial<Record<DefinitionId, readonly string[]>>;
+  sources: Partial<Record<MetricDefinitionId, readonly string[]>>;
 }
 
 /**
@@ -67,7 +67,7 @@ export function isPublishedGeo(
 export type CountryAvailability = 'available' | 'unavailable' | 'not-country-parameterised';
 
 export interface DefinitionAvailability {
-  definitionId: DefinitionId;
+  definitionId: MetricDefinitionId;
   /** The snapshots backing this definition for this country; empty when it has none. */
   sourceIds: readonly string[];
   availability: CountryAvailability;
@@ -102,7 +102,7 @@ export function definitionAvailabilityForCountry(
 /** The snapshot ids backing one definition for one country, or `null` when absent. */
 export function sourcesForDefinition(
   geo: string,
-  definitionId: DefinitionId,
+  definitionId: MetricDefinitionId,
   configurations: readonly CountryConfiguration[] = COUNTRY_CONFIGURATIONS,
 ): readonly string[] | null {
   const configuration = countryConfiguration(geo, configurations);

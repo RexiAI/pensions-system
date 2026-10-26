@@ -19,6 +19,10 @@ describe('content model keyed by country and locale', () => {
       expect(result.content.editorial.disputes.length).toBeGreaterThan(0);
       expect(result.content.editorial.disputes[0]?.positions.length).toBe(2);
       expect(result.content.editorial.thesis.statement.length).toBeGreaterThan(0);
+      // AC-001-33 (amended by R4): the country record's two fields are present in every locale.
+      expect(result.content.country.code, locale).toBe('ES');
+      expect(result.content.country.name.length, locale).toBeGreaterThan(0);
+      expect(result.content.country.scopeClause.length, locale).toBeGreaterThan(0);
     }
     expect(contentRegistry.locales('ES')).toEqual([...LOCALES]);
   });
@@ -51,12 +55,20 @@ describe('content model keyed by country and locale', () => {
     if (!esDocument.ok) return;
     const secondCountry: LocaleDocument = {
       country: 'PT',
+      countryName: 'Portugal',
+      scopeClause: 'sistema contributivo português',
       locale: 'es',
-      strings: { ...esDocument.content.strings, 'fig.01.title': 'Racio de dependencia' },
+      strings: {
+        ...esDocument.content.strings,
+        'fig.01.title': 'Racio de dependencia',
+        'hero.statement': 'La aritmética de las pensiones en Portugal',
+      },
       editorial: esDocument.content.editorial,
     };
     const shippedDocument: LocaleDocument = {
       country: 'ES',
+      countryName: esDocument.content.country.name,
+      scopeClause: esDocument.content.country.scopeClause,
       locale: 'es',
       strings: esDocument.content.strings,
       editorial: esDocument.content.editorial,
@@ -83,7 +95,14 @@ describe('content model keyed by country and locale', () => {
     const broken: Record<string, string> = { ...esDocument.content.strings };
     delete broken['hero.statement'];
     const registry = createRegistry([
-      { country: 'ES', locale: 'es', strings: broken, editorial: esDocument.content.editorial },
+      {
+        country: 'ES',
+        countryName: esDocument.content.country.name,
+        scopeClause: esDocument.content.country.scopeClause,
+        locale: 'es',
+        strings: broken,
+        editorial: esDocument.content.editorial,
+      },
     ]);
     const result = registry.get('ES', 'es');
 
