@@ -382,6 +382,15 @@ svg {
   padding: var(--space-5);
 }
 
+/* The countdown block and the readings are wrapped so the mobile query can lift one above the
+   headline (see the `max-width: 900px` block below). At every wider width the wrappers have no
+   box at all, so the panel's flow — countdown, rule, label, value, … — is byte-for-byte the
+   layout this panel had before the wrappers existed. */
+.hero__panel-countdown,
+.hero__panel-readings {
+  display: contents;
+}
+
 .hero__panel-label,
 .plate__label,
 .register__label {
@@ -1141,6 +1150,51 @@ svg {
   .provenance__detail,
   .reproduce__row {
     grid-template-columns: 1fr;
+  }
+
+  /* The clock is the page's hook (Revision 3 §P2), and on a phone it must not sit behind a
+     headline, a scope mark and two call-to-action links. The countdown block is lifted above the
+     headline block; the readings stay below it; the panel becomes transparent and its ground
+     moves onto the two blocks, so each keeps the material it had. Measured on the built app at
+     390x844: the clock rail moves from y 870-1124 (entirely below the fold) to 479-733 (inside
+     it). Nothing is hidden, nothing shrinks, and every rule here lives in this query, so the
+     desktop composition above 900px is untouched.
+     The visual order is therefore countdown, headline, readings, while the document order
+     remains headline, countdown, readings. That is deliberate: the document order is the one a
+     screen reader hears, and starting with the <h1> is the better reading order. Neither block
+     moved here contains a focusable element (`hero__panel` holds no link, no button and no
+     control), so the keyboard order is unaffected. */
+  .hero__panel,
+  .hero--proposition .hero__status {
+    display: contents;
+  }
+
+  .hero__panel-countdown,
+  .hero__panel-readings {
+    display: block;
+  }
+
+  .hero--numeric .hero__panel-countdown,
+  .hero--numeric .hero__panel-readings {
+    background: var(--surface-2);
+    padding: var(--space-5);
+  }
+
+  .hero__panel-countdown {
+    order: 1;
+  }
+
+  .hero__lead {
+    order: 2;
+  }
+
+  .hero__panel-readings,
+  .hero__status-list {
+    order: 3;
+  }
+
+  .hero__status-count {
+    order: 4;
   }
 }
 

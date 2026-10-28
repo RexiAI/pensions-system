@@ -84,7 +84,7 @@ function NumericHero({
   const demoted = countdown?.state === 'computed';
   return (
     <section className="hero hero--numeric" aria-labelledby="hero-title">
-      <div>
+      <div className="hero__lead">
         <h1 className="hero__title" id="hero-title">
           {content.t('hero.statement')}
         </h1>
@@ -99,27 +99,37 @@ function NumericHero({
       </div>
       <div className="hero__panel">
         {countdown === undefined ? null : (
-          <>
+          /*
+           * The panel is one material block on a desktop, and two stacked blocks on a phone:
+           * `display: contents` on these two wrappers means they have no box at all at the
+           * desktop breakpoint (the panel's flow is exactly the countdown, the rule, then the
+           * readings), while the mobile query can lift the countdown above the headline so the
+           * clock rail lands inside the first viewport — see `.hero__panel-countdown` in
+           * `globals.css` and the measurement in `tests/acceptance/first-viewport.test.ts`.
+           */
+          <div className="hero__panel-countdown">
             <CountdownBlock content={content} countdown={countdown} nowMs={nowMs} />
             <hr className="hero__panel-rule" />
-          </>
+          </div>
         )}
-        <p className="hero__panel-label">{content.t(keys.title)}</p>
-        <p className={demoted ? 'hero__value hero__value--demoted' : 'hero__value'}>
-          {valueText(content, subject, subject.headline)}
-        </p>
-        <dl className="hero__comparisons">
-          {subject.comparisons.map((comparison) => (
-            <div className="hero__comparison" key={comparison.label}>
-              <dt>{comparison.label}</dt>
-              <dd>{valueText(content, subject, comparison.value)}</dd>
-            </div>
-          ))}
-        </dl>
-        <SubjectFacts content={content} subject={subject} />
-        <p className="site-header__stamp">
-          {content.t('hero.snapshotLabel')} <time dateTime={subject.snapshotIso}>{subject.snapshotIso.slice(0, 10)}</time>
-        </p>
+        <div className="hero__panel-readings">
+          <p className="hero__panel-label">{content.t(keys.title)}</p>
+          <p className={demoted ? 'hero__value hero__value--demoted' : 'hero__value'}>
+            {valueText(content, subject, subject.headline)}
+          </p>
+          <dl className="hero__comparisons">
+            {subject.comparisons.map((comparison) => (
+              <div className="hero__comparison" key={comparison.label}>
+                <dt>{comparison.label}</dt>
+                <dd>{valueText(content, subject, comparison.value)}</dd>
+              </div>
+            ))}
+          </dl>
+          <SubjectFacts content={content} subject={subject} />
+          <p className="site-header__stamp">
+            {content.t('hero.snapshotLabel')} <time dateTime={subject.snapshotIso}>{subject.snapshotIso.slice(0, 10)}</time>
+          </p>
+        </div>
       </div>
     </section>
   );
@@ -143,7 +153,7 @@ function PropositionHero({ content, figures, countdown, countries, nowMs }: Hero
   const computed = figures.filter((figure) => viewStateFor({ figure, content }) === 'computed').length;
   return (
     <section className="hero hero--proposition" aria-labelledby="hero-title">
-      <div>
+      <div className="hero__lead">
         <h1 className="hero__title" id="hero-title">
           {content.t('hero.statement')}
         </h1>
@@ -157,7 +167,11 @@ function PropositionHero({ content, figures, countdown, countries, nowMs }: Hero
         </div>
       </div>
       <div className="hero__status">
-        {countdown === undefined ? null : <CountdownBlock content={content} countdown={countdown} nowMs={nowMs} />}
+        {/* One wrapper, no box at the desktop breakpoint: the mobile query lifts it above the
+            headline for the same reason as the numeric tier's countdown block. */}
+        <div className="hero__panel-countdown">
+          {countdown === undefined ? null : <CountdownBlock content={content} countdown={countdown} nowMs={nowMs} />}
+        </div>
         <ul className="hero__status-list" aria-label={content.t('figure.statusLabel')}>
           {figures.map((figure) => (
             <StatusRow content={content} figure={figure} key={figure.figureId} />
