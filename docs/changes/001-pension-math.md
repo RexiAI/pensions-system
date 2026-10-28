@@ -1,130 +1,11 @@
 # 001-pension-math
 
 > Spec pipeline archive. Original source: `specs/001-pension-math/` (deleted by this script).
-> Archived: 2026-10-26
+> Archived: 2026-10-28
 
 ## Original ask
 
-# 00 — Informal spec: pension-math
-
-## What I want
-
-A multilingual public website that calculates, from official Spanish public data, what
-the contributory pension system actually is: money in from today's workers, money out
-to today's pensioners, no dedicated capital fund behind it, and a liability that is not
-funded by anything.
-
-The site does not assert that. It **shows the arithmetic** and lets a reader check it.
-
-Spain first. The structure must accept other countries later — each country has its own
-pension architecture and its own official statistics office, so the country is data, not
-code.
-
-The argument the site makes, in plain terms: a pay-as-you-go scheme pays today's
-pensioners out of today's contributions. That works only while the number of contributors
-grows. When it stops growing, the scheme needs either higher contributions, lower
-pensions, a transfer from general taxation, or debt. Every one of those is observable in
-the official numbers, and the projections say the contributor base shrinks.
-
-## What the site must NOT do
-
-This matters as much as the rest of the spec.
-
-- **Do not state as fact that the system is a legally defined fraud or a legally defined
-  pyramid scheme.** It is neither, in law. The site presents the chain-letter *structure*
-  as a computed finding and the "fraud" reading as a thesis, clearly labelled, in its own
-  section. The two must never be visually merged into one assertion.
-- **Do not invent quotes, papers, numbers, or attributions.** Every named person's claim
-  is quoted verbatim from a cited source, or that person does not appear.
-- **Do not present a contested framing as consensus.** Where economists disagree, both
-  positions appear with citations.
-- **Do not hide assumptions.** Discount rate, cohort definitions, data vintages, and
-  revision dates are visible next to the numbers they affect.
-- **No number appears on the page that a reader cannot reproduce** from a named official
-  source via a committed script.
-
-The reason is not caution for its own sake. A site that overstates gets dismissed in one
-sentence by any economist who reads it. A site that understates its claim but shows the
-arithmetic cannot be dismissed, because the reader does the concluding themselves.
-
-## The five numbers
-
-Rough definitions — the formalised tasks will pin exact formulas, and each needs its
-source series and its edge cases resolved there.
-
-1. **Dependency.** Contributory pensioners divided by contributing affiliates. Monthly.
-   Shows the ratio moving the wrong way over decades.
-
-2. **Contribution cover.** Social contributions divided by contributory pension
-   expenditure. Below 1 means the gap is filled from somewhere else — taxation or debt.
-   This is the number that makes "funded by current inflows" concrete.
-
-3. **Cohort return.** For a representative contributor in a given cohort, the internal
-   rate of return on what they pay in versus what they draw out, using average
-   contribution, average pension, and life expectancy at retirement from official
-   mortality tables. This is the honest version of the "you get back more than you paid"
-   claim that circulates informally — it becomes an output with a sensitivity band instead
-   of an assertion.
-
-4. **Implicit debt.** Present value of accrued pension obligations minus the assets the
-   system actually holds. The present value depends on a discount rate, so publish a
-   range — 1%, 2%, 3%, 4% — and never a single headline number.
-
-5. **Required base growth.** If the scheme pays each cohort a return above the growth of
-   the wage bill, the contributor base must expand at that rate indefinitely to stay
-   solvent. Compare the required rate against the growth official population projections
-   actually imply. Required far above available is the formal statement of the thesis.
-   This is the load-bearing calculation; the others support it.
-
-## Data
-
-Official sources only: INE (population projections, mortality tables, labour force
-survey), Seguridad Social (affiliation, pension payroll), IGAE (system accounts), Banco
-de España, Eurostat (ESSPROS pension expenditure — also the multi-country path), AIReF
-projections, Fondo de Reserva balance.
-
-The INE JSON API and the Eurostat dissemination API are both confirmed reachable.
-
-Every derived figure carries provenance: source URL, fetch timestamp, formula identifier,
-and a hash of the input snapshot. Changing an input must change the hash and surface the
-delta in review.
-
-## Languages
-
-Spanish primary, plus English, French, German, Italian. Five locales at launch. The
-pension content differs per country; the interface does not.
-
-## Shape
-
-A public marketing-grade site — it has to be attractive, fast, and pleasant to click
-through, because nobody reads an argument they bounced off. Charts are the content, not
-decoration: each figure is interactive, each has its source and its "reproduce this"
-link.
-
-Behind it, a thin content API keyed by country and locale, so adding a country is adding
-data. Frontend on Vercel through Git integration — no CLI deploys, ever.
-
-Computation runs at build time into committed derived JSON, not in a serverless function.
-Vercel's limits aside, committed output is diffable, reviewable, and reproducible by a
-skeptic, which is the whole point.
-
-## Quality bar
-
-`production` tier. There is a computational core now, and silent arithmetic error would
-discredit every claim on the site. Mutation testing on the calculation functions,
-property tests on the invariants (accounting identities reconcile against published
-totals; rates stay in range; ordering properties hold across cohorts). An ingest that
-fails to fetch must fail loudly rather than silently serve a stale or partial snapshot.
-
-## Open questions
-
-- Which exact INE series codes back each metric — resolve during formalisation.
-- The "inmigración no arregla la sostenibilidad" claim needs its own data basis before it
-  can appear; do not assume it.
-- Whether a country switcher ships in v1 with Spain-only data, or waits for a second
-  country.
-- Exact scope of the "what economists agree on / what is disputed" section — it needs to
-  be short enough to read and complete enough to be fair.
+_(not produced)_
 
 ## Tasks
 
@@ -135,7 +16,7 @@ Vercel (Vercel Git integration only — never `vercel deploy`). Computation is p
 at build time into committed derived JSON under `data/derived/`. Conformance tier
 `production`: mutation testing and property tests are in scope for the calculation layer.
 
-Task numbering `T1`…`T19`. Each task is a coherent unit (one value object, one operation,
+Task numbering `T1`…`T21`. Each task is a coherent unit (one value object, one operation,
 one behavior). Each carries: a one-line goal, input dependencies, a pointer to its
 acceptance file, and checkable acceptance criteria. Scenario IDs are globally unique
 `AC-001-NN` across the whole spec (see `20-acceptance/`).
@@ -462,6 +343,10 @@ code, with all five locales covered and zero locale-hardcoded strings.
 - The country record gains two fields — `name` and `scopeClause` — present in every published
   locale; a country record missing either in any published locale fails the build (a content
   bug, never a silent fallback to `ES`) (AC-001-103).
+- The `hero.statement` is bounded as content-model validation (not a CSS guess): at most
+  **42 characters in `es`** and **55 in `de`** (Revision 3 P3 F4; previously 46 / 60). A
+  statement over budget fails the build. The Coder must not shrink the type to fit the old
+  budget — the budget is the thing that moved.
 
 ---
 
@@ -506,6 +391,9 @@ scheme" reading to its designated thesis section, away from computed findings.
   metrics' presentation never asserts it.
 - Metric components have no reference to thesis content (no import/string/render of thesis
   language from within a metric component).
+- The clock (T20) joins the set of surfaces that must carry no thesis content: its rendered
+  subtree and its `countdown.clock.*` strings carry none of the fraud / pyramid / thesis
+  language. AC-001-41 and AC-001-42 extend to the clock's keys (enforced by AC-001-116).
 - Each section is its own component/content type, not a free-text blob shared with metrics.
 - A section heading that names a count ("Las tres voces de esta página", "The three voices…",
   etc.) must match the number of registers actually rendered beneath it. The heading's count is
@@ -728,8 +616,13 @@ and compute the crossing year across all six variants.
   mixing a `demo_pjan` observation (31.2). The disclosure states the two differ and by how much.
 - Threshold 50, a documented parameter (not a literal in the aggregation loop): changing it
   changes the crossing year (AC-001-98).
-- `years = thresholdYear − snapshotYear`, both integers, both printed; no sub-annual unit
-  (AC-001-99).
+- `years = thresholdYear − snapshotYear`, both integers, both printed; the **years** quantity
+  carries no sub-annual unit. The clock (T20) is a separate quantity with its own anchor,
+  definition, and scenarios; it does not change this rule (AC-001-99, AC-001-108…AC-001-119).
+- The derived countdown data gains a derived `anchor` field: the ISO instant
+  `{thresholdYear}-01-01T00:00:00+01:00`, assembled from `thresholdYear`, never authored. The
+  manifest shape is unchanged; the field is added to the countdown's documented derived schema
+  so an unknown field fails validation.
 - The variant range is computed over all six variants at build time; a variant that never crosses
   inside the horizon is excluded from the range and does not fail the block (AC-001-100).
 - States: `computed` (full block), `not-crossed` (no numeral, a fixed sentence, never a substitute
@@ -769,6 +662,77 @@ artefacts — all derived from the country record, so a second country needs no 
 
 ---
 
+## T20 — The anchored clock (the countdown's live reading)
+
+**Goal.** Add a live clock to the countdown block, anchored to a derived conventional date (1
+January of `thresholdYear`), so the projection stays static while the clock ticks. Contain the
+clock in the instrument register.
+
+**Inputs.** T18 (`thresholdYear`, and the new derived `anchor` field), T8 (locale keys
+`countdown.clock.*`).
+
+**Acceptance file.** `20-acceptance/AC-001-clock.md`
+
+**Acceptance criteria.**
+- The anchor is derived, never authored: `anchor` = `{thresholdYear}-01-01T00:00:00+01:00`
+  (Europe/Madrid fixed offset); changing the threshold moves the anchor; no hand-typed anchor date
+  exists in any component or content file (AC-001-108).
+- The disclosure is unconditional: in every state where the clock renders, the anchor date, its
+  `fecha convencional del umbral` label, and the "projection, not a calculated date" sentence
+  render as visible text outside any `<details>`/`title`/tooltip, in all five locales (AC-001-109).
+- No clock without a threshold year: `not-crossed`, `unavailable`, and `withheld` render no
+  day/hour/minute/second field and no anchor (AC-001-110).
+- No-JS completeness: server-rendered HTML carries all four fields, the anchor, and the definition,
+  computed from the render instant; no sub-day value renders without a day value beside it
+  (AC-001-111).
+- Reduced motion: no interval is created and the sub-day fields are `display: none`; the day count,
+  anchor, and definition remain (AC-001-112).
+- Accessible tree: the sub-day fields are `aria-hidden`; no `aria-live`/`role="timer"`/
+  `aria-atomic`/`aria-busy`; the day count and anchor are exposed; the accessible tree is identical
+  in both motion modes (AC-001-113).
+- One timer, no thrash: exactly one `setInterval`, cleared on unmount and on `visibilitychange`
+  hidden, restarted on visible; a `59 → 00` transition causes zero CLS (AC-001-114).
+- Elapsed state: after the anchor, all four fields render `0`, no timer runs,
+  `countdown.clock.elapsed` replaces the definition, and no string states the threshold was crossed
+  or that the projection was validated (AC-001-115).
+- Register containment: the clock's subtree resolves only `--ink-*` and `--data-projection`, carries
+  no `--data-deficit`/`--surface-3`/serif/thesis language, and appears in no other block, share
+  card, `og:*`, or meta description; it is the page's only continuous element (AC-001-116).
+- Two-reference disclosure: `countdown.clock.arithmetic` states that the years figure is year-number
+  arithmetic (`thresholdYear − snapshotYear`) while the days figure is date arithmetic to the
+  anchor; the projection group and clock rail are separated by a `1px --rule-1` (AC-001-119).
+
+---
+
+## T21 — Palette and label-system migration (warm paper, sans labels)
+
+**Goal.** Warm the palette (P1) and de-formalise four non-colour surfaces (P3): migrate labels off
+mono, de-border the hero panel, widen the ground steps, raise the display scale, un-rule the ledger
+rows — without adding a hue or a number.
+
+**Inputs.** None (the token layer `web/styles/tokens.css`, plus the components that consume the
+changed tokens).
+
+**Acceptance file.** `20-acceptance/AC-001-palette-labels.md`
+
+**Acceptance criteria.**
+- The token file declares the Revision 3 values for `--surface-*`, `--ink-*`, `--rule-*`,
+  `--accent`, `--on-accent`, `--chart-series-2`, and `--data-projection` in both themes; exactly
+  three chromatic hues remain; `--data-deficit` is byte-identical to its Revision 2 value in both
+  themes (AC-001-117).
+- Every pair in the Revision 3 §P1 contrast table meets its stated minimum in both themes; no
+  retired value string remains anywhere in `web/`; the admin state colours still pass AA on the new
+  grounds (AC-001-117).
+- Labels are not measurements: no element whose role is a field label / eyebrow / chip word / state
+  word / table caption / scope mark / provenance label resolves `--font-mono`; every numeral still
+  does (AC-001-118).
+- `--font-label: var(--font-sans)` is the one new font token, and `--tracking-label` falls to
+  `0.02em`; the hero panel loses `--border-hair`; ground steps widen (light 2.79 / 3.08 L*);
+  `--text-display`/`--text-h2`/`--text-plate` rise to their Revision 3 values (`clamp(2.5rem,
+  4.9vw, 4rem)` etc.); the ledger rows drop their `border-top`.
+
+---
+
 ## Revision 2 rendering invariants (R3, R5 — not owned by a task)
 
 Two cross-cutting invariants no single task owns. The colour tokens land in the rendered tasks
@@ -780,6 +744,29 @@ that use them (T3–T7, T11, T17); R5's composition lands in the existing page-s
 - **AC-001-107** (R5) — at 1280×800 and 390×844 the hero does not fill the viewport, and the
   demography block's heading and finding sentence are visible at the fold.
   File: `20-acceptance/AC-001-first-viewport.md`.
+
+---
+
+## Revision 3 record (design-dial consequences, not owned by a task)
+
+Recorded, not tested. Each entry is a directive to respect — not a requirement to build and not a
+scenario to write.
+
+- **`MOTION_INTENSITY` 4 → 5.** The clock is the fourth motion primitive and the only continuous
+  one. Recorded as a design-dial consequence; no test asserts a dial number.
+- **Refusals (implement none).** Thirteen, from §Revision 3 "What this revision refuses to
+  specify": (1) a per-second countdown to a modelled crossing date; (2) a unit coarser than days
+  that is not days (months, "años y meses"); (3) milliseconds or sub-second animation; (4) alarm
+  red or a hue shift on the clock as the anchor approaches; (5) changing `--data-deficit`;
+  (6) a fourth hue; (7) a fuse / bomb / hourglass / siren illustration; (8) a progress bar toward
+  the anchor; (9) a sticky, floating, or full-width clock band; (10) a "final day" mode with its
+  own styling; (11) a decorative texture, gradient, grain, or paper photograph; (12) display type
+  beyond `--text-display: 4rem` or a measure below 64ch; (13) any change to the pyramid, the three
+  registers, Reproducir, or the admin surface.
+- **`--data-deficit` is deliberately unchanged** in both themes: warmth comes from the paper and
+  the ink, never from the alarm hue (AC-001-117 asserts the value is byte-identical to Revision 2).
+- **The clock is an instrument, never thesis** (P4). Its seven copy slots resolve from
+  `countdown.clock.*`; the fraud reading stays confined to `thesis.*` / `<ThesisSection>`.
 
 ---
 
@@ -863,6 +850,12 @@ decisions; a human confirms before `/build`.
     reconcile before `/build` — either advertise the countdown as a second derived-series row (it
     has its own digest and reproduce path), or keep R6's form exactly (figures + pyramid) and note
     that the countdown's provenance is disclosed in its own block, not in Reproducir.
+22. **`hero.statement` budget for `en`/`fr`/`it`.** Revision 3 restates the binding budgets as
+    `es` 42 and `de` 55 characters; it does not restate `en`, `fr`, or `it`. *Recommended default:*
+    no separate budget for `en`/`fr`/`it` — they are bounded by `es` (English is shorter; French and
+    Italian sit within ±10% of `es`), and any overflow is caught by the two-line check at first
+    implementation, after which the content is rewritten (the existing "content is rewritten, not
+    the type scale" rule).
 
 ## Acceptance scenarios
 
@@ -877,14 +870,26 @@ decisions; a human confirms before `/build`.
 ## AC-001-09 — Zero affiliates is undefined, not infinite
 ## AC-001-10 — Zero pensioners is 0.00
 ## AC-001-100 — The variant range is computed over all six variants; a non-crossing variant is excluded
-## AC-001-101 — A variant that never crosses renders no numeral and no substitute threshold
+## AC-001-101 — A variant that never crosses renders no numeral, no clock, and no substitute threshold
 ## AC-001-102 — The scope mark renders from the country record in every locale
 ## AC-001-103 — A hero statement that omits the country name fails the build
 ## AC-001-104 — One geo is text, two or more is the index, never a disabled control
 ## AC-001-105 — Only computed figures and series are advertised as reproducible
 ## AC-001-106 — A projected value is encoded by dash, position, and a printed word, not hue alone
 ## AC-001-107 — The hero does not fill the viewport and the demography heading is at the fold
+## AC-001-108 — The anchor is derived from the threshold year, never authored
+## AC-001-109 — The disclosure is unconditional in every state where the clock renders
 ## AC-001-11 — Both zero is undefined
+## AC-001-110 — No clock renders without a threshold year
+## AC-001-111 — Without JavaScript the server-rendered clock is complete and correct
+## AC-001-112 — Reduced motion shows the static value and creates no tick
+## AC-001-113 — The accessible tree is stable and the animated region is hidden
+## AC-001-114 — Exactly one timer, cleared correctly, with no layout shift
+## AC-001-115 — The elapsed state means the date passed, and nothing more
+## AC-001-116 — The clock is confined to the instrument register
+## AC-001-117 — The palette meets its contrast minimums; no retired value survives; the deficit hue is unchanged
+## AC-001-118 — Labels are not measurements
+## AC-001-119 — The two reference instants are disclosed
 ## AC-001-12 — Ratio rises when affiliates fall
 ## AC-001-13 — Correct cover, two decimal places
 ## AC-001-14 — Zero expenditure is undefined
@@ -972,7 +977,7 @@ decisions; a human confirms before `/build`.
 ## AC-001-96 — The derived file lives where the figure loader does not read it
 ## AC-001-97 — The chart and the table are emitted together or not at all
 ## AC-001-98 — The ratio is computed from the pinned variant and age definition; the threshold is a parameter
-## AC-001-99 — The countdown is the difference of two printed integers, with no sub-annual unit
+## AC-001-99 — The years quantity is the difference of two printed integers, with no sub-annual unit
 
 ## Verification
 
@@ -2590,33 +2595,301 @@ regression on the one axis that could have silently changed — rendering mode.
 Flagged to the Architect (non-blocking, carried forward unchanged): 29 project-source
 KISS/DRY WARNs plus the single out-of-scope `.standards` FAIL.
 
+
+---
+
+## Revision 3 + defect fixes verification
+
+**Attempt 1, phase 1.** New scope cycle: revision 3 (T20 anchored clock, T21 warm palette)
+plus four defect fixes (`<html lang>` per locale, manifest icons to `public/`, `og:image:alt`
+per locale, repo-local 3-digit traceability wrapper). **Phase 1 counter resets to 0 for this
+cycle** — the prior revision-2/revision-3 BLOCK-and-fix loops (attempts 1–3, then revision-3
+attempts 1–2) are closed; their retry counters do not carry into this scope. Env for this run:
+`SPEC_LOOP_COUNT=4`, `SPEC_PHASE1_RETRIES=0`, `SPEC_PHASE2_RETRIES=2`.
+
+### Check table
+
+| Check | Command | Exit | Result |
+|---|---|---|---|
+| scenario traceability (upstream) | `.standards/scripts/check-scenario-traceability.sh --json` | 0 | 99 passes / 0 fails (**99 of 119** — the 2-digit-suffix blind spot) |
+| scenario traceability (wrapper) | `npx tsx scripts/check-scenario-traceability-3digit.ts` | 0 | **119 scenarios, all cited, all citations resolve** |
+| full test suite | `npx vitest run` | 0 | **599 tests / 48 files** |
+| typecheck | `npx tsc --noEmit` | 0 | clean |
+| complexity gate | `npx eslint .` | 0 | clean (`complexity ≤6`) |
+| build | `npm run build` | 0 | prebuild (4 gates) + next build, routes as expected |
+| verify:derived | `npm run verify:derived` | 0 | 7 figures (2 computed, 5 unavailable) / 2 series |
+| check-client-secrets | `npx tsx scripts/check-client-secrets.ts` | 0 | no admin secret in this env |
+| check-content-scope | `npx tsx scripts/check-content-scope.ts` | 0 | clean (5 locales) |
+| check-public-vocabulary | `npx tsx scripts/check-public-vocabulary.ts` | 0 | clean (5 locales) |
+| design-principles gate | `.standards/scripts/check-code-principles.sh --tier production --json` (`.next` moved aside) | 1 | 1 FAIL (out-of-scope submodule) + 43 WARNs |
+| audit-trail gate | `.standards/scripts/check-audit-trail.sh 001-pension-math` | 0 | PASS |
+
+The upstream gate reports **99 of 119** (its `AC-\d{3}-\d{2}` regex cannot see `AC-001-100` …
+`AC-001-119`). The wrapper reports **119**. Both numbers are reproduced here; the wrapper does
+not conceal the upstream blind spot — the upstream's own 99-of-119 transcript is preserved below.
+
+---
+
+## Evidence: scenario traceability
+
+command: .standards/scripts/check-scenario-traceability.sh --json
+exit: 0
+at: 2026-10-28T11:00:09Z
+
+{"checks":[1,2],"passes":["AC-001-01 — traced to a test","AC-001-02 — traced to a test", …
+ "AC-001-99 — traced to a test"],"fails":[]}
+
+(99 `passes` entries — `AC-001-01` through `AC-001-99` — and an empty `fails` array. The gate's
+regex stops at `AC-NNN-99`, so `AC-001-100` … `AC-001-119` are invisible to it: **99 of 119**,
+the documented upstream gap.)
+
+Repo-local wrapper (covers the 2-digit-blind-spot range):
+
+command: npx tsx scripts/check-scenario-traceability-3digit.ts
+exit: 0
+at: 2026-10-28T11:00:09Z
+
+scenario traceability (2-3 digit ids): 119 scenarios, all cited, all citations resolve
+
+---
+
+## Evidence: full test suite
+
+command: npx vitest run
+exit: 0
+at: 2026-10-28T11:00:19Z
+
+ RUN  v5.0.5 /home/dbueno/projects/pensions-system
+
+ Test Files  48 passed (48)
+      Tests  599 passed (599)
+   Start at  12:00:19
+   Duration  4.69s (tests 53%, import 35%, transform 11%, worker 1%)
+
+Companion gates, all exit 0 at the same pass:
+- `npx tsc --noEmit` → exit 0 (no output)
+- `npx eslint .` → exit 0 (no output)
+- `npm run build` → exit 0 (prebuild = verify-derived + check-content-scope +
+  check-public-vocabulary + check-scenario-traceability-3digit, then `next build`)
+- `npm run verify:derived` → `derived figures verified: 7 (2 computed, 5 unavailable)` /
+  `derived series verified: 2`
+- `npx tsx scripts/check-client-secrets.ts` → `no admin secret configured in this environment; .next/static not grepped for values`
+- `npx tsx scripts/check-content-scope.ts` → `country scope gate: clean (5 locales)`
+- `npx tsx scripts/check-public-vocabulary.ts` → `public vocabulary gate: clean (5 locales)`
+
+---
+
+## Evidence: complexity gate
+
+command: npx eslint .
+exit: 0
+at: 2026-10-28T11:00:27Z
+
+(no output; exit 0 — ESLint `complexity ≤6` clean across the changed files)
+
+---
+
+## Evidence: design-principles gate
+
+command: .standards/scripts/check-code-principles.sh --tier production --json
+exit: 1
+at: 2026-10-28T11:00:47Z
+
+(Run with `.next` moved aside — the gate's FIND_PRUNE/GREP_EXCLUDES omit `.next`, and with the
+build output present the DRY pipeline SIGPIPEs to exit 141; see the prior `.next` false-FAIL
+note. `.next` restored after the run.)
+
+{"tier":"production","gates":["complexity","dry","yagni","solid","component-per-file","property-tests"],
+"fails":[{"message":"Cyclomatic complexity >6 (node): ./.standards/skills/hallmark/site/examples/cobalt-01/script.js:7:90::CC=10","file":"./.standards/skills/hallmark/site/examples/cobalt-01/script.js","line":"7"}],
+"warns":[ … 43 entries … ]}
+
+Human-format summary line, verbatim: `✘ Design-principles check: 1 FAIL(s), 43 WARN(s).`
+
+**The sole FAIL** is the out-of-scope `.standards` submodule file
+`./.standards/skills/hallmark/site/examples/cobalt-01/script.js` (CC=10). **Zero FAILs in
+project source** (`app/`, `web/`, `tests/`, `scripts/`, `middleware.ts`). Carried forward
+unchanged from every prior attempt; off-limits to pipeline agents.
+
+43 WARNs — review hints only, not failures. New vs. the revision-2 baseline of 42 is the clock's
+own KISS hint: `./web/components/series/CountdownClock.tsx:56:121:CountdownClock:KISS_LINES=42`
+(the new T20 component; `CountdownBlock` is KISS_LINES=45 with the rail added). Flagged to the
+Architect, non-blocking.
+
+---
+
+## Evidence: scenario-to-behavior spot check
+
+command: (served-app + clock-specific verification against `next start` on port 4391, `curl`
+for the no-JS path, and a headless browser for the hydrated/ticking/a11y/reduced-motion checks)
+exit: 0
+at: 2026-10-28T11:08:53Z
+
+Served-app checks (all against the built app, `npx next start -p 4391`):
+
+| check | result |
+|---|---|
+| `<html lang>` — `/` `/en` `/fr` `/de` `/it` | `es` `en` `fr` `de` `it` (distinct per locale) |
+| `<html lang>` — `/xx` | 404 (falls back to the default `es` global-not-found shell) |
+| `/admin` | **503**, `text/plain`, **0** `<form>/<input>/<button>` elements |
+| manifest icons `/icon-192.png` `/icon-512.png` | **200 `image/png`** (1091b / 3837b) — the moved-to-`public/` fix |
+| `manifest.webmanifest` | 200 `application/manifest+json` |
+| `og:image:alt` per locale | distinct: `es`/`en`/`fr`/`de`/`it` all different sentences |
+| advertised card URLs | all **200 `image/png`** (`/opengraph-image-…`, `/en|fr|de|it/opengraph-image-o1kegr/card`) |
+
+Clock-specific results (the risky part):
+
+1. **Server-rendered completeness (AC-001-111)** — plain `curl /` (no JS, no hydration) returns,
+   in the server HTML: `5543` días, `11` horas, `59` min, `21` s (all four fields), the anchor
+   line `fecha convencional del umbral 1 de enero de 2042`, and the definition `Cuenta hasta el
+   1 de enero de 2042, la fecha convencional del umbral. El año del umbral es una proyección, no
+   una fecha calculada.` Complete and correct with JavaScript disabled.
+2. **No threshold, no clock (AC-001-110)** — independently rendered (`renderToStaticMarkup`,
+   not the component source) and inspected the output for the non-computed states:
+   - `not-crossed` (threshold=90 → `thresholdYear=null`, `anchor=null`): **no** `clock__fields` /
+     `clock__value` / `clock__anchor` / `clock__definition` / `class="clock"`; the fixed horizon
+     sentence (`…2100`) renders instead.
+   - `unavailable` (availability `unavailable`, value null): **no** clock markers, no
+     `countdown__numeral`, `hero__value` present (figure-ladder fallback).
+   - `withheld` analog (availability `computed`, `value: null`): **no** clock markers, same hero
+     fallback.
+   No field, no anchor, no ticking toward nothing in any non-computed state.
+3. **Ticking** — hydrated seconds field observed at two instants: `45` → `36` over 9.2 s of
+   wall-clock (countdown direction), i.e. ~1 Hz. (`AC-001-114` pins it further: exactly one
+   `setInterval` per page, the single `setInterval` call site is in `clock-ticker.ts`, cleared
+   on unmount and while `document.visibilityState === 'hidden'`.)
+4. **Reduced motion (AC-001-112)** — with `prefers-reduced-motion: reduce` emulated, the three
+   sub-day fields compute `display: none` (hidden, **not** frozen), while the day count (`5543`)
+   and anchor (`1 de enero de 2042`) remain. No interval is created under reduced motion.
+5. **Accessibility (AC-001-113)** — the three sub-day fields each carry `aria-hidden="true"`;
+   the day field is exposed (no `aria-hidden`); the clock group is `role="group"` (not
+   `role="timer"`) with **no** `aria-live`, `aria-atomic`, or `aria-busy`; the group label is
+   `Cuenta hasta el 1 de enero de 2042, fecha convencional del umbral.` (the stable label that
+   carries the information).
+6. **Register (AC-001-116)** — the clock's CSS region resolves only `--ink-1/2/3`, `--font-mono`,
+   `--font-label`, `--clock-*`, `--space-*`, `--text-*`, and `--border-hair` (which is
+   `1px solid var(--rule-1)`, the AC-001-119 separation rule). No `--data-deficit`,
+   `--state-danger`, `--state-pending`, `--surface-3`, no serif family, no 4px ink rule. No
+   `countdown.clock.*` string resolves from the `thesis.*` namespace.
+7. **Two reference instants (AC-001-119)** — the server HTML carries
+   `Los 16 años son la diferencia entre 2042 y 2026. Los días se cuentan hasta el 1 de enero de
+   2042.` — the sentence stating the year figure is year arithmetic (`2042 − 2026`) while the day
+   figure is elapsed time to the anchor date, and the projection group is separated from the
+   clock rail by the 1px `--rule-1` border.
+
+---
+
+## Additional checks (revision 3 + fixes)
+
+- **`--data-deficit` byte-identity (AC-001-117)** — `git diff web/styles/tokens.css` confirms the
+  value is unchanged: `#96472a` light and `#d08a63` dark in both revisions; only a trailing
+  `/* byte-identical to Revision 2 */` comment was added. Its warmth is load-bearing and intact.
+  (`--data-projection` moved to `#6b520a`/`#d8bf60` as specified; the retired revision-2 value
+  strings `#141a1b`, `#f4f5f2`, `#384446`, `#5a6769`, `#17564a`, `#6a5a12`, `#6e7a79`,
+  `#e4e7df`, `#eceee8`, `#c9cfc7` are **absent** from `web/` — case-insensitive scan clean.)
+- **Per-locale statement fits two lines at 1280 px** — measured `hero__title` rendered height at
+  1280 px viewport for each locale: `es` (40 ch), `en` (35 ch), `fr` (39 ch), `de` (36 ch),
+  `it` (37 ch) — each 128 px tall ÷ 64 px line-height = **2 lines**. No overflow.
+
+---
+
+## Out-of-scope findings (two pre-existing defects — reproduce, not fixed)
+
+These were flagged by the Coder and deliberately left unfixed; recorded here as findings, not
+failures:
+
+1. **`npm run sitemap:check` invokes a non-existent script.** `package.json` maps
+   `sitemap:check` → `tsx scripts/check-sitemap.ts`, but `scripts/check-sitemap.ts` does not
+   exist. Reproduced: `Error [ERR_MODULE_NOT_FOUND]: Cannot find module
+   '/home/dbueno/projects/pensions-system/scripts/check-sitemap.ts'`, exit 1.
+2. **No `hreflang`/`x-default` is emitted despite the design asking for it.** The served `<head>`
+   contains **no** `<link rel="alternate" hreflang="…">` and **0** `x-default` occurrences. (The
+   30 `hrefLang` grep hits are React `hrefLang` props on the language-nav `<a>` links, not SEO
+   alternate links.)
+
+---
+
+## No unaccounted behavior
+
+The new surface is: `web/series/clock.ts`, `web/series/clock-ticker.ts`,
+`web/components/series/CountdownClock.tsx` (and the rail addition to `CountdownBlock.tsx`),
+`web/content/budgets.ts`, `web/seo/site-metadata.ts`, `web/shell/`, the `[locale]` layout split
+(`app/(public)/[locale]/layout.tsx`, `app/(public)/(home)/layout.tsx`, `app/(admin)/layout.tsx`),
+`app/global-not-found.tsx`, the `public/` icon move, and the wrapper
+`scripts/check-scenario-traceability-3digit.ts`. Every file traces to T20 (clock), T21 (palette),
+or one of the four fixes; each behaviour is accounted for by a scenario ID in
+`20-acceptance/` (AC-001-108 … AC-001-119) plus the four fix tasks. The `--data-deficit`
+`#96472a`/`#d08a63` warmth is unchanged. No helper or logic appears without a task/scenario.
+
+---
+
+## Audit-trail gate
+
+command: .standards/scripts/check-audit-trail.sh 001-pension-math
+exit: 0
+at: 2026-10-28T11:01:39Z
+
+PASS — all folder artefacts present and all five contract evidence blocks resolve.
+
+---
+
+## Overall verdict (attempt 1)
+
+**Verdict: PASS**
+
+- scenario traceability — PASS (99/119 visible to the upstream gate, exit 0; **119/119** via the
+  wrapper, exit 0; the upstream 2-digit-suffix blind spot is reproduced and disclosed, not hidden)
+- full test suite — PASS (599 tests / 48 files; tsc / eslint / build / verify:derived / the three
+  content gates all exit 0)
+- complexity gate — PASS (ESLint `complexity ≤6`, exit 0)
+- design-principles gate — PASS for the deliverable (zero project-source FAILs; the sole FAIL is
+  the out-of-scope `.standards/skills/hallmark/site/examples/cobalt-01/script.js` submodule file,
+  carried forward unchanged)
+- scenario-to-behavior spot check — PASS (served-app `<html lang>`/manifest/og:image:alt/admin-503
+  all correct; the clock-specific verification — server-rendered completeness, no-threshold-no-clock,
+  ticking, reduced motion, a11y, register, two reference instants — all hold against the built app)
+
+All four defect fixes reproduced as landed; all clock behaviours verified independently against the
+served build and the rendered output. Two pre-existing defects reproduce as out-of-scope findings
+(recorded above, not failures). Nothing claimed could not be reproduced.
+
+Flagged to the Architect (non-blocking): 43 design-principles WARNs, including the new
+`CountdownClock.tsx` KISS_LINES=42 and the `CountdownBlock.tsx` KISS_LINES=45 review hints; the
+two out-of-scope defects above.
+
 ## Quality gates
 
 # 30 — Report: pension-math
 
-Stage 5a (Mutation Runner), **revision-2 refresh**. Conformance tier `production`, so the mutation
+Stage 5a (Mutation Runner), **revision-3 refresh**. Conformance tier `production`, so the mutation
 gate applies. Read `25-verification.md`, `10-tasks.md`, `20-acceptance/`, `15-design.md`. Did **not**
 read `00-informal.md`.
 
 **Verdict: GREEN**
 
-- Mutation score on the **expanded** scope: **91.69 %** (92.64 % over covered mutants) across
-  **33 files / 2532 mutants**, threshold ≥ 80 %.
-- **`web/series/**` measured separately: 89.20 % (91.03 % covered), 398 mutants.** It cleared the
-  80 % line, but it started this refresh at **77.39 %** — below the line — and that was the real
-  finding on the new code. Round 1 (baseline) is recorded below; it is what revision 2 looked like
-  before this stage wrote a single test.
-- **Both encoding traps are now covered by assertions that kill the mutants**: the label-resolved
-  21-band mapping (`age-bands.ts` 97.62 % of 42 mutants, one survivor proven equivalent) and the
-  total-vs-sexes reconciliation (`assertSexTotals` + its message, both killed). Detail in
-  §The two encoding traps.
-- **F1 block: unchanged at 15/18, all three survivors equivalent** — same three coordinates as the
-  previous report. Not re-opened, not re-litigated.
-- Rounds this refresh: **2** (baseline + one test batch), the bound set by the brief.
-- Final full suite: **522 tests, 41 files, 0 failures** (was 505; this stage added 17).
-- App builds: `npm run build` exit 0 (21/21 static pages), `tsc --noEmit` exit 0, `eslint` exit 0.
-- No production code and no existing test was modified. Two files changed: one new test file, and
-  the `mutate` globs in `stryker.config.mjs` (scope widening, per §Mutation configuration).
+- **Whole scope: 91.71 %** (92.66 % over covered mutants) across **38 files / 2791 mutants**,
+  threshold ≥ 80 %. The full run measured **90.93 % / 92.50 %**; the 91.71 % substitutes one file's
+  repaired measurement (§Wrapper gate) — both numbers and the arithmetic are below.
+- **`web/series/**`: 90.73 % (92.07 % covered), 550 mutants.** It was **81.09 %** on this refresh's
+  baseline. Revision 3's new clock is the reason it moved: `clock-ticker.ts` went **44.44 % → 95.96 %**
+  and `clock.ts` **88.68 % → 92.45 %**.
+- **The traceability wrapper: 87.25 % (89.90 % covered), 106 mutants** — but read §Wrapper gate before
+  trusting that: the *full run* measured it at **66.34 %**, below the line, because the new CLI test
+  could not execute inside vitest's worker pool. That was a defect in my test, not in the gate. The
+  repair is enumerated; both figures are stated rather than the flattering one alone.
+- **The clock's null-threshold branch has four surviving mutants and they are provably equivalent**
+  — the guard is redundant with `Number.isInteger`, which already rejects every value the guard
+  rejects. **No surviving mutant anywhere can render or tick a clock without an anchor, and none can
+  tick under reduced motion.** Proof per branch in §The clock's two guarantees.
+- **`web/content/budgets.ts` (T21): 100 %** of 1 mutant — the five per-locale budgets are pinned by
+  an exact-object assertion.
+- Rounds that produced scores: **2** (baseline + one test batch). One further *scoped* re-measurement
+  of the wrapper repaired a broken measurement; accounting in §Rounds run.
+- Final full suite: **630 tests, 51 files, 0 failures** (was 599; this stage added 32 and removed one
+  of its own — net 31).
+- App builds: `npm run build` exit 0, `tsc --noEmit` exit 0, `eslint` exit 0, traceability 119/119.
+- Files changed: three new test files, `stryker.config.mjs` (scope), this report. **No production
+  code was edited; no existing test was modified; no mutator disabled; no threshold changed; no
+  `// Stryker disable` added.**
 
 ---
 
@@ -2624,45 +2897,52 @@ read `00-informal.md`.
 
 | When | Verdict | Score | Scope | Tests | What the tree looked like |
 |---|---|---|---|---|---|
-| 2026-10-25T23:25:50Z | GREEN | 92.74 % total / 93.51 % covered, 1846 mutants | 28 files, `web/metrics\|manifest\|sources\|ingest/**` | 388 | **Before F1 was fixed**: `centralCellOf` compared a deflated `rPaidReal` against a nominal band centre, so `fig-05` threw and 18 mutants were un-killable. |
-| 2026-10-26T08:16:47Z | GREEN | **93.83 % total / 94.40 % covered**, 1846 mutants | 28 files (same) | 415 | After the F1 fix, the hero-ladder swap and the percent-scale fix. **This is the figure the brief calls "the 93.83 %".** |
-| **2026-10-26T14:27:38Z** (this refresh) | GREEN | **91.69 % total / 92.64 % covered**, **2532 mutants** | **33 files** — `web/series/**` added (398 mutants); `web/ingest/**` grew by three revision-2 files (200 mutants) | **522** | **Revision 2 exists**: T17 age structure (`age-bands`, `age-structure`, `PyramidPlate`), T18 countdown (`countdown`), the series ingest harness (`run-series`, `series`, `series-types`), the three new datasets, and revision-2 amendments to `definitions`/`validate`/`eurostat`/`figures`. |
+| 2026-10-25T23:25:50Z | GREEN | 92.74 % / 93.51 % covered, 1846 mutants | 28 files | 388 | Before F1 was fixed. |
+| 2026-10-26T08:16:47Z | GREEN | 93.83 % / 94.40 % covered, 1846 mutants | 28 files | 415 | After F1, the hero ladder and the percent-scale fix. **The figure the earlier briefs call "the 93.83 %".** |
+| 2026-10-26T14:27:38Z | GREEN | 91.69 % / 92.64 % covered, 2532 mutants | 33 files | 522 | Revision 2 (T17 age structure, T18 countdown, T19 scope mark). **The figure the previous brief calls "91.69 %".** |
+| 2026-10-28T11:41:05Z (this refresh, round 1 — **baseline, no test changes**) | GREEN | 88.55 % / 91.35 % covered, 2791 mutants | 38 files | 599 | **Revision 3 exists**: the anchored clock (`clock.ts`, `clock-ticker.ts`, `countdown.ts` amended with `anchor`), the T21 statement budget (`web/content/budgets.ts`), and the four fixes (per-locale `<html lang>`, manifest icons in `public/`, `og:image:alt`, the 3-digit traceability wrapper). |
+| **2026-10-28T12:15:17Z** (this refresh, round 2) | GREEN | **90.93 % / 92.50 %**, 2791 mutants | 38 files | 630 | Same tree plus this stage's 32 new tests. |
+| **2026-10-28T12:21:35Z** (scoped re-measurement) | GREEN | wrapper **87.25 % / 89.90 %** | 1 file, 106 mutants | 630 | Same tree; the CLI test repaired so it can run in a worker. **Recomputed whole-scope total: 91.71 % / 92.66 %.** |
 
-**The 93.83 % figure was measured on a tree that did not contain revision 2. It must not be read as a
-claim about this one, and its headline is not comparable to the 91.69 % above** — the denominator grew
-from 1846 to 2532 mutants, and 598 of the newcomers sit in code that did not exist when 93.83 % was
-measured (`web/series/**` ×398, `web/ingest/{run-series,series,series-types}.ts` ×200).
+**Two earlier figures are retired by this note and must not be quoted as describing the current tree:**
 
-The like-for-like comparison is the same 28 files that made up the previous run's scope, which this
-run puts at **93.12 % / 93.80 % covered over 1934 mutants** — 0.71 points below the previous 93.83 %.
-That small drop is itself revision 2's: those 28 files gained 88 mutants and 19 more non-killed mutants
-from the revision-2 amendments (`definitions.ts` grew for the two series definitions, `validate.ts` for
-`snapshotYear`, `eurostat.ts` for `resolveCountUnit`, `figures.ts` for the projection horizon), and
-`definitions.ts` fell from 92.23 % to 87.60 % on the new id predicates and definition text.
+1. **93.83 %** described pre-revision-2 code (28 files, 1846 mutants). It has not been a description of
+   this repository since revision 2.
+2. **91.69 %** (2026-10-26) described revision 2 — 33 files, 2532 mutants, no clock. The current tree is
+   **91.71 % over 38 files and 2791 mutants**, and the two 91.69/91.71 figures are numerically close by
+   coincidence, not by inheritance: the denominator grew by 259 mutants that did not exist then
+   (`clock.ts` 53, `clock-ticker.ts` 99, `budgets.ts` 1, the wrapper 106), and the older 33 files still
+   score exactly what they scored before (see §Like-for-like).
+
+The like-for-like comparison is clean: the **33 files that made up the previous run's scope score
+91.69 % / 92.64 % over 2532 mutants** in this refresh's round 2 — identical to the previous report to
+the second decimal, because revision 3 did not touch them. All of revision 3's movement is in the five
+new files.
 
 ---
 
 ## Precondition
 
 `specs/001-pension-math/25-verification.md` exists and its most recent overall verdict is **PASS**
-(revision-2 attempt 2): scenario traceability 99/99 visible to the gate (107/107 by grep, the gate's
-regex limitation disclosed), full suite 505/40, complexity gate exit 0, design-principles gate PASS
-for the deliverable (the attempt-1 `component-per-file` FAIL resolved by the page→layout move; sole
-remaining FAIL is the out-of-scope `.standards/` hallmark example), scenario-to-behavior spot check
-PASS against the built app. Mutation work ran on that basis; nothing below re-litigates it.
+("Revision 3 + defect fixes verification", attempt 1): scenario traceability 119/119 via the repo-local
+wrapper (99/119 visible to the upstream gate, disclosed), full suite 599/48, `tsc`/`eslint`/`build`/
+`verify:derived` all exit 0, design-principles gate PASS for the deliverable (sole FAIL is the
+out-of-scope `.standards/` hallmark example), scenario-to-behavior spot check PASS against the served
+app including the clock's no-threshold / reduced-motion / ticking / a11y behaviour.
 
-The working tree is dirty and every dirty entry is this pipeline's own uncommitted output (`specs/`,
-`tests/`, `web/`, `app/`, `scripts/`, `data/`, `stryker.config.mjs`, `package.json`). Stage 5b
-commits them. Nothing was stashed, reverted or auto-committed. During mutant verification
-`web/series/*.ts`, `web/ingest/series.ts` and `web/ingest/run-series.ts` were mutated in place and
-restored **byte-identically** (md5 verified before and after each probe — see §Tests added).
+Mutation work ran on that basis; nothing below re-litigates it.
+
+The working tree is dirty and every dirty entry is this pipeline's own uncommitted output. Nothing was
+stashed, reverted or auto-committed. During kill verification `web/series/clock.ts`,
+`web/series/clock-ticker.ts` and `scripts/check-scenario-traceability-3digit.ts` were mutated in place
+and restored **byte-identically** (md5 compared before and after — 11/11 probes `restored=True`).
 
 ---
 
 ## Mutation configuration
 
-The only configuration change is the scope widening the brief asked for. **No mutator was disabled,
-no threshold was changed, no `// Stryker disable` comment was added anywhere.**
+Two scope changes, both required by the brief, plus one sandbox change required by the first. **No
+mutator was disabled, no threshold was changed, no `// Stryker disable` comment was added anywhere.**
 
 ```
 mutate:
@@ -2670,333 +2950,349 @@ mutate:
   web/manifest/**/*.ts
   web/sources/**/*.ts
   web/ingest/**/*.ts
-  web/series/**/*.ts        ← added by this refresh (revision-2 calculation surface)
+  web/series/**/*.ts                                  ← revision 2, carried forward
+  web/content/budgets.ts                              ← added: T21's per-locale statement budget
+  scripts/check-scenario-traceability-3digit.ts       ← added: the 3-digit traceability gate
 
-testRunner:        vitest          vitest.configFile: vitest.config.ts
-coverageAnalysis:  perTest         timeoutMS: 30000   timeoutFactor: 2   concurrency: 4
-reporters:         clear-text, progress, json          jsonReporter: reports/mutation/mutation.json
-thresholds:        high 80, low 80, break null         (reported, not enforced — this report is the verdict)
-disableTypeChecks: false           (vitest transpiles via oxc and never type-checks)
-ignorePatterns:    .opencode, .standards, specs, .github, .githooks, .playwright-mcp,
-                   data/pending, data/proposals, tsconfig.tsbuildinfo, runs.jsonl
+ignorePatterns: … , `.github`, …    ( `specs` REMOVED from this list — see below )
+thresholds: high 80, low 80, break null   (reported, not enforced — this report is the verdict)
 ```
 
-Still **excluded**, unchanged from the previous report: `web/components/**` and `app/**` (React/Next
-markup — revision 2's `PyramidPlate`, `CountdownBlock` and `ScopeMark` live there), `web/content/**`
-(presentation formatting), `data/**` and generated files, `.standards/**` (submodule, off-limits),
-and `scripts/*.ts` (CLI entry points that run `process.exit(main())` at import time and are only
-exercised as subprocesses — a mutant there is a permanent 0 % that measures nothing; the logic they
-delegate to is in the five in-scope areas).
+1. **`web/content/budgets.ts` — one file, not all of `web/content/**`.** The brief asks for "the
+   per-locale statement budget logic from T21". That module is the only file in `web/content/` carrying
+   a product claim (the two-line headline fit); the rest of the directory is presentation formatting,
+   which the scope has always excluded for the reason given in the config header.
+2. **`scripts/check-scenario-traceability-3digit.ts`** — the brief names it as part of the pipeline's
+   correctness. It is the one `scripts/*.ts` that can be mutated meaningfully, because it *isn't* a
+   side-effect-at-import entry point: it guards the invocation with `import.meta.url` and exports
+   `checkTraceability`/`declaredScenarios`/`citedScenarios`. The stated reason for excluding the other
+   scripts (a subprocess-only entry point is a permanent 0 % that measures nothing) therefore does not
+   apply to it.
+3. **`specs` removed from `ignorePatterns`** — a sandbox change the second item forced. The wrapper's
+   test "covers this repository beyond the 99-scenario ceiling" reads `specs/001-*/20-acceptance/`; with
+   `specs` excluded from the Stryker sandbox the gate saw zero scenarios, that test failed, and **no
+   mutation run started at all** (first invocation, `ConfigError: There were failed tests in the initial
+   test run`, 2026-10-28T11:12:44Z). Copying one directory of markdown is the whole cost; nothing under
+   `specs/` is mutated, and no threshold or mutator moved.
 
-**Explicitly stated rather than silently excluded:** revision 2's series *rendering* (`web/components/
-series/**`, `web/components/public/ScopeMark.tsx`, `web/seo/**`) is outside the mutation scope, for
-the same reason `web/components/**` always was. Its evidence is the revision-2 acceptance suite plus
-the Verifier's live render check, not a mutation score. `web/series/**` — the calculation the
-rendering displays — **is** in scope, and that is the change this refresh makes.
+Still excluded, unchanged: `web/components/**` and `app/**` (React/Next markup — revision 3's
+`CountdownClock.tsx` and the `CountdownBlock` rail live there), the rest of `web/content/**`, `data/**`
+and generated files, `.standards/**` (submodule, off-limits), and the other `scripts/*.ts` entry points.
+`web/seo/**` and `web/shell/**` are outside the scope for the same reason as `web/components/**`; their
+evidence is the acceptance suite and the Verifier's served-app check, not a mutation score.
 
 ### Scope as measured
 
-| Area | Files | Mutants | Why it is in scope |
+| Area | Files | Mutants | Round-2 score (total / covered) |
 |---|---|---|---|
-| `web/metrics/**` | 8 | 298 | calculation kernels (ratio, GDP share, cohort IRR, implicit debt, required base growth, growth rate, NPV/root finding, rounding) |
-| `web/manifest/**` | 5 | 517 | manifest validation, hashing, definition registry (now including the two series definitions), formula registry, reproduce-path resolution |
-| `web/sources/**` | 8 | 499 | JSON-stat / INE parsing, unit conversion, year alignment, catalogue, labels, freshness |
-| `web/ingest/**` | 9 | 820 | figure + **series** compute harnesses, figure validation, deterministic JSON, derived-file IO |
-| `web/series/**` | 3 | 398 | **revision 2**: age banding, age structure/shares/readouts, dependency ratio + threshold crossing |
+| `web/metrics/**` | 8 | 298 | 93.62 / 94.26 |
+| `web/manifest/**` | 5 | 517 | 93.59 / 93.96 |
+| `web/sources/**` | 8 | 499 | 90.38 / 90.93 |
+| `web/ingest/**` | 9 | 820 | 91.79 / 93.06 |
+| **`web/series/**`** | **5** | **550** | **90.73 / 92.07** |
+| `web/content/budgets.ts` | 1 | 1 | 100.00 / 100.00 |
+| `scripts/…3digit.ts` (wrapper) | 1 | 106 | **66.34 / 83.75 → 87.25 / 89.90 repaired** |
+| **All files** | **38** | **2791** | **90.93 / 92.50 → 91.71 / 92.66 recomputed** |
 
-`web/manifest/types.ts` and the other pure-type modules generate no mutants and therefore do not
-appear; a module that declares runtime constants beside its types (`web/ingest/series-types.ts`, 13
-mutants) does.
+`web/manifest/types.ts` and the other pure-type modules generate no mutants and do not appear.
 
 ---
 
-## Rounds run this refresh
+## Rounds run
 
-Two — the bound set by the brief. Round 1 is a baseline with **no test changes**; round 2 is the
-single test batch. This is a refresh on new code, not a rescue, so there is no round 3.
-
-| Round | Score (total) | Score (covered) | killed | timeout | survived | no coverage | runtime errors | `web/series/**` | ended (UTC) |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 — baseline on the revision-2 tree | 88.27 % | 89.77 % | 2217 | 2 | 253 | 42 | 18 | **77.39 %** (79.59 % covered) | 2026-10-26T13:59:01Z |
-| 2 — after `tests/unit/series-coverage-gaps.test.ts` (17 tests) | **91.69 %** | **92.64 %** | **2303** | **2** | **183** | **26** | **18** | **89.20 %** (91.03 % covered) | 2026-10-26T14:27:38Z |
+| # | What it was | Score (total) | killed | timeout | survived | no cov | runtime err | `web/series/**` | wrapper | ended (UTC) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| — | **pre-flight, aborted** — no mutants tested | — | — | — | — | — | — | — | — | 2026-10-28T11:12:50Z |
+| 1 | baseline, **no test changes** | 88.55 % | 2449 | 2 | 232 | 85 | 23 | **81.09 %** | 53.47 % | 2026-10-28T11:41:05Z |
+| 2 | after the 32-test batch | **90.93 %** | **2515** | **2** | **204** | **47** | **23** | **90.73 %** | 66.34 % (broken measurement) | 2026-10-28T12:15:17Z |
+| 2b | **scoped re-measurement** of the wrapper after repairing that test | — | 89 | 0 | 10 | 3 | 4 | — | **87.25 %** | 2026-10-28T12:21:35Z |
 
 Score convention (Stryker's own): `(killed + timeout) / (total − runtimeErrors)`; `covered` further
 excludes no-coverage mutants.
 
-Round 1 was the finding the brief anticipated: **`web/series/**` at 77.39 % is below the 80 % gate**,
-and it was not a rounding artefact — `age-structure.ts` sat at 70.81 % and `countdown.ts` at 79.49 %,
-with the worst block being the *published readout* (`over65`/`under20`), where 15 mutants were
-untested. The three new `web/ingest` files were also weak on first measurement (`series.ts` 41.67 %,
-`series-types.ts` 0 %, `run-series.ts` 80.00 %), and they dragged the whole `ingest` area from 94.72 %
-to 86.94 %. Round 2 lifts `series` to 89.20 % and `ingest` to 91.79 %.
-
-### What round 2 changed, per file
-
-| File | Round 1 | Round 2 | Mutants killed by the new file |
-|---|---|---|---|
-| `web/series/age-bands.ts` | 92.86 % | **97.62 %** | 3 (2 killed, 1 equivalent) |
-| `web/series/age-structure.ts` | 70.81 % | **87.58 %** | 27 |
-| `web/series/countdown.ts` | 79.49 % | **88.72 %** | 18 |
-| `web/ingest/series.ts` | 41.67 % | **86.67 %** | 27 |
-| `web/ingest/series-types.ts` | 0.00 % | **92.31 %** | 12 |
-| `web/ingest/run-series.ts` | 80.00 % | 80.00 % | 0 |
+**Budget accounting, stated plainly.** The brief allows two rounds. Two rounds produced scores: round 1
+(a baseline) and round 2 (the single test batch). The pre-flight above is not a round — it aborted in
+the dry run before a single mutant was tested, because of the `specs` sandbox exclusion. **2b is not a
+round either**: it added no test to kill a survivor and changed no source; it re-measured one file after
+fixing a test that could not execute, so that the number reported for the wrapper describes the tests
+that exist. If a reader counts 2b against the budget, the consequence is the same either way — no third
+batch of tests was written against survivors, and the residual gaps are named rather than chased
+(§Reachable residual gaps).
 
 ---
 
 ## Results
 
-### Per area
-
-| Area | Mutants | Killed | Timeout | Survived | No coverage | Runtime errors | Score (total / covered) |
-|---|---|---|---|---|---|---|---|
-| `web/metrics/**` | 298 | 278 | 1 | 17 | 2 | 0 | 93.62 / 94.26 |
-| `web/manifest/**` | 517 | 482 | 0 | 31 | 2 | 2 | 93.59 / 93.96 |
-| `web/sources/**` | 499 | 450 | 1 | 45 | 3 | 0 | 90.38 / 90.93 |
-| `web/ingest/**` | 820 | 738 | 0 | 55 | 11 | 16 | 91.79 / 93.06 |
-| **`web/series/**`** | **398** | **355** | **0** | **35** | **8** | **0** | **89.20 / 91.03** |
-| **All files** | **2532** | **2303** | **2** | **183** | **26** | **18** | **91.69 / 92.64** |
-
 ### Per file (round 2, verbatim from the run)
 
 ```
-web/ingest/deterministic-json.ts           mut=  14  killed=  14  surv= 0  nocov= 0  err= 0   100.00
-web/ingest/figures.ts                      mut= 213  killed= 188  surv= 8  nocov= 3  err=14    94.47
-web/ingest/run-compute.ts                  mut= 200  killed= 186  surv=10  nocov= 4  err= 0    93.00
-web/ingest/run-series.ts                   mut= 125  killed= 100  surv=22  nocov= 3  err= 0    80.00
-web/ingest/series-types.ts                 mut=  13  killed=  12  surv= 1  nocov= 0  err= 0    92.31
-web/ingest/series.ts                       mut=  62  killed=  52  surv= 7  nocov= 1  err= 2    86.67
-web/ingest/types.ts                        mut=  11  killed=  11  surv= 0  nocov= 0  err= 0   100.00
-web/ingest/validate-figure.ts              mut= 165  killed= 160  surv= 5  nocov= 0  err= 0    96.97
-web/ingest/write-derived.ts                mut=  17  killed=  15  surv= 2  nocov= 0  err= 0    88.24
-web/manifest/definitions.ts                mut= 131  killed= 113  surv=14  nocov= 2  err= 2    87.60
-web/manifest/formula-ids.ts                mut=  16  killed=  15  surv= 1  nocov= 0  err= 0    93.75
-web/manifest/hash.ts                       mut=  33  killed=  31  surv= 2  nocov= 0  err= 0    93.94
-web/manifest/repo-file.ts                  mut=  16  killed=  16  surv= 0  nocov= 0  err= 0   100.00
-web/manifest/validate.ts                   mut= 321  killed= 307  surv=14  nocov= 0  err= 0    95.64
-web/metrics/cohort-irr.ts                  mut=  50  killed=  48  surv= 2  nocov= 0  err= 0    96.00
-web/metrics/contribution-cover.ts          mut=  38  killed=  38  surv= 0  nocov= 0  err= 0   100.00
-web/metrics/dependency-ratio.ts            mut=  40  killed=  40  surv= 0  nocov= 0  err= 0   100.00
-web/metrics/implicit-debt.ts               mut=  10  killed=  10  surv= 0  nocov= 0  err= 0   100.00
-web/metrics/npv.ts                         mut=  90  killed=  73  surv=15  nocov= 2  err= 0  to=1  81.11
-web/metrics/pension-share.ts               mut=  36  killed=  36  surv= 0  nocov= 0  err= 0   100.00
-web/metrics/required-base-growth.ts        mut=  29  killed=  29  surv= 0  nocov= 0  err= 0   100.00
-web/metrics/rounding.ts                    mut=   5  killed=   5  surv= 0  nocov= 0  err= 0   100.00
-web/series/age-bands.ts                    mut=  42  killed=  41  surv= 1  nocov= 0  err= 0    97.62
-web/series/age-structure.ts                mut= 161  killed= 141  surv=14  nocov= 6  err= 0    87.58
-web/series/countdown.ts                    mut= 195  killed= 173  surv=20  nocov= 2  err= 0    88.72
-web/sources/countries.ts                   mut=  59  killed=  55  surv= 4  nocov= 0  err= 0    93.22
-web/sources/eurostat.ts                    mut= 210  killed= 188  surv=20  nocov= 2  err= 0  to=1  89.52
-web/sources/freshness.ts                   mut=  29  killed=  29  surv= 0  nocov= 0  err= 0   100.00
-web/sources/ine.ts                         mut=  70  killed=  67  surv= 3  nocov= 0  err= 0    95.71
-web/sources/labels.ts                      mut=  47  killed=  37  surv=10  nocov= 0  err= 0    78.72
-web/sources/live.ts                        mut=  44  killed=  40  surv= 4  nocov= 0  err= 0    90.91
-web/sources/load.ts                        mut=  28  killed=  23  surv= 4  nocov= 1  err= 0    82.14
-web/sources/types.ts                       mut=  12  killed=  12  surv= 0  nocov= 0  err= 0   100.00
+ file                                  | score  | cov    | killed | time | surv | nocov | err
+ scripts/check-scenario-traceability-3digit.ts |  66.34 |  83.75 |    67 |    0 |   13 |   21 |    5
+ web/content/budgets.ts                | 100.00 | 100.00 |      1 |    0 |    0 |    0 |    0
+ web/ingest/deterministic-json.ts      | 100.00 | 100.00 |     14 |    0 |    0 |    0 |    0
+ web/ingest/figures.ts                 |  94.47 |  95.92 |    188 |    0 |    8 |    3 |   14
+ web/ingest/run-compute.ts             |  93.00 |  94.90 |    186 |    0 |   10 |    4 |    0
+ web/ingest/run-series.ts              |  80.00 |  81.97 |    100 |    0 |   22 |    3 |    0
+ web/ingest/series-types.ts            |  92.31 |  92.31 |     12 |    0 |    1 |    0 |    0
+ web/ingest/series.ts                  |  86.67 |  88.14 |     52 |    0 |    7 |    1 |    2
+ web/ingest/types.ts                   | 100.00 | 100.00 |     11 |    0 |    0 |    0 |    0
+ web/ingest/validate-figure.ts         |  96.97 |  96.97 |    160 |    0 |    5 |    0 |    0
+ web/ingest/write-derived.ts           |  88.24 |  88.24 |     15 |    0 |    2 |    0 |    0
+ web/manifest/definitions.ts           |  87.60 |  88.98 |    113 |    0 |   14 |    2 |    2
+ web/manifest/formula-ids.ts           |  93.75 |  93.75 |     15 |    0 |    1 |    0 |    0
+ web/manifest/hash.ts                  |  93.94 |  93.94 |     31 |    0 |    2 |    0 |    0
+ web/manifest/repo-file.ts             | 100.00 | 100.00 |     16 |    0 |    0 |    0 |    0
+ web/manifest/validate.ts              |  95.64 |  95.64 |    307 |    0 |   14 |    0 |    0
+ web/metrics/cohort-irr.ts             |  96.00 |  96.00 |     48 |    0 |    2 |    0 |    0
+ web/metrics/contribution-cover.ts     | 100.00 | 100.00 |     38 |    0 |    0 |    0 |    0
+ web/metrics/dependency-ratio.ts       | 100.00 | 100.00 |     40 |    0 |    0 |    0 |    0
+ web/metrics/implicit-debt.ts          | 100.00 | 100.00 |     10 |    0 |    0 |    0 |    0
+ web/metrics/npv.ts                    |  81.11 |  82.95 |     72 |    1 |   15 |    2 |    0
+ web/metrics/pension-share.ts          | 100.00 | 100.00 |     36 |    0 |    0 |    0 |    0
+ web/metrics/required-base-growth.ts   | 100.00 | 100.00 |     29 |    0 |    0 |    0 |    0
+ web/metrics/rounding.ts               | 100.00 | 100.00 |      5 |    0 |    0 |    0 |    0
+ web/series/age-bands.ts               |  97.62 |  97.62 |     41 |    0 |    1 |    0 |    0
+ web/series/age-structure.ts           |  87.58 |  90.97 |    141 |    0 |   14 |    6 |    0
+ web/series/clock-ticker.ts            |  95.96 |  95.96 |     95 |    0 |    4 |    0 |    0
+ web/series/clock.ts                   |  92.45 |  92.45 |     49 |    0 |    4 |    0 |    0
+ web/series/countdown.ts               |  88.72 |  89.64 |    173 |    0 |   20 |    2 |    0
+ web/sources/countries.ts              |  93.22 |  93.22 |     55 |    0 |    4 |    0 |    0
+ web/sources/eurostat.ts               |  89.52 |  90.38 |    187 |    1 |   20 |    2 |    0
+ web/sources/freshness.ts              | 100.00 | 100.00 |     29 |    0 |    0 |    0 |    0
+ web/sources/ine.ts                    |  95.71 |  95.71 |     67 |    0 |    3 |    0 |    0
+ web/sources/labels.ts                 |  78.72 |  78.72 |     37 |    0 |   10 |    0 |    0
+ web/sources/live.ts                   |  90.91 |  90.91 |     40 |    0 |    4 |    0 |    0
+ web/sources/load.ts                   |  82.14 |  85.19 |     23 |    0 |    4 |    1 |    0
+ web/sources/types.ts                  | 100.00 | 100.00 |     12 |    0 |    0 |    0 |    0
+ All files                             |  90.93 |  92.50 |   2515 |    2 |  204 |   47 |   23
 ```
 
-One file remains below 80 % individually — `web/sources/labels.ts` at 78.72 % — exactly as in every
-prior run; its ten survivors are all proven equivalent (§Equivalent mutants). No file in the
-revision-2 surface is below the line.
+One older file remains below 80 % individually — `web/sources/labels.ts` at 78.72 % — exactly as in
+every prior run; its ten survivors are all proven equivalent (§Equivalent mutants). **No file in the
+revision-3 surface is below the line**, and the wrapper's 66.34 % in this table is the measurement
+defect, not a property of the gate (§Wrapper gate).
 
----
+### Round 2, per new file
 
-## The two encoding traps
-
-The brief singled these out, correctly: mutants here matter more than the aggregate. Both traps are
-now killed, and the assertions behind them are exact, not "defined and non-zero".
-
-### Trap 1 — the band mapping (`Y_OPEN` vs `Y_GE100`)
-
-`bandOfAgeLabel` resolves the open-ended band from the payload's own **labels**, because `demo_pjan`
-publishes `Y_OPEN` `"Open-ended age class"` and `proj_23np` publishes `Y_GE100` `"100 years or over"`.
-A hardcoded code would silently drop the 100+ band from one dataset.
-
-| Mutant | Status | What kills it / why it cannot be killed |
-|---|---|---|
-| `age-bands.ts:22:27` Regex `\s*`→`\s` (single space only) | **Killed** | new: `bandOfAgeLabel('5  years')` → 5. The function normalises whitespace; two spaces must still band. |
-| `age-bands.ts:36:10` ConditionalExpression `age >= OPEN_BAND`→`false` (always take the `floor` branch) | **Killed** | new: `bandOfAgeLabel('105 years')` → `OPEN_BAND` (100); the `floor` branch would answer 105, i.e. invent a band above the open one. |
-| `age-bands.ts:36:10` EqualityOperator `>=`→`>` | Equivalent | At age exactly 100 the `floor` branch computes `floor(100/5)*5 = 100 = OPEN_BAND`; at every other integer age both forms take the same branch. Proven, not assumed: the same test pins 100→100 and 105→100. |
-
-The hardcoded-code trap itself was already covered by the pre-existing rename test
-(`population-pyramid.test.ts:88` renames `Y_OPEN`→`ZZ_OPEN_99` and asserts the band still resolves by
-label). That test does what it claims: a code-keyed read cannot pass it.
-
-### Trap 2 — the total-vs-sexes sum (`sex=T` is the denominator, `M`/`F` are the halves)
-
-`assertSexTotals` refuses a payload whose `M + F ≠ T` for any band, and every published share divides
-by the year's `Total` row.
-
-| Mutant | Status | What kills it / why it cannot be killed |
-|---|---|---|
-| `age-structure.ts:176:57` ArithmeticOperator — the thrown message's `${male + female}`→`${male - female}` | **Killed** | new: the double-count fixture must throw a message naming the computed sums (`/males \+ females \(2\)/`, `/the sex total \(3\)/`). A build that stops must say why correctly. |
-| `age-structure.ts:194:7` / `194:50` / `195:27` — the re-check inside `bandCounts` (condition, throw body, message) | Equivalent (3) | `bandCounts` is module-private and only reachable through `readAgeCounts`, which has already run `assertSexTotals` over exactly these entries. The check cannot fire, so neither its body nor its message is ever evaluated. |
-| `age-structure.ts:228:57` / `232:27` / `233:28` — the count sums and the `>= 65` / `< 20` predicates behind `over65`/`under20` | **Killed** | new: the readouts are pinned as literals per year (`14.98/25.14`, `20.72/18.40`, `32.68/16.00`), independently decoded from the committed snapshots. Before this, `over65` was only ever asserted to render. |
-| `countdown.ts:83:7` / `83:46` — the sex guard (`point.coords.sex !== codes.sex`) | **Killed** | new: the synthetic ratio payload's 2025 halves (1400 + 1600) do **not** sum to its total (3000), so summing the halves reads 57.14 where the `Total` row reads 50.00. A sex-blind sum is now a failing test. |
-| `countdown.ts:84:10` ×2 — the variant guard | **Killed** | new: the same payload carries a second variant; dropping the guard reads 50.83 instead of 50.00 (and the `false` form empties the series). |
-
-**Verdict on the traps: the assertions were weaker than claimed in two places, and both are now
-fixed** — the readout claim (`over65`/`under20`) had no value assertion at all, and the `Total`-row-only
-rule for the dependency ratio was only ever exercised against a payload whose halves reconcile
-(where summing them is arithmetically invisible).
-
----
-
-## F1 block status (still relevant, unchanged)
-
-F1 was the `centralCellOf` defect (a *deflated* `rPaidReal` compared against a *nominal* band centre,
-so `fig-05` always threw). The previous report recorded the 18 mutants it had blocked as
-**15 killed + 3 equivalent** once the fix landed. This run reproduces exactly that, at the same
-coordinates:
-
-| Coordinate | Mutator | Status | Class |
+| File | Round 1 | Round 2 | Mutants killed by the new tests |
 |---|---|---|---|
-| `web/ingest/figures.ts:244:7` | ConditionalExpression (`if (!cell)` never throws) | Survived | equivalent — the grid is swept over `[min, central, max]` and `DEFAULT_G_WAGE_SWEEP` contains `ASSUMED_REAL_WAGE_GROWTH`, so the cell always exists; the guard is unreachable for the shipped constants |
-| `web/ingest/figures.ts:244:30` | StringLiteral (the throw's message) | NoCoverage | equivalent — same unreachable branch |
-| `web/ingest/figures.ts:261:14` | ObjectLiteral (`horizon: { ...PROJECTION_HORIZON }` → `{}`) | Survived | equivalent — `sensitivityGrid` discards `value.horizon`; a cell carries only `gWage`, `rPaidNominal`, `rPaidReal`, `gRequired`, `gap` |
-
-The neighbouring `figures.ts:252` cluster (the `cohort.central === null || cohort.band === null` guard)
-is unchanged too: three killed, three equivalent (`central` and `band` are null under exactly the same
-condition — an empty grid).
-
-**F1 is closed. It is not re-opened by revision 2 and it is not part of the 91.69 % shortfall.**
+| `web/series/clock-ticker.ts` | 44.44 % | **95.96 %** | 51 (37 no-coverage → 0) |
+| `web/series/clock.ts` | 88.68 % | **92.45 %** | 2 |
+| `web/content/budgets.ts` | 100.00 % | 100.00 % | 0 (already pinned) |
+| `scripts/…3digit.ts` | 53.47 % | 66.34 % → **87.25 %** repaired | 12 + 22 more after the repair |
+| `web/series/countdown.ts` | 88.72 % | 88.72 % | 0 (see §Reachable residual gaps) |
 
 ---
 
-## Equivalent mutants (111) — no test can distinguish them
+## The clock's two guarantees
 
-111 of the 209 non-killed mutants are equivalent or dead. Each group is counted once; the counts
-sum to 111.
+The brief singles these out, correctly: a survivor here would matter more than the aggregate. Both
+were measured, and the outcome is stated precisely — including the four mutants that do survive.
 
-| File | Coordinates | Count | Why it is un-killable |
+### Guarantee 1 — no anchor, no clock
+
+The chain is: `computeCountdown` derives `thresholdYear`; `anchorFor(thresholdYear)` returns `null`
+when there is none; the value's `anchor` is that `null`; and the component (out of mutation scope) only
+mounts a clock from a non-null anchor.
+
+| Link | Mutant | Status | What decides it |
 |---|---|---|---|
-| `web/series/age-bands.ts` | 36:10 (`>=`→`>`) | 1 | See Trap 1 — both forms agree on every integer age because 100 is a multiple of the band width. |
-| `web/series/age-structure.ts` | 139:73, 194:7, 194:50, 195:27, 260:53, 262:109 | 6 | `139:73` the trailing `?? ''` on `point.coords.age` is dead (`decodeCoords` fills every dimension in `id`, so it is always a string). `194:7/194:50/195:27` the `bandCounts` re-check cannot fire (see Trap 2). `260:53` the projection payload the product ingests (`eurostat-proj-23np`) publishes exactly one projection category (`size[1] = 1`, verified in the committed snapshot), so dropping the variant filter changes nothing. `262:109` the `?? 'measured'` fallback is unreachable: 1995 and 2025 are both keys of `OBSERVED_HUES`. |
-| `web/series/countdown.ts` | 59:7 (×2), 59:47, 99:41, 214:7, 247:17 | 6 | `59:7`/`59:47` `ratioOf`'s zero-denominator guard is unreachable: `readDependencySeries` filters `denominator > 0` first and `observedDependency` guards `denominatorPopulation > 0`. `99:41` dead `?? ''` (as above). `214:7` with `year === null`, `projectedAt` yields null through `?? null` and `observedDependency` yields null, so the next guard returns the same null. `247:17` `pinned[pinned.length − 1] ?? snapshotYear` is unreachable — `pinned.length > 0` is enforced by the throw above it. |
-| `web/ingest/run-series.ts` | 44:13, 56:13, 61:37 | 3 | `44:13`/`56:13` the `kind: 'failure'` discriminant is never read: `applyInspection` falls through to its `else` for any kind that is neither `ok` nor `unresolved`. `61:37` `evaluateFreshness` returns a non-empty `reason` on every `fresh: false` path (three branches, all with a message), so the `?? 'outside freshness window'` fallback is dead. |
-| `web/ingest/series-types.ts` | 20:10 | 1 | `typeof value === 'string' && SERIES_IDS.includes(value)` — `includes` already rejects every non-string, so dropping the `typeof` operand changes no answer. |
-| `web/ingest/series.ts` | 22:7, 22:8, 22:44, 28:12 | 4 | `22:*` `payloadOf`'s unresolved guard and its message are unreachable: the harness only calls `compute` after `unfinishedOutcome` verified every requirement source resolved. `28:12` `value.years[0]?.bands` is dead — `computePyramid` always returns three years or throws. |
-| `web/ingest/figures.ts` | 33 (×3), 88 (×2), 244 (×2), 252 (×3), 261 | 11 | Carried forward unchanged: `payload()`'s throw and `spanOf`'s empty branch are unreachable; the F1 group is the table above; the `252` guard is redudantly two-sided. |
-| `web/ingest/run-compute.ts` | 65, 128 (+ dead 95, 209, 292, 347) | 6 | Carried forward: the `missingForCountry` branch is shadowed, `parsed <= oldest` and `parsed < oldest` agree at equal timestamps, the three `??` fallbacks never fire, and `hashInputBytes` has no production caller. |
-| `web/ingest/validate-figure.ts` | 29, 122 (×2) | 3 | Carried forward: the membership test alone rejects the same non-strings; `identity.length > 0` is implied by an unknown id. |
-| `web/ingest/write-derived.ts` | 6, 22 | 2 | `DERIVED_DIR` is a re-export with no reader in scope; `writeFileSync` accepts a Buffer, so the `'utf8'` argument's removal round-trips to the same bytes. |
-| `web/manifest/definitions.ts` | 36 (×3), 40, 152, 158, 166, 183, 231, 233 (×4), 254 (×2) | 15 | `36`/`40`/`166` — `includes` rejects the same non-strings the `typeof` guard rejected. `152`/`158` — the `definitionId` field inside `SERIES_DEFINITIONS` records has no reader (only `.definition` and `.formulaId` are read). `183`/`254` — `firstDefinitionOf` can only throw for a metric outside the closed `MetricId` union. `231`/`233` — for every metric that *has* an international definition it is also the first definition of that metric, so the `?? firstDefinitionOf(...)` fallback resolves to the same object; for national-only metrics `find` already returned undefined. |
-| `web/manifest/validate.ts` | 145 (×8) | 8 | Carried forward: the `reproducePath` pass inside `manifestFieldProblems` is called with `fileExists = () => true`, so `checkReproducePath` can never produce `missingFile` — the `.filter`, both arrow operands, the equality, the boolean and the `""` literal are all dead. |
-| `web/manifest/hash.ts` | 14, 20 | 2 | Carried forward: the closed-set/pattern check rejects the same non-strings; `/\.\d{3}Z$/`→`/\.\d{3}Z/` is a no-op because `toISOString()` always ends with the millisecond group. |
-| `web/manifest/formula-ids.ts` | 19 | 1 | Same shape as `hash.ts:14`. |
-| `web/metrics/npv.ts` | 40, 42, 65 (×7), 66, 86, 91 (+ dead 41 ×5) | 17 | Carried forward: the root is invariant to a positive rescaling of every flow; `<=`→`<` differs only at an exact-equality boundary float bisection never lands on; `86`'s `!== 1` is masked by `initialBracket` returning null for the same inputs; `41`'s `scale === 0` branch is unreachable (an all-zero flow set has zero sign changes and returns null first). |
-| `web/metrics/cohort-irr.ts` | 66 (×2) | 2 | `<= 0`→`< 0` differs only at exactly zero contribution, where the sign-change gate already returns null. |
-| `web/sources/labels.ts` | 6, 7, 18, 19, 29, 31, 33 (×4), 36 | 10 | Carried forward: dropping `^`/`\.` is a no-op for the shipped catalogue; `split('')`/`join('')` transform both sides of every comparison identically; the `byDataset` short-circuit and the exact-host branches all fall through to the registered-domain lookup, which selects the same declaration for every URL in `SOURCE_DECLARATIONS`. |
-| `web/sources/countries.ts` | 64 (×2), 110 (×2) | 4 | `isPublishedGeo` is gated by the closed `PUBLISHED_GEOS` list; a national definition's lookup returns `null` before the `sourceIds.length` check matters. |
-| `web/sources/live.ts` | 38 (×2), 54, 67 | 4 | `LIVE_URLS` only contains declared source ids, so the guard and the `find` predicate in `declaration()` cannot take their other branch; the `Z$` anchor is redundant for `toISOString()` output. |
-| `web/sources/ine.ts` | 23, 45, 50 | 3 | Replacing the `typeof payload !== 'object'` operand leaves sibling checks catching exactly the same inputs. |
-| `web/sources/load.ts` | 39 | 1 | The `dir = 'data/snapshots'` default is never taken; every caller passes its own path. |
-| `web/sources/eurostat.ts` | 131 | 1 | `resolveCountUnit`'s return value has no reader inside the mutated scope (callers use it for validation only), so emptying the returned object changes nothing. |
+| `countdown.ts:260` `anchor: anchorFor(state.thresholdYear)` | 6 mutants at the call and its argument | **Killed** | `clock.test.ts` pins `countdownValue().anchor === ANCHOR` and `countdownAt(40/60).anchor === anchorFor(thresholdYear)`; the new test adds `countdownAt(90).anchor === null` and `.thresholdYear === null` and `.years === null`, so an anchor derived from the snapshot year, from the threshold, or from a constant all fail. |
+| `clock.ts:48-52` `anchorFor` | `51:47` `padStart(4,'0')` fill → `''` | **Killed** (new) | `anchorFor(42) === '0042-01-01T00:00:00+01:00'`. Without the fill, `String(42)` yields `42-01-01…`, which is *not* the ISO instant. Hand-probed: the new file fails. |
+| `clock.ts:50` `!Number.isInteger(thresholdYear)` | `Number.isInteger` mutants | **Killed** | `anchorFor(NaN / Infinity / 2042.5 / -1.5) === null` (new). |
+| `clock.ts:49` `if (null \|\| undefined) return null` | **4 survivors** — `49:7` ConditionalExpression→false ×2, `49:7` LogicalOperator `\|\|`→`&&`, `49:33` ConditionalExpression→false | **Equivalent, and that is proven, not assumed** | `Number.isInteger` rejects **every** value the guard rejects: `Number.isInteger(null)`, `(undefined)`, `(NaN)`, `(Infinity)`, `(2042.5)` are all `false`, so line 50 returns `null` in exactly the cases line 49 does. For every integer both lines fall through to the same `return`. The guard is redundant defence; the *guarantee* is carried by lines 50-51, whose mutants are killed. No test can distinguish the guard, and none should be written that pretends to. |
+
+**Answer to the brief's question:** four mutants survive inside the null-threshold branch, all at
+`clock.ts:49`, and none of them can make a clock appear without an anchor — they only remove a check
+that a later check duplicates. There is **no surviving mutant that produces an anchor for a missing
+threshold year**.
+
+### Guarantee 2 — reduced motion creates no timer
+
+`startClockTicker` creates an interval only through `runnable()`, which is false when the ticker is
+stopped, false when `motionQuery.matches` is true, and false when the reading is already elapsed.
+
+| Behaviour | Mutant | Status | What decides it |
+|---|---|---|---|
+| No interval at mount under reduced motion | `runnable`'s `if (context.reduced()) return false` | **Killed** | AC-001-112's `scheduled === []`, plus the new "reduced motion at mount" case. |
+| A live switch **to** reduced motion clears the timer | `onMotionChange` `125:7` ×2, `125:26`, `126:5` (the whole clear branch) | **Killed** (new) | The new test emits `matches: true` on a running ticker and asserts `cancelled === [1]` and that no further tick arrives. Before this stage the listener was never registered by any test — the entire transition path was unexecuted. |
+| A live switch **back** to motion recomputes and restarts | `onMotionChange` `129:3`, `130:3`, `124:55` | **Killed** (new) | `created === [1]` and `ticks === [3]` at the instant motion is allowed, not one tick later. |
+| A change that leaves motion allowed does not thrash the timer | `125:7` ConditionalExpression→true | **Killed** (new) | `created` stays `[1]` after a redundant `matches: false` event. |
+| `stop()` detaches the motion listener | `171:7`, `168:25`, `170:34`, `163:27`, `164:3` | **Killed** (new) | The fake query records the event name (`'change'`) and `removed === ['change']`; a post-`stop` event cannot restart. |
+| The query asked for is the reduce-motion query | `41:30` StringLiteral→`''` | **Killed** (new) | With `window` stubbed, `matchMedia` receives exactly `'(prefers-reduced-motion: reduce)'`. Ask for the wrong feature and motion is never reduced. |
+| `NO_MOTION` is "motion allowed" | `51:43` BooleanLiteral→`true` | **Killed** (new) | No window in Node ⇒ an interval *is* created. |
+| `NO_MOTION`'s shape | `51:32` ObjectLiteral→`{}` | Survived — **equivalent** | `{}` makes `matches` `undefined`, which is falsy exactly like `false`; `reduced()` and `runnable` treat them identically. |
+| `NO_DOCUMENT`'s visibility | `45:20` StringLiteral→`''` | Survived — **equivalent** | `NO_DOCUMENT`'s `addEventListener` is a no-op, so `onVisibilityChange` is never called with that source; the field is never read. |
+| `matchMedia` absent but `window` present | `58:40` ConditionalExpression→false | Survived — **reachable gap** | Original returns `NO_MOTION`; the mutant calls `window.matchMedia(...)` and throws. Killing it needs a `window` stub with **no** `matchMedia` — see §Reachable residual gaps. Name: *an old engine that has `window` but no `matchMedia` must not throw*. |
+
+**Answer to the brief's question:** no surviving mutant can start a timer under reduced motion, keep
+one alive through a switch to reduced motion, or resurrect one after `stop()`. The one reachable
+survivor in this family (`58:40`) fails the *opposite* way — it throws where the code is meant to fall
+back — and is named with the assertion that would kill it.
+
+### Why the clock's own tests were the gap, not the aggregate
+
+Round 1 measured `clock-ticker.ts` at 44.44 % with **37 mutants at zero coverage**: `onMotionChange`,
+both default scheduling primitives, `defaultMotionQuery`, and the `stopped` flag were never executed by
+any test. The existing suite tested the timer's *creation* (AC-001-114) and its absence under reduced
+motion (AC-001-112), but never a *transition*. That is exactly the failure mode the brief warned about:
+a green aggregate hid a module where the reader's own preference change was untested.
 
 ---
 
-## Reachable residual gaps (98) — named with the assertion that would kill each
+## Equivalent mutants — no test can distinguish them
 
-Real gaps, not equivalents. They are recorded rather than chased because the refresh budget is two
-rounds, the gate is met, and **none of them sits on a published calculation** — they are guards,
-fallbacks, error text and provenance fields. Grouped by the single assertion that would kill each
-cluster.
+**128 non-killed mutants are equivalent or dead.** 111 were named in the previous report and are
+carried forward unchanged (the files and their mutant sets are byte-identical — the 33-file scope
+reproduces 91.69 % exactly); 17 are new and are named here in full.
+
+| File | Coordinates | Count | Why it cannot be killed |
+|---|---|---|---|
+| **`web/series/clock.ts`** | 49:7 (×3), 49:33 | **4** | `Number.isInteger` rejects every value the null/undefined guard rejects, so the guard cannot change any answer. Proof in §Guarantee 1. |
+| **`web/series/clock-ticker.ts`** | 51:32 | 1 | `{ matches: false }` → `{}` leaves `matches` `undefined`, which is falsy exactly like `false`. |
+| **`web/series/clock-ticker.ts`** | 45:20 | 1 | `NO_DOCUMENT.visibilityState` is never read: that stand-in's `addEventListener` is a no-op, so no `visibilitychange` ever reaches `onVisibilityChange`. |
+| **`web/series/clock-ticker.ts`** | 77:37 | 1 | `(typeof handle === 'object' && true)` differs only for a `null` handle, and `clearHandle` returns before calling `cancel` when the handle is `null` — the null never arrives. |
+| **`scripts/…3digit.ts`** | 43:7, 44:9, 45:11 | 3 | The `filesUnder` guard and its `catch` are shadowed: `walk` has its own `try/readdirSync/catch → []`, so for a file path and for a missing path both forms return `[]`. |
+| **`scripts/…3digit.ts`** | 32:11, 33:12 | 2 | `walk`'s own `catch → []` body: every path `walk` receives came from a successful `statSync`/`readdirSync` of its parent, so it cannot throw here in any reachable state. |
+| **`scripts/…3digit.ts`** | 48:10 (`.sort()` dropped) | 1 | The map's **values** (which file declared an id) are never read — both `checkTraceability` and the tests use `.keys()`/`.size`/`.has`, and the two report arrays are sorted independently. |
+| **`scripts/…3digit.ts`** | 54:30, 55:38 | 2 | `join(root, 'specs')`→`join(root, '')` and `'changes'`→`''` widen the walk to the root and to `docs/`; the `20-acceptance` filter and the one-pager scan still select exactly the same files in any layout whose acceptance directory is under `specs/` and whose archive is `docs/changes/`. Unobservable here; equivalent *for this repository's layout*, stated with that qualifier. |
+| **`scripts/…3digit.ts`** | 60:11 (`if (match[1])`→true) | 1 | The heading regex has a capture group, so `match[1]` is always a string when the pattern matched; the guard's other branch is unreachable. |
+| **`scripts/…3digit.ts`** | 72:11 (`if (!cited.has(id))`→true) | 1 | First-file-wins vs last-file-wins attribution; the map's values are never read (same reason as 48:10). |
+| `web/series/age-bands.ts` | 36:10 (`>=`→`>`) | 1 | 100 is a multiple of the band width, so both forms agree on every integer age. |
+| `web/series/age-structure.ts` | 139:73, 194:7, 194:50, 195:27, 260:53, 262:109 | 6 | Carried forward unchanged. |
+| `web/series/countdown.ts` | 59:7 (×2), 59:47, 99:41, 214:7, 247:17 | 6 | Carried forward unchanged. |
+| `web/ingest/run-series.ts` | 44:13, 56:13, 61:37 | 3 | Carried forward unchanged. |
+| `web/ingest/series-types.ts` | 20:10 | 1 | Carried forward unchanged. |
+| `web/ingest/series.ts` | 22:7, 22:8, 22:44, 28:12 | 4 | Carried forward unchanged. |
+| `web/ingest/figures.ts` | 33 (×3), 88 (×2), 244 (×2), 252 (×3), 261 | 11 | Carried forward unchanged (the F1 group is closed at 15/18; three equivalent). |
+| `web/ingest/run-compute.ts` | 65, 128 (+ dead 95, 209, 292, 347) | 6 | Carried forward unchanged. |
+| `web/ingest/validate-figure.ts` | 29, 122 (×2) | 3 | Carried forward unchanged. |
+| `web/ingest/write-derived.ts` | 6, 22 | 2 | Carried forward unchanged. |
+| `web/manifest/definitions.ts` | 36 (×3), 40, 152, 158, 166, 183, 231, 233 (×4), 254 (×2) | 15 | Carried forward unchanged. |
+| `web/manifest/validate.ts` | 145 (×8) | 8 | Carried forward unchanged. |
+| `web/manifest/hash.ts` | 14, 20 | 2 | Carried forward unchanged. |
+| `web/manifest/formula-ids.ts` | 19 | 1 | Carried forward unchanged. |
+| `web/metrics/npv.ts` | 40, 42, 65 (×7), 66, 86, 91 (+ dead 41 ×5) | 17 | Carried forward unchanged. |
+| `web/metrics/cohort-irr.ts` | 66 (×2) | 2 | Carried forward unchanged. |
+| `web/sources/labels.ts` | 6, 7, 18, 19, 29, 31, 33 (×4), 36 | 10 | Carried forward unchanged. |
+| `web/sources/countries.ts` | 64 (×2), 110 (×2) | 4 | Carried forward unchanged. |
+| `web/sources/live.ts` | 38 (×2), 54, 67 | 4 | Carried forward unchanged. |
+| `web/sources/ine.ts` | 23, 45, 50 | 3 | Carried forward unchanged. |
+| `web/sources/load.ts` | 39 | 1 | Carried forward unchanged. |
+| `web/sources/eurostat.ts` | 131 | 1 | Carried forward unchanged. |
+
+The carried-forward rows keep their original reasons; they are reproduced here rather than re-derived
+because the files are unchanged and the survivor coordinates are identical in both runs of this
+refresh.
+
+---
+
+## Reachable residual gaps — named with the assertion that would kill each
+
+**102 non-killed mutants are real gaps.** 98 were named in the previous report (older files, unchanged,
+carried forward — that table stands and is not reproduced in full here); 4 are new. None sits on a
+published calculation except where noted, and the four new ones are listed in full.
 
 | File | Mutants | Coordinates | What would kill it |
 |---|---|---|---|
-| `web/series/age-structure.ts` | 7 | 185:7 (×3), 185:30 (×2), 185:42, 186:27 | **A year whose `Total` row is missing or zero must be refused, not published as a panel of NaN.** `yearTotal`'s guard — and its throw body and message — has zero coverage: the one test that reaches a missing year (`computePyramid` with `demo_pjan` as the projection) throws earlier, in `resolveCategoryCode`, because that payload has no `projection` dimension. Assert `computePyramid({observed: payloadWithBandsButNoTotal, projected})` throws `/no total population for 1995/`. **Highest-value residual in this report.** |
-| `web/series/age-structure.ts` | 3 | 275:10, 275:81 (×2) | `openBandShare` — assert `openBandShare(value, 1900)` is `undefined` (the optional chain) and `openBandShare(value, 1995)?.band === OPEN_BAND` (the predicate). Today the open-band helper is only asserted `toBeDefined()` and `.total > 0`, which band 0 also satisfies. **Second-highest value** — it is the trap's own helper. |
-| `web/series/age-structure.ts` | 2 | 120:12, 126:7 | A payload publishing a fourth sex code (neither M/F/T) and one publishing `' Total '` with surrounding whitespace. |
-| `web/series/age-structure.ts` + `countdown.ts` | 3 | `age-structure` 128:7, 138:7; `countdown` 97:9 | A payload with a non-numeric `time` code (`Number('TOTAL')` → NaN) — the shared "not a year" guards. |
-| `web/series/countdown.ts` | 5 | 177:10, 217:7 (×3), 217:29 | **A back-cast whose projection side or observation side is missing must be `null`.** An observation whose latest year precedes the projection's first year (e.g. an observed payload carrying only 1995 against a series starting 2022). |
-| `web/series/countdown.ts` | 2 | 117:28 (×2) | A year whose 65+ count is `0` with the denominator present is skipped by `numerator > 0` — assert that year is absent. |
-| `web/series/countdown.ts` | 4 | 129:10, 130:25 (×2), 130:41 | A payload publishing a blank (`''`/`'  '`) projection code must be filtered out of `projectionVariants`. |
-| `web/series/countdown.ts` | 3 | 84:10, 136:42, 153:10 (×2) | `readDependencySeries(demo_pjan)` (no variant → `variant === null` branch), `firstYearAtOrAbove([{year: 2020, ratio: 50}], 50) === 2020` (exact-threshold equality), and `lastObservedYear(payload, 1900) === null` (empty filter). |
-| `web/ingest/run-series.ts` | 6 | 92:12 (×3), 92:36 (×3) | **`manifest.fetchedAt` must be the oldest source retrieval.** No assertion on `run-series`' manifest date exists (the figures equivalent, AC-001-01's "stamps the oldest source retrieval", covers `run-compute` only). Assert it equals the oldest of the three snapshots' `retrievedAt`, on snapshots whose timestamps differ. |
-| `web/ingest/run-series.ts` | 6 | 116:17, 116:18 (×2), 116:62, 116:76, 116:131 | **A series' `inputHash` must change when an input snapshot's bytes change** (AC-001-02 exists for figures, not for series). |
-| `web/ingest/run-series.ts` | 4 | 97:10, 136:24, 156:24, 194:104 | Duplicate source URLs are de-duplicated; an unavailable series carries `unresolvedSources` equal to its requirement list; a computed series carries `unresolvedSources: []` and no problems. |
-| `web/ingest/run-series.ts` | 2 | 212:15 | **The harness exit code.** `results.some(...)`→`every(...)`: run both `SERIES` with one snapshot broken and assert `exitCode === 1`. |
-| `web/ingest/run-series.ts` | 3 | 61:17, 182:13, 184:50 | The stale-snapshot detail names the age (`/days old/`); the manifest-invalid detail names the field and code; the unavailable reason is `'manifest did not validate'`. |
-| `web/ingest/run-series.ts` | 1 | 51:71 | An unresolved snapshot with no `unresolvedReason` falls back to `'series not specified'`. |
-| `web/ingest/run-series.ts` | 1 | 196:61 | A non-`Error` thrown from a series `compute`. |
-| `web/ingest/series.ts` | 4 | 44:23, 45:26, 48:15, 49:18 | The countdown assumptions when a variant does not cross and when the back-cast is null (the `variantsCrossing` filter and the two `backCast === null` branches). With the shipped data all six variants cross and the back-cast exists, so both are invisible. |
-| `web/manifest/definitions.ts` | 1 | 160 | The `old-age-dependency-ratio` **definition text** is not pinned anywhere (the `age-structure` one is, via AC-001-94). Assert it names the 15–64 denominator and the baseline projection. |
-| `web/manifest/validate.ts` | 6 | 29, 97 (×3), 98, 126 | `snapshotYear: 1900` / `2200` are accepted and the boundary rejections are named (`<=`/`>=` mutants survive); a manifest built without `snapshotYear` must not gain a `snapshotYear: undefined` key (assert `'snapshotYear' in manifest`); a non-array object with all-valid fields reaches `asRecord`'s `Array.isArray` operand. |
-| `web/ingest/run-compute.ts` | 8 | 162, 210, 216, 234, 249, 270, 294, 325 | Carried forward unchanged: the `missing` hash token, the `'; '` separator, a failure with no `sourceId`, and `unresolvedSources: []` on each computed path. |
-| `web/ingest/validate-figure.ts` | 2 | 57, 120 | Carried forward: a candidate with valid `availability` but no `figureId`, asserting `figureId: 'unknown'` in both problem lists. |
-| `web/sources/eurostat.ts` | 21 | 44, 49, 56, 58 (×4), 77, 102, 123 (×4), 124 (×2), 125, 199 (×2), 202, 207 (×2), 262 | Carried forward plus revision-2 additions: `IngestError.name`; a payload whose `dimension` is absent; a payload with `value` but no `id`/`size`; an ascending-order assertion on `pointsFor`' sort; **new** — a payload with two unit categories or a blank unit code (`resolveCountUnit`'s filter and `entries.length !== 1` guard). The 21-mutant `eurostat.ts` cluster remains the largest single residual and the best next target. |
-| `web/sources/load.ts` | 4 | 21, 32, 47, 48 | Carried forward: a file with neither `resolved` nor `payload`; `bytes` as a string; readdir order differing from sorted order; non-ASCII bytes. |
+| **`web/series/clock-ticker.ts`** | 1 | `58:40` | **An old engine with `window` but no `matchMedia` must not throw.** Stub `window` to `{}` (no `matchMedia`) and call `startClockTicker` with no `motionQuery`: the original answers `NO_MOTION` and schedules; the mutant calls `undefined()` and throws. This is the only survivor in the reduced-motion family and it fails safe-to-loud, not safe-to-silent. |
+| **`scripts/…3digit.ts`** | 1 | `44:46` | **A repository whose `tests` path is a file rather than a directory must yield an empty citation set, not a crash.** Fixture with `tests` as a file: original returns `[]`; the mutant returns `['Stryker was here']` and the next `readFileSync` throws. Contrived (1 mutant), recorded rather than chased. |
+| **`scripts/…3digit.ts`** | 1 | `123:3` ConditionalExpression→true | **Loading the module outside the gate must not run the gate.** The mutant forces `invokedAsScript` true, so any importer triggers `process.exit`. In an in-process suite this cannot be a *kill*: the mutant kills the test worker instead, which Stryker records as a runtime error (4 such records in every run). Structural, not a coverage hole. |
+| **`scripts/…3digit.ts`** | 1 | `69:44` (`'.ts'`→`''`) | **Killed by hand-probe, credited as survived by the tool.** Applying `['', '.tsx']` by hand makes the "*an id in a markdown note is not a citation*" test fail; I verified the mutation and its kill directly (`KILLED`, restored byte-identically). Stryker's scoped run credited it as survived, so the tool's 87.25 % is the conservative figure. |
+| `web/series/countdown.ts` | 20 | Unchanged from the previous report: `66:7` (×2), `91:10`, `104:9`, `124:28` (×2), `136:10`, `137:25` (×2), `143:42`, `160:10` (×2), `184:10`, `221:7`, `224:7` (×3), `224:29`, `255:17` | Carried forward unchanged — the previous report's table gives the assertion for each cluster. The `anchor` amendment itself is **fully killed** (Guarantee 1); these are revision-2 branches, not revision-3 ones. |
+| `web/series/age-structure.ts` | 14 | `185`, `275`, `120`, `126`, `128`, `138` clusters | Carried forward. Highest value remains the "no denominator" guard (7). |
+| `web/ingest/**`, `web/manifest/**`, `web/sources/**`, `web/metrics/**` | 64 | See the previous report's table | Carried forward unchanged: `run-series` provenance (12), `eurostat` unit/branch cluster (21), `npv` (15), `definitions` (14), `validate` (14), and the rest. |
+
+### Runtime errors (23) — excluded from the denominator, not untested behaviour
+
+22 of the 23 are one shape: a mutant that makes a module throw at *collection* time rather than fail an
+assertion (the `define({…})` figure table and its `figureId` literals, the `SERIES` / `SERIES_DEFINITIONS`
+table entries, and `figures.ts`'s 14). The 23rd is the wrapper's `123/125` guard described above. This
+is a `perTest` adjudication limit; by hand, mutating `figureId: 'fig-01'` to `''` fails 5 of the 14 tests
+in the files that most directly exercise the table.
 
 ---
 
-## Runtime errors (18) — excluded from the denominator, not untested behaviour
+## Wrapper gate (`scripts/check-scenario-traceability-3digit.ts`)
 
-Stryker records a runtime error (and drops the mutant from both numerator and denominator) when a
-mutant makes a suite throw at collection time rather than fail an assertion. All 18 are of one shape:
+This file is in scope because the brief made it so, and it needed two rounds of attention before its
+score meant anything.
 
-- `web/ingest/figures.ts` — 14, at each figure's `define({ … })` table entry (the argument object and
-  its `figureId` literal, 7 figures × 2). `define()` resolves the published definition at module load,
-  and several suites build their compute report at collection time.
-- `web/ingest/series.ts` — 2, at `seriesDefinitionFor('age-structure')` / `…('old-age-dependency-ratio')`
-  in the `SERIES` table (same shape, revision-2 file).
-- `web/manifest/definitions.ts` — 2, at `150` (the `SERIES_DEFINITIONS` table entry) and `173`
-  (`seriesDefinitionFor`'s throw, emptied).
+**Round 1 — 53.47 % (22 mutants at zero coverage).** `main()` and the `invokedAsScript` guard are only
+executed when the file *is* the process entry point. Every existing test either called
+`checkTraceability` directly or spawned the script as a **subprocess** — and Stryker instruments modules
+inside the test runner's process, so a subprocess run is invisible to it. The whole of `main()` was
+therefore a permanent zero, and the survivors were the two regexes, the acceptance-directory filter and
+the report ordering.
 
-This is a `perTest` adjudication limit, not a coverage hole: by hand, mutating `figureId: 'fig-01'` to
-`''` fails 5 of 14 tests in the two files that most directly exercise the figure table, and mutating
-the series definition id fails the manifest/hash suite. Three of them (`definitions.ts:152`/`158` and
-the `definitionId` field) are additionally dead fields — see the equivalent table.
+**Round 2 — 66.34 %, still below the line, with a measurement defect.** I added a CLI test that
+evaluates the module in-process by stubbing `process.exit` (throwing, so the code can be read out) and
+`vi.resetModules()`. It passed locally — and the run still credited 21 mutants as uncovered, because
+the test did not actually execute inside Stryker:
+
+1. it imported the module through an absolute `file://` URL, which Stryker's transform does not see
+   (the code ran; the mutation could not be observed), and
+2. it used `process.chdir()` to test the working-directory fallback, which **vitest workers forbid**
+   (`TypeError: process.chdir() is not supported in workers`, reproduced with `--pool=threads`). Under
+   the mutation harness that failed the file.
+
+So the 66.34 % in round 2's table is a defect in my test, not a property of the gate. **Say it plainly:
+on the run that produced the headline numbers, the wrapper was below 80 % and that number was wrong.**
+
+**Repair (test-only, enumerated):** a bare import specifier
+(`import('../../scripts/check-scenario-traceability-3digit')`), and the `chdir` test removed — its
+purpose was to kill the `?? process.cwd()` fallback, and an argument-mode assertion on the exact
+reported message kills that mutant anyway (a gate that ignored its argument would scan the repository
+and answer `119 scenarios`, not `1`). The file now passes under both pools (`--pool=threads`: 3/3).
+
+**Re-measurement (scoped to this one file, same tree, same tests, 2026-10-28T12:21:16Z →
+12:21:35Z): 87.25 % total, 89.90 % covered — 89 killed, 10 survived, 3 uncovered, 4 runtime errors.**
+The 22 previously-uncovered `main()` mutants are now measured and killed, including the exit-code
+contract (`process.exit(0)` on clean, `1` on dirty), the per-id error lines, the tally, and both
+`untested`/`unknown` conditions. The 13 remaining are 10 equivalents + 3 named residuals above.
+
+**Aggregate, recomputed:** substituting the repaired wrapper row into the round-2 run —
+killed `2515 − 67 + 89 = 2537` (+2 timeouts), surviving `204 − 13 + 10 = 201`, no-coverage
+`47 − 21 + 3 = 29`, runtime errors `23 − 5 + 4 = 22` — gives **(2537 + 2) / (2791 − 22) = 91.71 %**,
+and **92.66 %** over covered mutants. This is arithmetic on two measurements of the same tree, not a
+third run; both inputs are recorded with their commands and timestamps, and `reports/mutation/mutation.json`
+holds the full-scope run while `reports/mutation/mutation-wrapper.json` holds the scoped one.
 
 ---
 
 ## Tests added by this refresh
 
-**17 tests, in 1 new file. No existing test was modified, weakened, renamed or deleted. No production
-code was edited.**
+**32 tests in 3 new files; one of them removed again (net 31). No existing test was modified,
+weakened, renamed or deleted. No production code was edited.**
 
-`tests/unit/series-coverage-gaps.test.ts` — every test drives the real modules; the synthetic
-JSON-stat payloads are hand-built so that only one reading of the code can produce the expected
-answer (the committed snapshots are single-variant and ascending, so a lost filter or a lost sort is
-invisible through them).
-
-| # | Assertion | Mutants killed |
+| File | Tests | What they pin |
 |---|---|---|
-| 1 | `bandOfAgeLabel('105 years' / '120 years') === OPEN_BAND`, `'100 years' === OPEN_BAND` | 1 (Trap 1 saturation) |
-| 2 | `bandOfAgeLabel('  5  years ') === 5`, `'5  YEARS' === 5` | 1 (Trap 1 whitespace) |
-| 3 | `over65`/`under20` pinned per year: `14.98/25.14`, `20.72/18.40`, `32.68/16.00` (independently decoded from the committed snapshots) | 15 (the whole `readoutOf` block) |
-| 4 | `[year, state, hue]` per panel: `reference`, `measured`, `projected`; populations pinned | 5 |
-| 5 | `excludedLabels === ['Total', 'Unknown']` (published value) | — |
-| 6 | A two-variant projection reads **only** the pinned variant: totals 210, bands 22/41 | 2 (the projection filter, Trap 2-adjacent) |
-| 7 | `excludedLabels` comes back **sorted** for a payload whose age order is `Unknown` before `Total` | 1 |
-| 8 | The double-count message names both computed sums (`(2)` / `(3)`) | 1 (Trap 2 message) |
-| 9 | A year with a population total but no bands is refused: `/age band 0 is missing for 2050/` | 3 |
-| 10 | The ratio series is ascending, skips a year missing its denominator, and reads the `Total` row rather than the halves (50.00, not 57.14) and not the second variant (not 50.83) | 27 (incl. Trap 2 sex/variant guards) |
-| 11 | `observedDependency` answers `null` when the published denominator has no population | 2 |
-| 12 | `lastObservedYear` on a descending time axis answers 2025, not 2010 | 4 |
-| 13 | A baseline variant that never publishes a complete year is refused: `/no baseline dependency series/` | 2 |
-| 14 | `SERIES_IDS` / `SERIES_AVAILABILITY` closed sets; `isSeriesId` accepts both ids and rejects `'figure'`, `42`, `null` | 12 |
-| 15 | `seriesById` resolves both series and answers `undefined` for an unknown id | 1 |
-| 16 | The `age-structure` assumptions object, pinned field by field (bands, observedYears, projectedYear, variant, encoding, decimals, excludedLabels) | 13 |
-| 17 | The `countdown` assumptions object, pinned field by field (threshold, denominator, variant, snapshotYear, the six-variant `variantsCrossing` string, backCast, observation) | 38 |
+| `tests/unit/clock-coverage-gaps.test.ts` | 19 | The anchor boundary (`remaining <= 0` at exactly the anchor instant), an unparseable anchor never yielding NaN fields, 4-digit year padding, non-integer threshold years, the not-crossed value's `anchor: null`, `firstYearAtOrAbove`'s `>=` boundary, the reduced-motion **transition** in both directions, no thrash on a redundant event, `stop()` detaching the motion listener, teardown-race safety, the default media query and its string, the no-window fallback, the real `document`, handler recomputation, the real `setInterval`/`clearInterval` pair, numeric and object handles cleared exactly once, and no cancel for an interval never created. |
+| `tests/unit/scenario-traceability-sources.test.ts` | 9 | Which files declare a scenario (acceptance directory only; markdown only; `docs/changes` one-pagers are a source), that a heading must start its line and tolerates extra whitespace, that a citation is read from test source only (`.ts`/`.tsx`, not notes), and that both report arrays come back sorted. |
+| `tests/unit/scenario-traceability-cli.test.ts` | 3 | The exit contract: 0 + the exact message when clean; 1 + one line per uncited id + the tally; 1 + one line per unknown citation. `process.exit` is a throwing stub, so the code is read out rather than executed. |
+| *(removed before the final run)* | 1 | The working-directory fallback test — `process.chdir()` is unsupported in vitest workers, so it could not run under the mutation harness. Its mutant is still killed by the argument-mode message assertion. |
 
-**Kill verification (not inferred from the score).** Each assertion was probed by applying the
-mutation to the real source, running the new file, and restoring the file byte-identically
-(md5 compared before/after — all 13 probes reported `restored=True`):
+**Kill verification (not inferred from the score).** Eleven probes, each applied to the real source and
+restored byte-identically (md5 compared; all 11 `restored=True`):
 
 ```
-KILLED    band saturation (36:10 CondExpr->false)          (restored=True)
-KILLED    whitespace tolerance (22:27 Regex)               (restored=True)
-KILLED    sex-sum message operand (176:57)                 (restored=True)
-KILLED    over65 predicate (232:27)                        (restored=True)
-KILLED    projection filter removed (136:7)                (restored=True)
-KILLED    excludedLabels sort (163:82)                     (restored=True)
-KILLED    optional chaining (192:17)                       (restored=True)
-KILLED    sex guard removed (83:7)                         (restored=True)
-KILLED    year sort comparator (119:11)                    (restored=True)
-KILLED    observed-year bound (152:75)                     (restored=True)
-KILLED    denominator guard (172:10)                       (restored=True)
-KILLED    empty-baseline throw (240:7)                     (restored=True)
-KILLED    observedYears assumption (29:49)                 (restored=True)
+KILLED    clock.ts 51 padStart fill '0'->''                     (restored=True)
+KILLED    clock.ts 65 remaining<=0 -> <0                        (restored=True)
+KILLED    clock.ts 65 !isFinite removed                         (restored=True)
+KILLED    ticker 111 scheduled handler -> noop                  (restored=True)
+KILLED    ticker 168 stopped=true -> false                      (restored=True)
+KILLED    ticker 125 reduced-motion clear branch -> skip        (restored=True)
+SURVIVED* ticker 101 elapsed guard -> true                      (restored=True)
+KILLED    wrapper 69 '.ts'->'' (every file cites)               (restored=True)
+KILLED    wrapper 91 untested sort removed                      (restored=True)
+KILLED    wrapper 54 acceptance-directory filter removed         (restored=True)
+KILLED    wrapper 106 summary condition || -> &&                (restored=True)
+KILLED    wrapper 113 success message emptied                    (restored=True)
 ```
+
+\* `ticker 101` survived *this file* only; the mutation is killed by `clock.test.ts`'s AC-001-115
+("no timer runs once the anchor has passed"), which the probe did not run. Recorded so the table is not
+read as a gap.
 
 ---
 
@@ -3004,27 +3300,30 @@ KILLED    observedYears assumption (29:49)                 (restored=True)
 
 command: npx stryker run
 exit: 0
-at: 2026-10-26T14:27:38Z
+at: 2026-10-28T12:15:17Z
 
 ```
-series                   |  89.20 |   91.03 |      355 |         0 |         35 |        8 |        0 |
-  age-bands.ts           |  97.62 |   97.62 |       41 |         0 |          1 |        0 |        0 |
-  age-structure.ts       |  87.58 |   90.97 |      141 |         0 |         14 |        6 |        0 |
-  countdown.ts           |  88.72 |   89.64 |      173 |         0 |         20 |        2 |        0 |
-ingest                   |  91.79 |   93.06 |      738 |         0 |         55 |       11 |       16 |
-sources                  |  90.38 |   90.93 |      450 |         1 |         45 |        3 |        0 |
-manifest                 |  93.59 |   93.96 |      482 |         0 |         31 |        2 |        2 |
-metrics                  |  93.62 |   94.26 |      278 |         1 |         17 |        2 |        0 |
-All files                 |  91.69 |   92.64 |     2303 |         2 |        183 |       26 |       18 |
-MutationTestExecutor  Done in 24 minutes and 18 seconds.
-EXIT=0
+ scripts                                |  66.34 |   83.75 |       67 |         0 |         13 |       21 |        5 |
+  check-scenario-traceability-3digit.ts |  66.34 |   83.75 |       67 |         0 |         13 |       21 |        5 |
+ web                                    |  91.86 |   92.77 |     2448 |         2 |        191 |       26 |       18 |
+  content                               | 100.00 |  100.00 |        1 |         0 |          0 |        0 |        0 |
+   budgets.ts                           | 100.00 |  100.00 |        1 |         0 |          0 |        0 |        0 |
+  ingest                                |  91.79 |   93.06 |      738 |         0 |         55 |       11 |       16 |
+  manifest                              |  93.59 |   93.96 |      482 |         0 |         31 |        2 |        2 |
+  metrics                               |  93.62 |   94.26 |      279 |         1 |         17 |        2 |        0 |
+  series                                |  90.73 |   92.07 |      499 |         0 |         43 |        8 |        0 |
+   clock-ticker.ts                      |  95.96 |   95.96 |       95 |         0 |          4 |        0 |        0 |
+   clock.ts                             |  92.45 |   92.45 |       49 |         0 |          4 |        0 |        0 |
+  sources                               |  90.38 |   90.93 |      451 |         1 |         45 |        3 |        0 |
+ All files                              |  90.93 |   92.50 |     2515 |         2 |        204 |       47 |       23 |
+ MutationTestExecutor  Done in 27 minutes and 37 seconds.
+ EXIT=0
 ```
 
-Scope: **33 files, 2532 mutants** under `web/metrics/**`, `web/manifest/**`, `web/sources/**`,
-`web/ingest/**` and `web/series/**`. Threshold for this tier: ≥ 80 %. Achieved **91.69 % total /
-92.64 % covered**. `EXIT=0`; `thresholds.break` is `null`, so a non-zero exit would have meant a tool
-failure, not a threshold miss — the verdict is asserted in this report, not delegated to the CLI. This
-is the round-2 run, i.e. the tree described here.
+38 files, 2791 mutants, `EXIT=0`. `thresholds.break` is `null`, so a non-zero exit would have meant a
+tool failure rather than a threshold miss — the verdict is asserted in this report, not delegated to
+the CLI. Round-1 baseline, same command, same scope, at 2026-10-28T11:41:05Z: **88.55 % / 91.35 %**,
+`killed 2449, timeout 2, survived 232, no-coverage 85, runtime errors 23`.
 
 ---
 
@@ -3032,16 +3331,32 @@ is the round-2 run, i.e. the tree described here.
 
 command: python3 -c "import json,collections; d=json.load(open('reports/mutation/mutation.json')); c=collections.Counter(m['status'] for p,f in d['files'].items() if p.startswith('web/series/') for m in f['mutants']); t=sum(c.values()); k=c['Killed']+c['Timeout']; print('web/series/**', dict(c), 'mutants', t); print('score %.2f covered %.2f' % (k/(t-c['RuntimeError'])*100, k/(t-c['RuntimeError']-c['NoCoverage'])*100))"
 exit: 0
-at: 2026-10-26T14:32:01Z
+at: 2026-10-28T12:16:40Z
 
 ```
-web/series/** {'NoCoverage': 8, 'Killed': 355, 'Survived': 35} mutants 398
-score 89.20 covered 91.03
+web/series/** {'Killed': 499, 'Survived': 43, 'NoCoverage': 8} mutants 550
+score 90.73 covered 92.07
 ```
 
-Reported separately, as asked, so the new code is not diluted by the 2134 older mutants: **89.20 %**
-after this refresh, **77.39 %** on first measurement. The round-1 figure is the finding; the round-2
-figure is what the shipped tests support.
+Reported separately, as asked, so the new clock is not diluted by the 2241 older mutants: **90.73 %**
+after this refresh, **81.09 %** (clock-ticker 44.44 %) on first measurement.
+
+---
+
+## Evidence: wrapper score (measured separately, after the test repair)
+
+command: npx stryker run --mutate "scripts/check-scenario-traceability-3digit.ts"
+exit: 0
+at: 2026-10-28T12:21:35Z
+
+```
+ check-scenario-traceability-3digit.ts |  87.25 |   89.90 |       89 |         0 |         10 |        3 |        4 |
+ MutationTestExecutor Done in 19 seconds.
+```
+
+106 mutants, 4 runtime errors excluded. The same file measured **66.34 %** in the full run above, and
+**53.47 %** at round-1 baseline; §Wrapper gate explains both figures and why the 87.25 % is the one
+that describes the gate.
 
 ---
 
@@ -3049,17 +3364,18 @@ figure is what the shipped tests support.
 
 command: npx vitest run
 exit: 0
-at: 2026-10-26T14:30:03Z
+at: 2026-10-28T12:25:38Z
 
 ```
  RUN  v5.0.5 /home/dbueno/projects/pensions-system
 
- Test Files  41 passed (41)
-      Tests  522 passed (522)
+ Test Files  51 passed (51)
+      Tests  630 passed (630)
 ```
 
-**522 tests across 41 files, exit 0**, none skipped or disabled — the Verifier's 505 plus the 17 this
-refresh added. This is the final run, executed after all mutation work and after the build.
+**630 tests across 51 files, exit 0**, none skipped or disabled — the Verifier's 599, plus this stage's
+32, minus the one it removed again. This is the final run, executed after all mutation work and after
+the build.
 
 ---
 
@@ -3067,24 +3383,25 @@ refresh added. This is the final run, executed after all mutation work and after
 
 command: npm run build
 exit: 0
-at: 2026-10-26T14:30:16Z
+at: 2026-10-28T12:25:26Z
 
 ```
 > pensions-system@0.0.0 prebuild
-> tsx scripts/verify-derived.ts && tsx scripts/check-content-scope.ts && tsx scripts/check-public-vocabulary.ts
+> tsx scripts/verify-derived.ts && tsx scripts/check-content-scope.ts && tsx scripts/check-public-vocabulary.ts && tsx scripts/check-scenario-traceability-3digit.ts
 
 derived figures verified: 7 (2 computed, 5 unavailable)
 derived series verified: 2
 country scope gate: clean (5 locales)
 public vocabulary gate: clean (5 locales)
+scenario traceability (2-3 digit ids): 119 scenarios, all cited, all citations resolve
 
-✓ Compiled successfully in 579ms
-✓ Generating static pages using 11 workers (21/21) in 1046ms
+> pensions-system@0.0.0 build
+> next build
+✓ Compiled successfully in 570ms
+✓ Generating static pages using 11 workers (17/17) in 775ms
 ```
 
-`npx tsc --noEmit` exit 0 at 2026-10-26T14:30:07Z (no output). `npm run verify:derived` exit 0 at
-2026-10-26T14:30:24Z (`derived figures verified: 7 (2 computed, 5 unavailable)` / `derived series
-verified: 2`).
+`npx tsc --noEmit` exit 0 at 2026-10-28T12:23:39Z (no output).
 
 ---
 
@@ -3092,33 +3409,46 @@ verified: 2`).
 
 command: npx eslint .
 exit: 0
-at: 2026-10-26T14:30:09Z
+at: 2026-10-28T12:22:59Z
 
 ```
 (no output — clean)
 ```
 
-`eslint.config.mjs` enforces `complexity: ['error', 6]`. Clean across the whole tree, including the
-revision-2 series modules and the new test file (its payload builders were factored into small
-helpers — `positionsOf`, `flatIndexOf`, `jsonStat` — to stay inside the limit).
+`eslint.config.mjs` enforces `complexity: ['error', 6]`. Clean across the whole tree, including the new
+test files (their payload/fixture builders are small helpers — `tree`, `fakeMotion`, `fakeDocument`,
+`recorder`, `runCli` — each well under the limit).
+
+*Operational note:* `eslint .` fails with 400+ `tsconfigRootDir` parse errors whenever a Stryker sandbox
+is left under `.stryker-tmp/`, because two `tsconfig.json` roots become candidates. The directory was
+removed before this run; it is a Stryker leftover, not a code finding, and it is gitignored.
 
 ---
 
 ## Evidence: scenario traceability (re-run, unaffected)
 
+command: npx tsx scripts/check-scenario-traceability-3digit.ts
+exit: 0
+at: 2026-10-28T12:22:52Z
+
+```
+scenario traceability (2-3 digit ids): 119 scenarios, all cited, all citations resolve
+```
+
+The upstream shared gate, run for comparison:
+
 command: .standards/scripts/check-scenario-traceability.sh --json
 exit: 0
-at: 2026-10-26T14:30:12Z
+at: 2026-10-28T12:23:41Z
 
 ```
-{ "checks": [1, 2], "passes": ["AC-001-01 — traced to a test", …, "AC-001-99 — traced to a test"], "fails": [] }
+{"checks":[1,2],"passes":["AC-001-01 — traced to a test", … "AC-001-99 — traced to a test"],"fails":[]}
 ```
 
-99/99 scenarios visible to the gate still traced, `fails: []`, check 2 clean. **Same disclosed
-limitation as the Verifier's revision-2 record:** the gate's regexes are `AC-[0-9]{3}-[0-9]{2}`, so
-`AC-001-100`…`AC-001-107` (three-digit suffix) are invisible to both checks; the Verifier confirmed by
-grep that all 107 headings exist and all 107 are cited by a test. The new tests cite no new scenario
-id (they pin behaviour already covered by AC-001-93/94/95/98/99/100/101), so the count is unchanged.
+99 of 119 — the upstream `AC-\d{3}-\d{2}` regex cannot see `AC-001-100`…`-119`; the repo-local wrapper
+covers exactly that range and reports 119. Both transcripts are recorded so the blind spot is not
+hidden by the wrapper. The new tests cite no new scenario id — they pin behaviour already covered by
+AC-001-108/110/112/114/115/119 — so neither count changed.
 
 ---
 
@@ -3126,26 +3456,22 @@ id (they pin behaviour already covered by AC-001-93/94/95/98/99/100/101), so the
 
 command: .standards/scripts/check-audit-trail.sh 001-pension-math
 exit: 0
-at: 2026-10-26T14:32:19Z
+at: 2026-10-28T12:25:31Z
 
 ```
 PASS 001-pension-math: 10-tasks.md present and non-empty
-PASS 001-pension-math: 20-acceptance/ has an AC-*.md with a '## AC-NNN-NN' heading (AC-015-10)
+PASS 001-pension-math: 20-acceptance/ has an AC-*.md with a '## AC-NNN-NN' heading
 PASS 001-pension-math: 25-verification.md present and non-empty
 PASS 001-pension-math: 30-report.md present and non-empty
-PASS 001-pension-math: 15-design.md present and non-empty (AC-015-13)
-PASS 001-pension-math: 40-deploy.md present and non-empty (AC-031-18)
-PASS 001-pension-math: evidence block 'scenario traceability' — … at: 2026-10-25T22:38:30Z
-PASS 001-pension-math: evidence block 'full test suite' — … at: 2026-10-25T22:39:00Z
-PASS 001-pension-math: evidence block 'complexity gate' — … at: 2026-10-25T22:40:00Z
-PASS 001-pension-math: evidence block 'design-principles gate' — … at: 2026-10-25T22:42:00Z
-PASS 001-pension-math: evidence block 'scenario-to-behavior spot check' — … at: 2026-10-25T22:44:00Z
+PASS 001-pension-math: 15-design.md present and non-empty
+PASS 001-pension-math: 40-deploy.md present and non-empty
+PASS 001-pension-math: evidence block 'scenario traceability'
+PASS 001-pension-math: evidence block 'full test suite'
+PASS 001-pension-math: evidence block 'complexity gate'
+PASS 001-pension-math: evidence block 'design-principles gate'
+PASS 001-pension-math: evidence block 'scenario-to-behavior spot check'
 ✔ Audit-trail check: specs/001-pension-math complete, verifier evidence recorded.
 ```
-
-The gate reads the Verifier's five evidence blocks (the revision-1 blocks remain first in
-`25-verification.md`; the revision-2 blocks appended there use the same heading strings). Stage 5b's
-pre-push run will not block on it.
 
 ---
 
@@ -3153,112 +3479,112 @@ pre-push run will not block on it.
 
 - **Cyclomatic complexity ≤ 6:** `eslint.config.mjs` enforces `complexity: ['error', 6]`; ESLint
   exits 0 on the whole tree (re-confirmed above).
-- **Duplication:** `check-code-principles.sh --tier production` reports **0 DRY FAILs** (the Verifier's
-  revision-2 attempt-2 run: 1 FAIL total, 42 WARNs).
-- **Design-principles gate (Verifier's revision-2 attempt 2, PASS for the deliverable):** exit 1 with
+- **Duplication:** `check-code-principles.sh --tier production` reports **0 DRY FAILs** in project
+  source (the Verifier's revision-3 run: 1 FAIL total, 43 WARNs).
+- **Design-principles gate (Verifier's revision-3 attempt 1, PASS for the deliverable):** exit 1 with
   **exactly one FAIL** — `./.standards/skills/hallmark/site/examples/cobalt-01/script.js:7` (`CC=10`),
   inside the `.standards/` submodule, out of scope and off-limits to pipeline agents. **Zero FAILs in
-  project source.** The attempt-1 `component-per-file` FAIL on `app/(public)/[locale]/page.tsx` was
-  resolved by the Refactorer's page→layout move and is gone (`PASS Component-per-file: no
-  violations`). 42 WARNs recorded (29 project-source KISS/DRY review hints incl. the new
-  `PyramidPlate`/`CountdownBlock` bodies, 13 `.standards` template WARNs) — WARN-level, not blocking,
-  per the Stop-and-Ask matrix ("Design gate WARN → record, do not stop").
+  project source.**
+- **WARNs (43, unchanged):** 29 project-source KISS/DRY review hints — including revision 3's
+  `CountdownClock.tsx:56` (`KISS_LINES=42`) and `CountdownBlock.tsx` (`KISS_LINES=45`) — plus
+  `.standards` template WARNs. WARN-level, not blocking, per the Stop-and-Ask matrix. **This stage adds
+  none:** every new helper is under 20 lines.
 - **Property tests:** `tests/unit/properties.test.ts` uses `fast-check`; 0 property-test FAILs.
-- **WARN-level, carried forward unchanged:** the project-source KISS/DRY WARNs. This stage adds none:
-  the new test file's helpers are each under 20 lines.
 
 ---
 
 ## What this stage did not touch
 
-- **No production code was edited.** The revision-2 modules are the Coder's and Refactorer's work;
-  this stage measured them (and temporarily mutated them for kill verification, restoring each file
-  byte-identically — md5 compared, 13/13 restored).
-- **No existing test was edited.** The 505 tests the Verifier passed are byte-identical; this stage
-  added one file.
-- **No gate config was changed except the scope.** `stryker.config.mjs`'s `mutate` globs gained
-  `web/series/**/*.ts` — a widening, which can only make the gate harder. Thresholds, mutators,
-  `ignorePatterns`, `eslint.config.mjs`, `vitest.config.ts` and `.gitignore` are untouched. No
-  `// Stryker disable` comment was added anywhere.
-- **Nothing outside the allowed surface was edited.** `specs/**` changed only in this file; `.standards/**`
-  is untouched.
+- **No production code was edited.** Revision 3's modules are the Coder's and Refactorer's work; this
+  stage measured them. Three source files were mutated in place *for kill verification only* and
+  restored byte-identically (md5 compared; 11/11 `restored=True`).
+- **No existing test was edited, weakened, renamed or deleted.** The 599 tests the Verifier passed are
+  byte-identical.
+- **No mutator, threshold or gate was changed.** `stryker.config.mjs` gained two `mutate` entries and
+  lost `specs` from `ignorePatterns` (all three enumerated in §Mutation configuration, all three
+  required by the brief's own scope instruction). `eslint.config.mjs`, `vitest.config.ts`,
+  `tsconfig.json` and `.gitignore` are untouched. No `// Stryker disable` comment was added anywhere.
+- **Nothing outside the allowed surface was edited.** `specs/**` changed only in this file;
+  `.standards/**` is untouched.
 - **Nothing was committed or pushed.** That is stage 5b's job.
-- `reports/mutation/mutation.json` is left in place as the machine-readable evidence for this report;
-  `.stryker-tmp/` is gitignored and cleaned by the run.
+- `reports/mutation/mutation.json` (full-scope round 2) and `reports/mutation/mutation-wrapper.json`
+  (wrapper re-measurement) are left as the machine-readable evidence; `.stryker-tmp/` is gitignored and
+  was removed so the `eslint` gate is not poisoned by a second tsconfig root.
 
 ---
 
 ## Remediation record
 
-**Stage 5a, this refresh: none** — no BLOCK occurred during this stage. The mutation gate never
-reported BLOCK; the two rounds were a baseline plus one test-strengthening pass, not a fix-and-retry
-loop against a failing gate. Both rounds exited 0. The below-threshold round-1 reading on
-`web/series/**` was closed inside this stage's own budget, not by handing a BLOCK to another stage.
+**Stage 5a, this refresh: none — no BLOCK occurred.** The mutation gate never reported BLOCK. Two rounds
+produced scores (baseline, then one test batch), both exit 0; the below-threshold readings in round 1
+(`web/series/**` 81.09 % with `clock-ticker.ts` at 44.44 %, and the wrapper at 53.47 %) were closed
+inside this stage's own budget, not by handing a BLOCK to another stage. The wrapper's second
+below-threshold reading (66.34 %) was a defect in the test this stage wrote, not a gate failure, and was
+repaired here; both figures are recorded rather than the repaired one alone.
 
 **Carried forward from `25-verification.md` (read, not guessed or invented):**
 
 | Phase | Attempt | Trigger | Outcome |
 |---|---|---|---|
 | 1 (pre-PR) | 1 | first full run | PASS |
-| 1 (pre-PR) | 2 | finding F1 (this stage's first report) — `centralCellOf` compared a deflated rate to a nominal band centre | PASS after the Coder's fix; three pre-existing assertions adjudicated legitimate (1 shape pin, 2 that encoded the defect). Budget state at that attempt: `SPEC_LOOP_COUNT=1`, `SPEC_PHASE1_RETRIES=1`, `SPEC_PHASE2_RETRIES=0` |
-| 1 (pre-PR) | 3 | hero ladder swap + percent-scale fix | PASS; `SPEC_LOOP_COUNT=2`, `SPEC_PHASE1_RETRIES=2`, `SPEC_PHASE2_RETRIES=0` |
-| 2 (post-PR CI) | 1 | six `backend-ci-go` checks on a TypeScript-only repo (`##[error]The specified go version file at: go.mod does not exist`) | FAIL — routed to the repo owner (CI config, not spec code) |
-| 2 (post-PR CI) | 2 | `ci.yml` fixed in `68f6e64` (Go workflow removed) | PASS — phase-2 budget 2 of 3 used |
+| 1 (pre-PR) | 2 | finding F1 (a `centralCellOf` defect from this stage's first report) | PASS after the Coder's fix; three pre-existing assertions adjudicated legitimate |
+| 1 (pre-PR) | 3 | hero ladder swap + percent-scale fix | PASS; `SPEC_LOOP_COUNT=2`, `SPEC_PHASE1_RETRIES=2` |
+| 2 (post-PR CI) | 1 | six `backend-ci-go` checks on a TypeScript-only repo (`go.mod` does not exist`) | FAIL — routed to the repo owner (CI config, not spec code) |
+| 2 (post-PR CI) | 2 | `ci.yml` fixed in `68f6e64` | PASS — phase-2 budget 2 of 3 |
+| 1 (pre-PR, revision-2 cycle) | 1 | `component-per-file` FAIL introduced by T19's `generateMetadata` | FAIL |
+| 1 (pre-PR, revision-2 cycle) | 2 | `dynamicParams` moved to `[locale]/layout.tsx` | PASS |
+| 1 (pre-PR, revision-3 cycle) | 1 | revision 3 + the four defect fixes | **PASS** — `SPEC_LOOP_COUNT=4`, `SPEC_PHASE1_RETRIES=0` (scope-cycle reset), `SPEC_PHASE2_RETRIES=2` |
 
-**Revision-2 scope cycle** (a new cycle: `SPEC_PHASE1_RETRIES` reset to 0 for it, as the Verifier
-documents and justifies; `SPEC_LOOP_COUNT=3`, `SPEC_PHASE2_RETRIES=2` carried forward):
-
-| Phase | Attempt | Trigger | Outcome |
-|---|---|---|---|
-| 1 (pre-PR, cycle 2) | 1 | first revision-2 run | **FAIL** — design-principles gate: `Component-per-file: ./app/(public)/[locale]/page.tsx exports 5 functions/components (threshold: ≤4)`, newly introduced by T19's `generateMetadata` |
-| 1 (pre-PR, cycle 2) | 2 | `dynamicParams` moved to a new `[locale]/layout.tsx` (page back to 4 exports) | **PASS** — component-per-file clean, 505 tests, route config re-verified |
-
-So: **two Phase 1 BLOCKs in revision 1** (resolved at attempts 2 and 3 of the original cycle) and
-**one Phase 1 BLOCK in revision 2** (resolved at attempt 2 of the new scope cycle). **Phase 2: two
-attempts, one FAIL one PASS.** Phase 3 (deploy verification) has not run. The orchestrator supplied no
-loop summary beyond `25-verification.md`'s attempt headers; none is inferred here.
+So, from the verification record: **two Phase 1 BLOCKs in revision 1** (attempts 2 and 3 of the original
+cycle), **one Phase 1 BLOCK in revision 2** (attempt 2 of its cycle), and **none in the revision-3
+cycle** (attempt 1 passed). **Phase 2: two attempts, one FAIL one PASS.** Phase 3 (deploy verification)
+has not run. The orchestrator supplied no loop summary beyond `25-verification.md`'s attempt headers;
+none is inferred here.
 
 ---
 
 ## Flagged to the next stage
 
-1. **The 93.83 % figure is retired.** It described pre-revision-2 code. The current tree is
-   **91.69 %** over 33 files / 2532 mutants, and `web/series/**` is **89.20 %** on its own.
-2. **`web/series/**` is above the line now but was not on first measurement (77.39 %).** If a later
-   revision adds calculation code to `web/series/`, re-measure it separately before trusting the
-   aggregate — the whole point of the split figure.
-3. **The two traps are covered — but two of their assertions had been weaker than the surrounding
-   prose claimed.** `over65`/`under20` had no value assertion (15 mutants), and the dependency ratio
-   was only ever exercised on a payload whose sex halves reconcile, which makes a sex-summing bug
-   arithmetically invisible. Both are now explicit.
-4. **Highest-value residual: `age-structure.ts`'s "no denominator" guard (7 mutants)** — a year
-   publishing bands but no `Total` row is currently untested, and that is the guard that stops a
-   division by a missing population. Second: the `openBandShare` predicate (3 mutants), which is the
-   open-band trap's own helper.
-5. **`web/ingest/run-series.ts` is at exactly 80.00 %** with the largest cluster (12 mutants) in
-   provenance fields — the series manifest's `fetchedAt` and `inputHash` have no value assertions at
-   all, while the figures' equivalents do. That is a genuine gap in the series' provenance contract,
-   not a defensive branch.
-6. **`web/manifest/validate.ts:29`** — a manifest built without `snapshotYear` may now carry a
-   `snapshotYear: undefined` key without any test noticing (`toEqual` ignores undefined properties).
-7. **Carried forward unchanged from the Verifier**: 42 project-source WARNs (KISS method bodies above
-   20 lines, DRY 4-line blocks — now including `PyramidPlate` and `CountdownBlock`) and one
-   out-of-scope FAIL inside `.standards/`.
-8. **`25-verification.md`'s revision-2 attempt-2 block is the verification of record** for the tree
-   this report measures. If code changes again before stage 5b, this report is stale and must be
-   re-run — the mutation score is a property of a tree, not of a spec number.
+1. **Revision 3's calculation surface is measured and above the line**: `web/series/**` 90.73 %,
+   `clock-ticker.ts` 95.96 %, `clock.ts` 92.45 %, `countdown.ts` 88.72 %, `budgets.ts` 100 %. The clock
+   was the weak point at first measurement (44.44 %) and the gap was a real one: no test had ever
+   registered the reduced-motion `change` listener.
+2. **Four mutants survive inside the clock's null-threshold guard (`clock.ts:49`) and are provably
+   equivalent.** They cannot produce an anchor for a missing year; `Number.isInteger` is what enforces
+   it. If a later revision removes that line-50 check, the guarantee must be re-measured — the guard
+   alone was never carrying it.
+3. **The wrapper's headline number must be read with §Wrapper gate open.** 87.25 % is the honest figure
+   for the gate; 66.34 % is what the same run measured while the CLI test could not execute. The 13
+   remaining are 10 equivalents and 3 named residuals (one of which, `69:44`, a hand-probe shows is
+   actually killed).
+4. **`web/series/countdown.ts` did not move (88.72 %).** Its 20 survivors are revision-2 branches —
+   threshold boundaries, blank projection codes, missing-denominator years — carried from the previous
+   report with the assertions that would kill each. The `anchor` amendment itself is fully killed.
+5. **The largest single residual is still `web/sources/eurostat.ts`** (20 survivors, `resolveCountUnit`
+   and payload-shape clusters), unchanged.
+6. **`web/ingest/run-series.ts` remains at exactly 80.00 %**, with the series manifest's `fetchedAt` and
+   `inputHash` still lacking value assertions — a genuine provenance gap, carried forward.
+7. **Operational:** running Stryker leaves `.stryker-tmp/` behind often enough that `eslint .` fails on
+   a duplicate tsconfig root. Remove it before any gate run, or the lint gate reports 400+ phantom
+   errors. Worth fixing in the harness rather than in a future agent's memory.
+8. **`25-verification.md`'s revision-3 attempt-1 block is the verification of record** for the tree this
+   report measures. If code changes again before stage 5b, this report is stale and must be re-run — the
+   mutation score is a property of a tree, not of a spec number.
 
 ---
 
 **Verdict: GREEN**
 
-Mutation score **91.69 % total / 92.64 % covered** on the expanded 33-file scope (2532 mutants:
-2305 killed or timed out, 183 survived, 26 uncovered, 18 runtime errors excluded by the tool), with
-**89.20 %** measured separately on `web/series/**` (was 77.39 % at round-1 baseline; the gate is met
-and both encoding traps are killed). 111 of the 209 non-killed mutants are equivalent or dead and are
-named above; the 98 reachable residuals are grouped with the assertion that would kill each. F1 remains
-closed (15/18, three equivalent). Final suite **522/522 across 41 files**, app builds (21/21 static
-pages), `tsc` and ESLint clean, traceability 99/99 visible to the gate.
+Mutation score **91.71 % total / 92.66 % covered** on the 38-file scope (2791 mutants: 2539 killed or
+timed out, 201 survived, 29 uncovered, 22 runtime errors excluded by the tool), measured as
+**90.93 % / 92.50 %** before the wrapper's measurement was repaired. **`web/series/**` is 90.73 %**
+(550 mutants; 81.09 % at baseline, clock-ticker 44.44 % → 95.96 %), **the wrapper is 87.25 %** on its
+repaired measurement (66.34 % as the full run measured it, defect explained), and **`budgets.ts` is
+100 %**. 128 of the 230 non-killed mutants are equivalent or dead and are named with the reason; the 102
+reachable residuals are named with the assertion that would kill each. The clock's null-threshold and
+reduced-motion branches are analysed specifically above: no surviving mutant can render or tick a clock
+without an anchor, or tick under reduced motion. Final suite **630/630 across 51 files**, app builds
+(17/17 static pages), `tsc` and ESLint clean, traceability 119/119.
 
 ---
 
@@ -3266,21 +3592,10 @@ pages), `tsc` and ESLint clean, traceability 99/99 visible to the gate.
 
 PR: https://github.com/RexiAI/pensions-system/pull/3
 
-Commits: 16 (one per task T1–T16; 17 including the previous record commit), carried forward from the
-previous report — this refresh has not committed or pushed anything. Revision 2's work (T17/T18/T19,
-R3/R5/R6) is still uncommitted on the working tree and belongs to stage 5b, which will add it to the
-same `spec/001-pension-math` branch. The spec is **not** archived in this PR: `scripts/archive-spec.sh`
+Commits: 16 (one per task T1–T16), carried forward — this refresh has not committed or pushed anything.
+Revision 3's work (T20, T21, the four fixes, this stage's tests and config change) is still uncommitted
+on the working tree and belongs to stage 5b. The spec is **not** archived in this PR: `scripts/archive-spec.sh`
 is stage 5d, which runs after stage 5c's deploy verification.
-
-Revision 2 record (stages 5b + 5d, appended after the PR was already open):
-
-PR: https://github.com/RexiAI/pensions-system/pull/3
-
-Commits: 9 on `spec/001-pension-math` for revision 2 (T17, T18, T19, the R6 fix, the
-`dynamicParams` refactor, the mutation-gap tests, the revision-2 spec record, the re-archive of
-this file, and this record commit); 29 on the branch against `main` in total. Revision 2's spec is
-archived **in this same PR**: `docs/changes/001-pension-math.md` replaces the pre-revision
-one-pager and `specs/001-pension-math/` no longer exists on the branch.
 
 ## 15-design.md
 
@@ -4835,6 +5150,545 @@ Five additions, plus two rendering invariants. Scenario numbers start at `AC-001
 10. **A warm section ground for the demography block.** Reason: grounds encode register. A fourth tint would dilute a system that currently works precisely because there are exactly three, and the block is an instrument, which already has a ground.
 11. **An alternative projection variant rendered side by side as a fourth panel.** Reason: it is the most tempting addition and it would be decoration dressed as rigour. The uncertainty is stated as a range beside the number; six panels of "what if" would bury the one shape that makes the argument.
 
+
+## Revision 3: the anchor and the paper
+
+Product-owner review of the deployed revision 2 (2026-10-26). Two asks, verbatim: *"it looks too formal the color of the web"*, and *"i still do not see like a clock that is counting to our destruction, like i want. a ticking bomb it is what i want."*
+
+Directive ids below are `P1` to `P5`, distinct from Revision 1's `D1` to `D8` and Revision 2's `R1` to `R7`.
+
+| # | Finding |
+|---|---|
+| K1 | The palette reads as an official form. Every neutral sits under 3 units of chroma and, apart from the warm terracotta, under 200° of hue: the paper is a green-cast grey, the ink is a blue-cast black, and the accent is a desaturated teal. Three cool, low-chroma decisions plus zero radius plus hairline rules is a government form. |
+| K2 | There is no moving element anywhere on the page. Revision 2 refused a ticker on purpose and shipped a static integer; the owner does not perceive a clock, and a static number cannot produce the reading they are asking for. |
+| K3 | The formality is not only colour. The mono-label system (12px mono label above 13px mono value, in every metadata block) is literally a field form; the hero panel is a bordered box; the top of the type scale is 60px against a 12px floor, a 5× range where a bulletin runs 7-8×. |
+| K4 | A ticking element is the most persuasive device the page could carry, and the most dangerous. Unanchored, it is exactly the crank tell Revision 2 refused, and it would be false: the threshold is a year, not an instant. |
+| K5 | The palette change moves the admin surface's contrast pairs whether or not the admin design changes, because admin shares `--surface-*` and `--ink-*`. That regression is this revision's to verify, not the Coder's to discover. |
+
+**The condition, restated as the design, not as a caveat.** The clock counts to **1 January 2042**, the conventional date assigned to the threshold year, and that anchor is printed beside the clock in every state where the clock renders. It is a date the reader can check against their own calendar. That is the entire honesty of the effect: the reader can verify the target, so the motion is a measurement rather than a mood. An anchor that is implied, hidden in a `title`, inside a `<details>`, or derived from nothing is not permitted by this revision.
+
+**What this revision is not.** It does not touch the three registers, the pyramid, the Reproducir section, the admin views, the chart forms, `--radius`, `--shadow`, or the token names. It adds no hue. It replaces the neutral and accent values, adds one continuous motion primitive, and de-formalises four non-colour surfaces.
+
+### Design read, restated
+
+Reading this as: **an editorial data-journalism instrument for a skeptical cold visitor, printed on warm paper with a warmer ink, leaning toward native CSS + Tailwind v4 tokens + server-rendered SVG and exactly one continuous motion primitive.**
+
+The product has not changed. It is still a measuring instrument that happens to be a magazine. What changes is the paper it is printed on, and that one reading on it moves.
+
+### Dial values
+
+- **DESIGN_VARIANCE: 5**, unchanged. The clock is a vertical stack inside a plate that already exists; it adds no composition. Formality is a property of material and typography, not of symmetry, so raising variance would have been motion for its own sake and would have missed the complaint entirely.
+- **MOTION_INTENSITY: 4 to 5.** This is the revision's one dial change and it is accounted for, not conceded. The dial counts primitives. Revision 2 had three (plate entry, 120ms transitions, the matrix stagger) and refused a fourth. The clock is the fourth and the only *continuous* one, so the number moves. 5 is the ceiling and the ceiling is load-bearing: 6 would license a second continuous primitive, scroll-driven motion, or a transition between registers, and all three remain refused. Within 5, the clock's motion is deliberately the smallest the medium allows: 1 Hz, on three fields 15px tall, in the panel's least prominent type.
+- **VISUAL_DENSITY: 5**, unchanged in number, redistributed in fact. Chrome density falls (mono labels leave, five ledger rules leave, the panel border leaves) while plate density is untouched. The page gets less crowded without losing a number.
+
+### Severity ranking
+
+| # | Directive | Finding | Severity |
+|---|---|---|---|
+| P1 | The palette: warm paper, warm ink, a present accent | K1 | **Blocks the brief** |
+| P2 | The anchored clock | K2, K4 | **Blocks the brief** |
+| P3 | Formality beyond colour: four surfaces | K1, K3 | **Blocks the brief** |
+| P4 | Register safety for the clock | K4 | **Blocks launch** (correctness) |
+| P5 | The refusals that survive the clock | K2, K4 | Degrades quality if omitted |
+| — | Admin contrast re-verification | K5 | **Blocks launch** (regression) |
+
+K3 is the finding the owner did not name. They said "the colour", but a warm palette alone on a page whose metadata is a stack of mono field labels would read as a warm government form. P3 is the other half of P1.
+
+### P1 (blocks the brief): the palette. Warmth from ground, ink temperature and accent saturation. Finding K1.
+
+**Diagnosis, measured rather than asserted.** In CIELCh, which separates "how dark" from "how coloured" from "which colour":
+
+| Token | Old value | L\* | C\* | h | Reading |
+|---|---|---|---|---|---|
+| `--surface-1` | `#F4F5F2` | 96.39 | 1.57 | 123° | a green-cast grey with almost no colour at all |
+| `--ink-1` | `#141A1B` | 8.71 | 2.98 | 213° | a blue-cast black |
+| `--accent` | `#17564A` | 32.55 | 23.00 | 177° | a desaturated teal |
+
+Three cool decisions, none above 3 units of chroma except the accent. That is the form: no material, no temperature, and therefore no presence. The 0 radius and the hairline rules finish the job, and P3 addresses those.
+
+**Directive.** Replace the neutral and accent values in both themes. The hue count stays three. No red is added, no fourth hue is introduced, and `--data-deficit` does not change at all.
+
+```css
+/* light (default) — supersedes the light block in §Global Tokens §Colour */
+--surface-1:  #F5EFE2;   /* warm paper */
+--surface-2:  #EEE7D7;   /* plate ground, inset */
+--surface-3:  #E7DECB;   /* thesis inset, mono/code blocks */
+--ink-1:      #1B1610;   /* warm near-black */
+--ink-2:      #443B2F;   /* body secondary, captions */
+--ink-3:      #5F5544;   /* metadata, axis labels */
+--rule-1:     #D3C9B6;
+--rule-2:     #B5A992;
+--accent:     #0E5C3C;   /* pine. Measured data + interaction, unchanged meaning */
+--on-accent:  #F5EFE2;
+--chart-series-2: #6B6759;
+
+/* changed too, and only to hold 4.5:1 on the warmer, darker grounds: */
+--data-projection: #6B520A;   /* was #6A5A12 */
+
+/* deliberately NOT changed: */
+--data-deficit: #96472A;
+
+[data-theme='dark'] {
+  --surface-1:  #15110D;
+  --surface-2:  #1D1813;
+  --surface-3:  #27211A;
+  --ink-1:      #F2EDE1;
+  --ink-2:      #C6BDAE;
+  --ink-3:      #9B9182;
+  --rule-1:     #312A22;
+  --rule-2:     #473E34;
+  --accent:     #63C398;
+  --on-accent:  #15110D;
+  --chart-series-2: #A8A292;
+  --data-projection: #D8BF60;
+  --data-deficit:    #D08A63;   /* unchanged */
+}
+```
+
+**What each move buys, in numbers rather than adjectives.**
+
+| Move | Before | After | Evidence |
+|---|---|---|---|
+| Ground temperature | C\* 1.57, h 123° | C\* 6.99, h 91.5° | 4.4× the chroma, hue rotated from green-grey to amber-yellow; ΔE 5.99 |
+| Ground presence | L\* 96.39 | L\* 94.58 | 1.8 L\* darker. A paper, not a screen |
+| Ink temperature | C\* 2.98, h 213° (blue) | C\* 4.60, h 74.5° (amber) | the ink rotates 139° across the hue circle; ΔE 7.20 |
+| Accent saturation | C\* 23.00, h 177° | C\* 33.28, h 158.6° | +45% chroma, hue rotated 18° toward yellow and away from teal; ΔE 13.64 |
+| Dark ground | `#0F1416` (blue-black) | `#15110D` (warm charcoal) | ΔE 5.12 |
+
+**The three hard rules that keep this from becoming a campaign.**
+
+1. **No red.** No value in the public palette moves toward the red band. `--accent` stays in the green band (h 158.6°), `--data-deficit` stays a muted terracotta at h 46.3°, and the projection hue moves by 1.3° (86.5° to 85.2°), which is a lightness correction rather than a hue change. Warmth comes from the *paper* and the *ink*, not from urgency.
+2. **`--data-deficit` is byte-identical to Revision 2 (ΔE 0.00).** It is the one hue whose warmth is load-bearing: it already reads as adverse because it is the warmest chromatic value on the page, and warming it further would collapse "adverse quantity" into "alarm", which is the single thing anti-pattern 1 and R7 exist to prevent. If a future revision wants more heat, it warms the paper, not the alarm.
+3. **No fourth hue, no gradient, no texture, no grain overlay, no paper photograph.** The warmth is a value in the token layer. A photograph of paper would be the first decoration on a page whose whole argument is that it does not decorate, and it would be a stock-image tell under anti-pattern 2.
+
+**Both themes work, and the dark theme is a genuine token swap.** The dark ground warms to `#15110D` and the ink to `#F2EDE1`; the accent lightens to `#63C398` at C\* 40.6, so a 2px series stroke keeps its weight on a warm dark ground and the brand stays recognisable (same hue family, h 161° against light's 158.6°). Ground steps widen in both themes (light total spread 5.17 → 5.87 L\*, dark 7.65 → 7.87), which is the one place this revision strengthens the register system while de-formalising the page: the thesis inset is now a more visible step of the same paper, not a new material.
+
+**Contrast verification, every pair this palette introduces.** WCAG 2.1 relative luminance, computed from the values above; AA is 4.5:1 for text, AAA 7:1, 3:1 for non-text graphics.
+
+| Pair | Light | Dark | Need |
+|---|---|---|---|
+| `--ink-1` on `--surface-1` | 15.68 | 16.08 | 7 |
+| `--ink-1` on `--surface-2` | 14.58 | 15.08 | 7 |
+| `--ink-1` on `--surface-3` | 13.44 | 13.63 | 7 |
+| `--ink-2` on `--surface-1` | 9.58 | 10.10 | 4.5 |
+| `--ink-2` on `--surface-2` | 8.91 | 9.47 | 4.5 |
+| `--ink-2` on `--surface-3` | 8.21 | 8.56 | 4.5 |
+| `--ink-3` on `--surface-1` | 6.39 | 6.05 | 4.5 |
+| `--ink-3` on `--surface-2` | 5.94 | 5.67 | 4.5 |
+| `--ink-3` on `--surface-3` | 5.47 | 5.13 | 4.5 |
+| `--accent` on `--surface-1` | 7.01 | 8.76 | 4.5 |
+| `--accent` on `--surface-2` | 6.52 | 8.21 | 4.5 |
+| `--accent` on `--surface-3` | 6.01 | 7.42 | 4.5 |
+| `--on-accent` on `--accent` | 7.01 | 8.76 | 4.5 |
+| `--data-deficit` on `--surface-1` | 5.67 | 6.71 | 4.5 |
+| `--data-deficit` on `--surface-2` | 5.28 | 6.29 | 4.5 |
+| `--data-deficit` on `--surface-3` | 4.86 | 5.69 | 4.5 |
+| `--data-projection` on `--surface-1` | 6.46 | 10.32 | 4.5 |
+| `--data-projection` on `--surface-2` | 6.01 | 9.68 | 4.5 |
+| `--data-projection` on `--surface-3` | 5.54 | 8.75 | 4.5 |
+| `--chart-series-2` on `--surface-1` | 4.94 | 7.38 | 3 (non-text) |
+| `--chart-series-2` on `--surface-2` | 4.60 | 6.92 | 3 |
+| `--chart-series-2` on `--surface-3` | 4.23 | 6.25 | 3 |
+| `--data-projection` on `--data-projection-ground` (`#E4DCC8` / `#2C2617`) | 5.42 | 8.26 | 4.5 |
+| `--ink-1` on `--data-projection-ground` | 13.15 | 12.87 | 7 |
+| `--ink-2` on `--data-projection-ground` | 8.04 | 8.08 | 4.5 |
+| `--ink-3` on `--data-projection-ground` | 5.36 | 4.84 | 4.5 |
+| `--rule-1` on `--surface-1` | 1.43 | 1.33 | decorative only |
+| `--rule-2` on `--surface-1` | 2.02 | 1.79 | decorative only |
+
+Every text pair clears AA; every body pair clears AAA; `--ink-3` gains headroom in every position it is used (light 5.36/5.02/4.69 → 6.39/5.94/5.47), which is the reason P3's smaller sans labels are safe at 12px on cream.
+
+**Hue separation, normal and simulated deficiency** (CIE76 ΔE against the locked accent and projection values, Machado 2009 severity 1.0 applied in linear RGB):
+
+| Pair | Normal | Deuteranopia | Protanopia |
+|---|---|---|---|
+| `--accent` vs `--data-projection` | 45.28 | 30.60 | 26.59 |
+| `--accent` vs `--data-deficit` | 66.75 | 26.43 | 10.14 |
+| `--data-projection` vs `--data-deficit` | 30.61 | **7.44** | 16.48 |
+
+The last row is the load-bearing one and it is *worse* than Revision 2's 10.8, not better: for a deuteranope, a projected extent and an adverse quantity are the same colour. That is tolerable only because R3 already made the separation structural, and this revision keeps it mandatory rather than optional: **a dash pattern (`--dash-projection: 6 4`) on every projected line, position (a projected panel is its own panel; a deficit mark is never inside a plot), and a printed word (`proyectado`, `umbral`).** No projected value may be distinguished by hue alone anywhere, and AC-001-106 stays as written.
+
+**Admin, re-verified without being redesigned (K5).** The admin state colours are unchanged in value, but they sit on the new grounds, so their ratios move:
+
+| Pair | Light s1 / s2 / s3 | Dark s1 / s2 / s3 |
+|---|---|---|
+| `--state-pending` | 5.97 / 5.55 / 5.11 | 9.56 / 8.97 / 8.30 |
+| `--state-danger` | 7.45 / 6.93 / 6.39 | 7.77 / 7.29 / 6.75 |
+| `--on-accent` on a `--state-danger` fill | 7.45 | 7.77 |
+| `--ink-1` on the 10% pending / danger tint | 13.60 / 13.28 | — |
+
+All pass AA, most pass AAA. No admin view, layout, or component changes; the two tinted grounds are `color-mix` over `--surface-1` and follow it automatically.
+
+**Pairs retired.** These stop existing. Every one is replaced by the pair on the row immediately below it, and no component may still render the old combination.
+
+| Retired pair | Old ratio | Replaced by | New ratio |
+|---|---|---|---|
+| `#141A1B` on `#F4F5F2` | 16.08 | `#1B1610` on `#F5EFE2` | 15.68 |
+| `#384446` on `#F4F5F2` | 9.21 | `#443B2F` on `#F5EFE2` | 9.58 |
+| `#5A6769` on `#F4F5F2` | 5.36 | `#5F5544` on `#F5EFE2` | 6.39 |
+| `#5A6769` on `#E4E7DF` | 4.69 | `#5F5544` on `#E7DECB` | 5.47 |
+| `#17564A` on `#F4F5F2` | 7.78 | `#0E5C3C` on `#F5EFE2` | 7.01 |
+| `#F4F5F2` on `#17564A` | 7.78 | `#F5EFE2` on `#0E5C3C` | 7.01 |
+| `#6A5A12` on `#F4F5F2` | 6.22 | `#6B520A` on `#F5EFE2` | 6.46 |
+| `#6A5A12` on `#ECEEE8` | 5.82 | `#6B520A` on `#EEE7D7` | 6.01 |
+| `#96472A` on `#F4F5F2` | 5.94 | `#96472A` on `#F5EFE2` | 5.67 |
+| `#C9CFC7` on `#F4F5F2` | 1.45 | `#D3C9B6` on `#F5EFE2` | 1.43 |
+| `#6E7A79` on `#F4F5F2` | 4.06 | `#6B6759` on `#F5EFE2` | 4.94 |
+
+Note the last-but-one row: the terracotta *pair* is retired because its ground changed, while the hue itself is not retired at all. `--data-deficit` is the only chromatic value that survives this revision intact, in both themes.
+
+**Anti-patterns.** A gradient ground ("warmth" as a mesh); a paper or grain texture image; a warm accent that drifts into amber, orange or red; a fourth hue; warming `--data-deficit`; a light and a dark palette that are not the same design (the dark theme is a swap of the same roles, not a second mood); colour as the only change in a component that was also reading as a form.
+
+**Watch items.** (1) The warm ground makes an inherited cool chart stroke look dirty rather than contrasty: after the swap, grep for every literal colour in `web/components/**` and `web/series/**` and confirm zero. (2) The projection-ground tint (`12%` over `--surface-1`) is only safe over `--surface-1`; over `--surface-2` the `--ink-3` pair drops below AA, exactly as R3 documented, and this palette does not change that constraint. (3) `--chart-series-2` on `--surface-3` is 4.23: a non-text pass, a text fail. It may carry a stroke, never a label. (4) Print forces the light set; verify the new cream prints as paper rather than as a yellow cast on a laser printer at 60% coverage.
+
+### P2 (blocks the brief): the anchored clock. Findings K2, K4.
+
+**Two quantities, never merged.** This is the whole of the directive and the reason the effect survives being checked.
+
+| Quantity | What it is | Derived from | Behaviour |
+|---|---|---|---|
+| **The projection** | `16 años`, `2042`, `variantes 2039-2043` | Eurostat `proj_23np`, six variants, R2's existing arithmetic | **static.** It changes when the projection is revised, not when the clock moves. Untouched by this revision |
+| **The clock** | days, hours, minutes, seconds to the anchor | the anchor date and the reader's own clock | **ticks** |
+
+The clock adds a second reading of the same instrument. It does not replace, relabel, or re-derive the projection, and it never states when the threshold is crossed.
+
+#### The anchor
+
+- **`1 de enero de 2042`, 00:00, Europe/Madrid.** Derived, not authored. The anchor is the derived `thresholdYear` rendered as an ISO instant: year, then `-01-01T00:00:00+01:00`. It comes from the same derived countdown value T18 already computes, so changing the threshold parameter moves the anchor, and that is the test.
+- **Why the year's first instant.** The projection is annual, so the threshold lands on a *year*, not an instant. Assigning the year's first instant is a stated convention, and the block says so in words. January in Madrid is CET, a fixed +01:00, so there is no DST ambiguity to get wrong.
+- **Disclosed in the block, in every state where the clock renders**, at `--text-small`, immediately under the fields, never inside a `<details>`, a `title`, or a tooltip:
+
+| Key | `es` exemplar | Slot |
+|---|---|---|
+| `countdown.clock.anchor` | `1 de enero de 2042` | `--text-small` sans, `--ink-1` |
+| `countdown.clock.anchorLabel` | `fecha convencional del umbral` | `--text-micro` sans, `--ink-3` |
+| `countdown.clock.definition` | `Cuenta hasta el 1 de enero de 2042, la fecha convencional del umbral. El año del umbral es una proyección, no una fecha calculada.` | `--text-small` sans, `--ink-2`, two sentences, never truncated |
+| `countdown.clock.arithmetic` | `Los 16 años son la diferencia entre 2042 y 2026. Los días se cuentan hasta el 1 de enero de 2042.` | `--text-micro` sans, `--ink-3`, rendered always in the countdown's own group in Reproducir, and in the clock block itself at `≥1024px` |
+| `countdown.clock.a11y` | `Cuenta hasta el 1 de enero de 2042, fecha convencional del umbral.` | `aria-label` on the clock's group |
+| `countdown.clock.elapsed` | `La fecha convencional del umbral ha pasado.` | `--text-small` sans, `--ink-2` |
+| field labels | `días`, `horas`, `min`, `s` | `--text-micro` sans, `--ink-3` |
+
+`countdown.clock.arithmetic` exists because of a real trap, not for decoration: `16` is a difference of year *numbers* measured from 1 January 2026, and `5.545` is elapsed time from today. A reader who divides one by the other gets 15.2 and concludes the page is wrong. The sentence makes the two references explicit. **Watch item:** no visible line may place `16` and the day count in the same typographic group; the clock rail is separated from the projection group by a `1px --rule-1`, which is what keeps the comparison from being invited.
+
+#### Units: what ticks, and why seconds is permitted here and was refused there
+
+Revision 2 refused a sub-annual countdown for a specific reason: it would imply the number changes as the clock moves, when it changes only when the projection is revised, and precision below a year would be false, because the crossing moves by up to three years across the six official variants. **That objection is not overruled. It is scoped.** What it forbids is a per-second interval to a *modelled crossing date*, and this revision does not build one. What it does not forbid is a clock to a *disclosed calendar date*, which is a different quantity with a different, checkable definition.
+
+The honest question is not "is a tick honest" (it is: every digit is verifiable against the reader's own clock) but **which unit carries information, and which units exist below it only to make the thing read as a clock.**
+
+At 5,545 days out, the interval is about **479 million seconds**. A 1 Hz ticker therefore advances one part in 479,000,000 per second: the eighth significant digit. The consequences are concrete:
+
+- the seconds field changes 60 times a minute and no single change is legible as a delta at any size that fits the panel;
+- its only honest reading at 15 years is "a clock is running", not "a second was spent";
+- and a reader who tries to *use* the seconds field is reading noise, because the quantity that matters (the year) has nothing to do with them.
+
+**Decision: `days` is the informative unit. `hours`, `minutes` and `seconds` are permitted below it as clock fields, on four conditions, all of which are mandatory:**
+
+1. The anchor is a disclosed calendar instant, so the sub-day fields count real elapsed time to something the reader can check, rather than to a modelled event.
+2. They are the smallest type in the block and are never the largest thing in the block or the plate.
+3. They are `aria-hidden`, so nothing announces sixty times a minute.
+4. The block never claims the threshold is crossed at the anchor. The words "convencional" and "proyección, no una fecha calculada" are present in every locale.
+
+**Why not a larger unit.** Days is the coarsest unit with an exact, checkable definition. Months have no fixed length, so a `months` field would require an arbitrary rule the reader cannot verify, and `años y meses` would be uncheckable arithmetic dressed as precision. Days/hours/minutes/seconds are all exact; that is the entire set this design uses.
+
+**Why not a smaller unit.** Milliseconds are theatre: nothing can check them and nothing depends on them.
+
+**The last day, and the endgame.** Because the value is years away, the sub-day fields are effectively constant until the final day, and that is acceptable: they are the fields that make the instrument read as a clock, and the day count is the field that carries the information. Two rules for the endgame, both of which refuse an authored judgement:
+
+- **The days field always renders, including `0`.** It is never hidden, and there is no "final day" styling: no colour change, no weight change, no emphasis. A scheduled emphasis would be the page asserting a meaning at a moment it chose.
+- **`elapsed`.** Once the anchor has passed, the timer does not run, all four fields render `0`, and `countdown.clock.definition` is replaced by `countdown.clock.elapsed`. Reaching a conventional date does not mean the projection was right, so the block says only that the date has passed; the projection group above it continues to state whatever the data says at that time.
+
+#### Layout and type
+
+The clock is the **bottom rail of the existing `CountdownBlock`**, inside it, marked by one `1px --rule-1`. No ground of its own, no border, no chip, no icon.
+
+| Element | Type | Token |
+|---|---|---|
+| separate the rail | `1px` rule, full panel width | `--rule-1` |
+| fields row | `display: flex; gap: var(--clock-gap); align-items: baseline` | — |
+| `días` value | mono, `tabular-nums` | `--text-num-l` (32px), `--ink-1`, `min-inline-size: var(--clock-days-min)` |
+| `horas` / `min` / `s` values | mono, `tabular-nums` | `--text-small` (15px), `--ink-2`, `min-inline-size: var(--clock-unit-min)` |
+| field labels | sans, below each value, `--space-1` above | `--text-micro` (12px), `--ink-3` |
+| anchor line | sans, `--space-2` below the fields | `--text-small`, `--ink-1`, with the label at `--text-micro` `--ink-3` |
+| definition | sans, `--space-3` below | `--text-small`, `--ink-2` |
+
+Values above labels, not labels above values: an instrument prints the quantity and then names it, a form prints the field name and then fills it in. Values are right-aligned within their fixed-width fields so the four numbers form a stable block.
+
+**No colons between fields.** A `:` at 15px turns the row into a wristwatch graphic; the labels do it better and in words.
+
+**Placement, and why there are not two countdowns.** In DOM order inside `<CountdownBlock>`, after `countdown.source` and the back-cast line:
+
+```
+countdown.eyebrow
+3px --data-projection rule
+16 años            (--text-num-xl)
+2042 · año del umbral   (--text-num-m, --data-projection)
+countdown.definition
+countdown.range    (variantes 2039-2043)
+countdown.source
+countdown.backCast
+1px --rule-1       <-- the clock rail starts here
+días / horas / min / s
+1 de enero de 2042 · fecha convencional del umbral
+countdown.clock.definition
+[ then R5's existing 1px rule and the figure strip ]
+```
+
+Five rules make "one countdown" structural rather than a promise:
+
+1. The clock is a sub-group of the countdown block, not a sibling block. There is no fifth block in the page inventory.
+2. Exactly one region of the page moves without user input, and it is these three sub-day fields.
+3. The clock prints **no year numeral**: the `2042` above it is the only year in the panel. The anchor line repeats it as a date in words, and that repetition is the disclosure, which is the one repetition the design requires.
+4. Within the panel, exactly one numeral is larger than the day field: the `16`. The day field shares `--text-num-l` with the figure strip's value, which is deliberate (two subordinate instruments under one headline) and is kept legible by the rules between them.
+5. No fifth nav anchor and no link from the clock. R5's `#demografia` link on the countdown is unchanged.
+
+#### No JavaScript: the server-rendered value is complete and correct
+
+`<CountdownClock>` is a client component that Next server-renders, so **all four fields, the anchor line and the definition are in the HTML**. The contract:
+
+- **Without JavaScript**, the block renders the four fields computed from the render instant, and the anchor and the definition are present and correct. The value is a snapshot, exactly as every other number on this page is a snapshot (anti-pattern 6), and the page's snapshot stamp is the as-of for all of them. No field is missing, no field is a placeholder, and no part of the disclosure depends on script.
+- **With JavaScript**, an isomorphic layout effect recomputes from `Date.now()` before the browser paints, so a page served from cache never paints a stale clock, and then one 1 Hz interval takes over. The four value spans carry `suppressHydrationWarning` because their text is expected to differ from the server render.
+- Because the correction is pre-paint, there is no visible jump, no flash of a stale second, and no layout shift.
+- **The sub-day fields are never the only reason a value is on screen.** The day count and the anchor are the accessible content in both modes.
+
+#### Reduced motion
+
+`prefers-reduced-motion: reduce` gets the static value and no tick:
+
+- no interval is created at all (`matchMedia('(prefers-reduced-motion: reduce)').matches` is checked before the timer and re-checked on change);
+- the three sub-day fields are removed from the visual layout with `display: none` under the media query, and the clock renders the day count with the anchor line and the definition.
+
+**They are hidden rather than frozen, and that is the specific reason.** A seconds field that never changes is a stopped clock: it reads as broken, and it asserts a point in time that is wrong within a second. A day count is complete without a clock, so reduced motion loses motion and loses nothing else. The accessible tree is identical in both motion modes (§P2 Accessibility), which is asserted as a test rather than left as a consequence.
+
+#### Accessibility
+
+- `horas`, `min` and `s` are each wrapped in `aria-hidden="true"`. They are the animated part, and they change 60 times a minute.
+- `días` is **not** hidden. It changes at most once a day, which is not spam, and it is the informative field.
+- The clock is a `<div role="group">` labelled by `countdown.clock.a11y` (`Cuenta hasta el 1 de enero de 2042, fecha convencional del umbral.`), so a screen reader user hears the target when they reach the group.
+- **No `aria-live`, no `role="timer"`, no `aria-atomic`, no `aria-busy`.** The design's standing rule (D5: no live region anywhere on the public site) is intact; the clock is the element most likely to break it, so it is named here.
+- The anchor line and the definition are ordinary `<p>` elements in document order, so the disclosure is read after the numbers rather than skipped.
+- Field labels are real text in the DOM, not `aria-label`s, so the labels are visible to everyone and the group's label carries the meaning.
+
+#### Performance
+
+- **One timer.** A single `setInterval` per page, at `CLOCK_TICK_MS` from `web/series/clock.ts`, created in one client leaf and cleared on unmount. The constant is the only place the frequency exists: a CSS custom property cannot be read by JavaScript, so a `--clock-tick` token would be a token nothing consumes, and this design does not ship those.
+- **Paused when hidden.** `visibilitychange` clears the interval on `hidden` and recomputes-and-restarts on `visible`. A background tab must not run a fifteen-year timer.
+- **Zero React renders per tick.** The leaf holds four refs and writes `textContent`; there is no state update, no VDOM diff and no re-render 60 times a minute.
+- **One `Intl.NumberFormat`, constructed once per mount** and reused for the day count. Constructing a formatter per tick is the expensive mistake here.
+- **No layout thrash.** `tabular-nums` plus `min-inline-size` on each field means `59 → 00` cannot reflow; CLS contribution is 0. No transform, no `will-change`, no font-weight change per tick.
+- **It cannot block first paint or hydration.** The markup is complete without it; the pre-paint correction is one `Date.now()` and four `textContent` writes.
+- **No `requestAnimationFrame`**, no `setTimeout` chain, and `Date.parse(anchor)` runs once at module scope rather than per tick.
+- Budget: the leaf is roughly 700 bytes gzipped. §Mobile and performance direction's 20kB client budget is unaffected in kind.
+
+#### States
+
+| State | Clock | Reason |
+|---|---|---|
+| `computed` | renders, ticks | a threshold year exists, so an anchor exists |
+| `not-crossed` | **does not render** | there is no threshold year, therefore no anchor, therefore nothing to count to. R2's sentence renders instead |
+| `unavailable` | does not render | the block is absent |
+| `withheld` | does not render | the block is absent |
+| `elapsed` | renders four `0` fields, no timer, `countdown.clock.elapsed` replaces the definition | the anchor has passed |
+
+The first four rows are the structural guarantee that the clock can never tick toward nothing: **the anchor is derived from the same value the projection is derived from, so a state with no threshold year has no anchor and no clock.** No fallback anchor, no default year, no "until further notice".
+
+#### Anti-patterns
+
+A fuse, bomb, hourglass, siren, alarm bell, or any illustration of time running out; a progress bar toward the anchor (it would invent an origin); a sticky or floating clock; the clock at `--text-num-xl` or above the years numeral; months as a unit; milliseconds; a clock that changes hue or weight as the anchor approaches; `aria-live` on any part of it; a second clock anywhere; the clock in the thesis section, the share card, `og:*` or the meta description; "live" or "actualizado hace" language; a `DÍAS` heading in caps; and the copy bans R2 already sets, extended by §P5.
+
+#### Watch items
+
+1. **Hero panel budget.** The clock adds roughly 92px. Measure at 1024×620 with the stale banner present and at 200% zoom. If it overflows, drop the sub-day fields to `--text-meta` and `días` to `--text-num-m`; never remove the clock and never split the panel into a second card (R5's watch item stands).
+2. **Timezone.** The anchor carries an explicit `+01:00`. Never `new Date('2042-01-01')`, which parses as UTC and is an hour off in Madrid, and never a `toLocaleString` round-trip to derive it.
+3. **The reader's clock is the source.** If the device clock is wrong, the clock is wrong. That is unavoidable and it is precisely why the anchor date is printed: a reader who distrusts the numbers can check the target instead.
+4. **Leap seconds** are ignored. Over fifteen years the drift is one second, and claiming otherwise would be false precision about a quantity nobody is measuring.
+5. **`countdown.clock.arithmetic` must not be dropped for length.** It is the sentence that stops a careful reader concluding the page contradicts itself.
+6. **Do not animate the days field.** A day field that rolls is a slot machine; it carries the one number on the rail that is worth reading.
+7. **`suppressHydrationWarning` belongs on the four value spans only**, never on the anchor or the definition, which must match exactly and would hide a real content bug.
+
+### P3 (blocks the brief): formality beyond colour. Findings K1, K3.
+
+**Diagnosis first, because the owner named colour and half the cause is not colour.** Five properties make this page read as an official form, measured rather than judged:
+
+| # | Property | What it is now | Why it reads as a form |
+|---|---|---|---|
+| 1 | Type-scale range | 12px floor to 60px ceiling, a 5× range; `--leading-tight` 1.04; `--tracking-display` -0.018em | a statistical bulletin runs 7-8×. At 5× the display and the metadata are near neighbours, and a near-neighbour hierarchy is a document's, not a masthead's |
+| 2 | The mono-label system | 12px mono labels at 0.06em tracking above 13px mono values, in every metadata block, on every plate, in table captions, in chips | that is literally a form field: a label, and a filled value beneath it. The provenance strip alone is four of them per computed figure |
+| 3 | Ruled boxes | hero panel is a 1px bordered box; every plate opens with a rule; the five ledger rows each carry a `border-top`; `--radius: 0` throughout | the shape vocabulary is "box, rule, box". Rules everywhere read as a printed form's field boundaries |
+| 4 | Ground materiality | three grounds stepped by 2.59 and 2.58 L\* | at that step the insets are not paper layers, they are form *sections*, and the difference communicates nothing except "another part of the document" |
+| 5 | Line length | `--measure: 64ch` at 19px | **not the cause. No change.** |
+
+Property 5 is diagnosed and deliberately left alone. 64ch at `--text-body-lg` is already an editorial measure, and shortening it would fragment the register blocks and cost horizontal rhythm for a mood. A designer who changes five things to look busy has changed nothing.
+
+**Four changes. Each names the token or the component, and nothing here is a new hue.**
+
+**F1. The palette.** §P1. Not repeated here.
+
+**F2. Mono leaves the label system. `--font-label: var(--font-sans)`.**
+
+This is the highest-leverage change in the revision and it costs no numbers. Add one token and one rule:
+
+> **Mono is a measurement device, not a paperwork device.** `--font-mono` is permitted for: every numeral; hashes and identifiers; commands; numeric table cells; the two-letter locale codes; and the Reproduce block. `--font-mono` is **forbidden** for: field labels, eyebrows, chip words, state words, table captions, the scope mark, and provenance labels. Those use `--font-label`.
+
+`--tracking-label` falls from `0.06em` to `0.02em`: tracked-out caps at 12px is the single most recognisable form-label signature, and 0.02em is enough to open a sans label without announcing a field.
+
+What this keeps: every number on the page still looks measured, which is the credibility signature the design was built on. What it loses: the page stops looking like something to be filled in. Mechanically checkable (AC-001-118): no element whose role is a label may resolve `--font-mono`.
+
+**F3. Material instead of box. De-border the hero panel; widen the ground steps.**
+
+- The hero instrument panel loses `--border-hair`. It keeps its `--surface-2` ground, and its top edge is already the 3px `--data-projection` rule, which is a better edge than a hairline because it carries meaning.
+- Internal rules in the panel: three, the projection rail's, the clock rail's from P2, and R5's rule above the figure strip. No outer border.
+- Ground steps widen: light 2.59 / 2.58 → 2.79 / 3.08 L\* (total spread 5.17 → 5.87, +13.5%), dark 3.80 / 3.85 → 3.35 / 4.52 (total 7.65 → 7.87). This stays inside Revision 1's 4-6 L\* band for the light tints, so Revision 1's watch item stands unchanged and the register separation is strengthened rather than reopened.
+
+**F4. The top of the type scale rises.**
+
+```css
+--text-display:   clamp(2.5rem, 4.9vw, 4rem);      /* was clamp(2.25rem, 4.6vw, 3.75rem) */
+--text-h2:        clamp(1.625rem, 2.4vw, 2.375rem); /* was clamp(1.5rem, 2.1vw, 2rem) */
+--text-plate:     clamp(1.1875rem, 1.55vw, 1.5rem); /* was clamp(1.125rem, 1.4vw, 1.375rem) */
+--leading-tight:  1.02;    /* was 1.04 */
+--tracking-display: -0.026em; /* was -0.018em */
+```
+
+Display-to-micro range goes from 5.0× to 5.33×; h2-to-micro from 2.67× to 3.17×. **Content cost, stated rather than absorbed:** at 1280px the 7/5 hero split leaves about 686px for the `<h1>`, and 64px display type sets roughly 21 characters to the line. The `hero.statement` budget in §Locale guidance therefore falls from **46 to 42 characters** in `es` (and 60 to 55 in `de`) so the h1 still sets in two lines. The Coder must not shrink the type to fit the old budget; the budget is the thing that moves, and the Specifier formalises it.
+
+**F5. The ledger rows lose their rule.**
+
+`<FigureStatusRow>` drops its `border-top`, separates rows by `--space-5`, and keeps `min-height: var(--figure-state-row-min)`. The state word moves from `--text-micro` mono to `--text-small` sans `--ink-3`; the figure name rises to `--text-body-lg` sans `--ink-1`.
+
+This amends D1's *styling*, and D1's *structure* is untouched and still binding: no plate, no chart frame, no hatched placeholder, no numeral at any scale, one reason line, one method link, strict figure order, and no state word in a display or numeral token. The reasoning for the change is narrow and it is worth stating because D1 was written against a real bug: D1's argument was that a ruled row is a *document* rather than a wireframe, and that argument was correct against an empty chart frame. But five ruled rows in a vertical run is also the single most form-like passage on the page, and a name at `--text-body-lg` with generous space between rows is a table of contents. The absent figure reads as an absence either way; it stops reading as a blank field.
+
+**Anti-patterns.** Replacing the mono system with wide-tracked caps in a sans (same form, different font); de-bordering every box until the page has no edges at all (the thesis 4px rule and the plate top rules are load-bearing, and this revision removes exactly one border); a display size that pushes the h1 to three lines at 1280px; shrinking the body or the measure to make the display look bigger.
+
+**Watch items.** (1) After F2, verify the provenance strip still scans: four label/value pairs in sans at 12/13px are less separated than glyph-distinct mono was, so the strip needs `--space-5` column gaps and the value at `--ink-1`, not `--ink-2`. (2) After F5, confirm the five ledger rows still read as five distinct items rather than one paragraph; if they blur, add `--space-6` rather than restoring the rule. (3) After F3, check the hero panel against `--surface-1` at 100% zoom on a low-DPI display: a cream ground on cream paper with no border can disappear, and `--surface-2` at L\* 91.79 against L\* 94.58 is a 2.79 step. If it disappears, the fix is one `1px --rule-1` on the top edge behind the projection rule, not a full border. (4) F4 interacts with P2's hero budget: measure both together, not separately.
+
+### P4 (blocks launch): register safety for the clock. Finding K4.
+
+The clock is the most persuasive element on the page. Persuasion is where the register system can fail silently, so the containment is written as rules with mechanical checks rather than as a caution.
+
+**Why the clock is instrument and not thesis.** The instrument register carries what can be checked; the thesis register carries what the site *thinks*. The clock measures an interval against a public, checkable date, so it is instrument. It never states what the interval means. "The crossing is bad" is a thesis sentence, it lives in `<ThesisSection>` behind its label and its signature, and the clock cannot borrow its weight.
+
+| Rule | What it forbids | How it is checked |
+|---|---|---|
+| 1. Ground and palette | the clock may use only `--ink-*` and `--data-projection`; never `--data-deficit`, `--state-danger`, `--state-pending`, `--surface-3`, the serif family, or the 4px ink rule | component test on the rendered subtree's computed styles and class tokens |
+| 2. The disclosure is unconditional | the anchor date and `countdown.clock.definition` render in every state where the clock renders, in the same block, outside any `<details>`, outside any `title` or tooltip | renders-through test in all five locales, `computed` and `elapsed` |
+| 3. No crossing claim | the clock may not state or imply that the threshold is crossed on 1 January 2042; `2042` keeps its `año del umbral` label and its variant range | copy test: the clock subtree may not contain any string asserting a crossing |
+| 4. Namespace isolation | the clock's strings resolve from `countdown.clock.*`; none may come from `thesis.*` | content test + component test (AC-001-116) |
+| 5. No fraud vocabulary | the fraud reading stays confined to `thesis.*` and `<ThesisSection>` (AC-001-41); the clock's two new strings are instrument vocabulary (AC-001-92) | existing citation/fraud tests extended to the new keys |
+| 6. No migration of urgency | the clock is the only place a continuous element exists; no other block gains one, and the metric plates, dispute, thesis, Reproduce, assumptions, revisions, footer and share card carry no clock, no countdown chip and no urgency icon | page-level test: one moving element |
+| 7. Nowhere else | the clock does not appear in the thesis section, the dispute section, the agreement section, the share card, `og:*` or the meta description | build-time grep plus the share-card generator's own input list |
+
+**The consequence worth stating plainly.** A reader can dismiss an odometer as a gimmick and go back to their scepticism. They cannot dismiss a date they can check. That asymmetry is why the anchor is disclosed rather than implied, and it is also why the clock must never acquire a hue that says "bad": the moment it does, the site is asserting a conclusion it has promised to label as an opinion.
+
+### P5 (degrades quality if omitted): the refusals that survive the clock.
+
+R7's rule still generates the judgement calls, with one amendment:
+
+> Anything a reader could not verify is decoration. Anything a reader can verify is drama. **The clock is verifiable, so it is permitted: every digit it prints can be checked against the reader's own clock and the date printed beside it.**
+
+Three consequences, for the Coder:
+
+- Visual intensity is permitted to come from **size, density, contrast, and one continuous measurement at 1 Hz**, and from nothing else. R7's third bullet is amended by exactly that clause.
+- The clock's copy is bound by R2's banned vocabulary (`faltan`, `quedan`, `solo`, `apenas`, `ya`, `cuenta atrás`, `bomba`, `explota`, exclamation marks, second person, future tense other than the declarative `alcanza`/`cruza`) **plus**: `destrucción`, `colapso`, `explosión`, `se agota`, `fin`, `última oportunidad`. The owner's metaphor is the brief. It is not the copy, and it appears nowhere on the public surface.
+- Anti-pattern 6 ("no live semantics, a snapshot is a snapshot") now has one declared exception with one sentence of justification: the clock is not a snapshot, it is a stopwatch to a fixed public date, and it is labelled as one. Nothing else on the page acquires "live" language, and the snapshot stamp keeps its meaning.
+
+### New tokens
+
+Revision 3 replaces values and adds four names. (`CLOCK_TICK_MS = 1000` in `web/series/clock.ts` is a module constant, not a token: JavaScript cannot read a custom property, and a token nothing consumes is worse than a constant.) Everything else in the token layer is untouched: `--radius`, `--shadow`, the space scale, `--measure`, the breakpoints, the admin tokens, and every token Name.
+
+```css
+/* Revision 3 — the anchor and the paper.
+   The colour values supersede §Global Tokens §Colour in full; the type values supersede
+   the corresponding declarations in §Global Tokens §Type. */
+
+/* labels are not measurements */
+--font-label: var(--font-sans);
+
+/* the anchored clock */
+--clock-gap:      var(--space-5);   /* between the four fields */
+--clock-days-min: 5ch;              /* fixed day field: 5.545 cannot reflow on a tick */
+--clock-unit-min: 2ch;              /* 59 -> 00 cannot reflow */
+
+/* type, changed values */
+--text-display:     clamp(2.5rem, 4.9vw, 4rem);
+--text-h2:          clamp(1.625rem, 2.4vw, 2.375rem);
+--text-plate:       clamp(1.1875rem, 1.55vw, 1.5rem);
+--leading-tight:    1.02;
+--tracking-display: -0.026em;
+--tracking-label:   0.02em;
+```
+
+Colour declarations are in §P1 and are authoritative there. The anchor's timezone (`Europe/Madrid`) is a constant in the clock module with a comment pointing here, not a token: it invites use in layout, which is the same reason R1 gave for the pyramid's axis maximum and D7's share-card dimensions.
+
+### What this revision contradicts
+
+Declared rather than buried, because each of these is a directive someone could otherwise cite against this work.
+
+1. **R2's anti-pattern, "a ticking clock".** Now permitted in exactly one form: anchored to a disclosed conventional date, with the anchor printed beside it. The refused form (a per-second interval to a modelled crossing) remains refused.
+2. **R7's third bullet, "intensity from size, density and contrast, and from nothing else".** Amended to add one continuous measurement at 1 Hz.
+3. **Anti-patterns 5 and 6** (no animated counters, no ticking timestamps). Amended for the clock only, and for nothing else on the page.
+4. **§Global Tokens §Colour.** Every neutral and the accent are replaced; the light block and the dark block are both superseded.
+5. **§Global Tokens §Type.** Six values change (§New tokens).
+6. **Revision 2 R3's "No existing value changes".** Superseded for the neutrals and the accent. The three-hue semantics, the allowed-meanings table, the thesis hue ban and the mandatory dash/position/word redundancies all stand unchanged.
+7. **Revision 1 D6's provenance strip label treatment.** Labels leave mono for sans (§P3 F2). Field set, field order, `data-operator` marking and the disclosure's six rows are unchanged.
+8. **Revision 1 D1's ledger row rule.** The `border-top` goes; the structure and the prohibition on numerals at any scale stay.
+9. **§Locale guidance's `hero.statement` budget.** 46 → 42 characters `es`, 60 → 55 `de`, a consequence of §P3 F4.
+10. **§Dial Values, `MOTION_INTENSITY`.** 4 → 5, accounted for above.
+11. **§Page shell's hero panel construction.** `--border-hair` removed; the 3px projection rule is the panel's top edge.
+
+Nothing else is contradicted. In particular the three-register table, the pyramid, the Reproducir rules, the admin surface, the chart forms, the four-rate implicit-debt rule, the `<details>`-over-modal discipline, the scope mark and the share-card bans are all untouched.
+
+### Scenarios the Specifier must add or amend
+
+Scenario numbers start at **AC-001-108** (the highest in use is 107). Two new tasks; the rest are amendments.
+
+**T20 (new, implements P2 and P4) — the anchored clock.** Derive `anchor` from `thresholdYear`, render the four fields and the disclosure, run one timer, and hold the register containment. Scenarios:
+
+- **AC-001-108** — the anchor is derived, not authored: `anchor` equals 1 January of `thresholdYear` at 00:00 with the documented offset; changing the threshold parameter moves the anchor; a hand-typed anchor date in any component fails a test.
+- **AC-001-109** — the disclosure is unconditional: in every state where the clock renders, the output contains the anchor date and the `fecha convencional del umbral` label outside any `<details>`, plus the sentence stating the threshold year is a projection, in all five locales.
+- **AC-001-110** — no clock without a threshold year: in `not-crossed`, `unavailable` and `withheld`, the block renders no day, hour, minute or second field and no anchor.
+- **AC-001-111** — without JavaScript the four fields, the anchor and the definition are present in the HTML, computed from the render instant, and no element on the page displays a sub-day value without a day value beside it.
+- **AC-001-112** — under `prefers-reduced-motion: reduce` no interval is created and the sub-day fields are not displayed; the day count, the anchor and the definition remain.
+- **AC-001-113** — the accessible tree is stable: the sub-day fields are `aria-hidden`, the clock carries no `aria-live` and no `role="timer"`, the day count and the anchor are exposed, and the accessible tree is byte-identical in both motion modes.
+- **AC-001-114** — one timer: exactly one interval exists, it is cleared on unmount and while `document.visibilityState === 'hidden'`, and a `59 → 00` transition causes no layout shift.
+- **AC-001-115** — the `elapsed` state: after the anchor, all four fields render `0`, no timer runs, `countdown.clock.elapsed` replaces the definition, and no string claims the threshold has been crossed.
+- **AC-001-116** — register containment: the clock's rendered subtree resolves only `--ink-*` and `--data-projection`, carries no `--data-deficit`, no `--surface-3`, no serif family and no string from the `thesis.*` namespace, and appears in no other block, the share card, `og:*` or the meta description.
+
+**T21 (new, implements P1 and P3) — the palette and label-system migration.** Replace the colour values, add `--font-label`, migrate labels off mono, remove the panel border, widen the ground steps, raise the display scale, un-rule the ledger rows. Scenarios:
+
+- **AC-001-117** — the palette: every pair in §P1's table meets its stated minimum in both themes, computed from `web/styles/tokens.css` by a test; no retired value string remains anywhere in `web/`; `--data-deficit` still equals its Revision 2 value in both themes.
+- **AC-001-118** — labels are not measurements: no element whose role is a field label, eyebrow, chip word, state word, table caption, scope mark or provenance label resolves `--font-mono`, and every numeral still does.
+
+**Amendments.**
+
+| Scenario | Status | What the specifier must do |
+|---|---|---|
+| **AC-001-99** | Amendment required | It pins `years = thresholdYear − snapshotYear` and "no sub-annual unit". Scope it: the *years* quantity keeps integer arithmetic and no sub-annual unit; the *clock* is a separate quantity with its own definition and its own scenarios (108-118). Without the scoping the two rules contradict |
+| **AC-001-101** | Unchanged, now load-bearing | "No numeral and no substitute threshold" already implies no clock in `not-crossed`. The Specifier adds the clock explicitly as the example, because it is the first element whose absence is a consequence of this state |
+| **AC-001-106** | Unchanged, strengthened | Projection stays encoded by dash, position and a printed word. The new values make projection and deficit *closer* under deuteranopia (ΔE 7.44 against 10.8), so this scenario is now the only thing keeping the two apart |
+| **AC-001-41**, **AC-001-42** | Unchanged | The clock's containment rules are enforcement of these, not amendments to them. Add the clock to the list of places that must carry no thesis content |
+| **AC-001-35** | Unchanged | The clock's six copy keys and its four field labels are locale keys. The prohibition on literals already covers them |
+| **AC-001-78** | Unchanged | T18's derived countdown gains an `anchor` field; its manifest shape does not change, but the field must be documented in the closed set or validation rejects it |
+| **AC-001-07** | Unchanged | A stale snapshot still fails the build. The clock's staleness without JS is a different thing: it is bounded by the deploy, disclosed by the snapshot stamp, and never labelled current |
+| **AC-001-107** | Unchanged | The hero still does not fill the viewport and the demography heading is still at the fold. §P2's watch item measures the panel *after* the clock, which is the next thing that could break it |
+
+**Suggested order.** T21 first: it is a token-and-label migration with no new behaviour, it is the change the owner will actually see, and it makes the clock land on the right paper. Then T20, which is one component plus one scenario set. Then the AC-001-99 scoping, which is a documentation fix and must not be last.
+
+### What this revision refuses to specify, with the reason
+
+1. **A per-second countdown to a modelled crossing date.** Reason: no source produces one, and the crossing moves by up to three years across the six official variants. A per-second interval to a date the model does not produce would be false by roughly 10^8 seconds. The disclosed anchor is a calendar convention, and that difference is the whole of the effect's honesty.
+2. **A larger unit than a day that is not days itself** (months, "años y meses"). Reason: months have no fixed length, so the arithmetic would be uncheckable and the page would be asking the reader to trust a rule it invented. Days is the coarsest unit with an exact definition.
+3. **Milliseconds, or any sub-second animation.** Reason: nothing can check it and nothing depends on it.
+4. **Alarm red, or any hue shift on the clock as the anchor approaches.** Reason: the page may not assert that crossing the threshold is bad. That judgement belongs to the thesis register and is labelled there.
+5. **Changing `--data-deficit`.** Reason: it is the one hue whose warmth is load-bearing, and warming it further collapses "adverse quantity" into "alarm" — the exact move anti-pattern 1 and R7 exist to prevent. If a future revision wants more heat, it warms the paper.
+6. **A fourth hue.** Reason: three hues with three fixed meanings is the system. "More colour" is answered here by warmer neutrals and a more present accent, which is the version of the request that survives a reader who is looking for a crank.
+7. **A fuse, bomb, hourglass, siren, or any illustration of time running out.** Reason: unfalsifiable, so it adds assertion and no evidence, and it is the crank tell the informal spec names.
+8. **A progress bar toward the anchor.** Reason: a bar needs an origin. There is none, so any percentage would be authored, and an authored percentage under a real date is the worst of both.
+9. **A sticky, floating, or full-width clock band.** Reason: it would make the clock the page's frame instead of one instrument inside it, it would collide with the sticky header's budget, and a second clock region would read as a campaign. One clock, in the hero, inside the countdown block.
+10. **A "final day" mode with its own styling.** Reason: any scheduled emphasis is the page choosing a moment to feel something, which is a thesis act performed by an instrument.
+11. **A decorative texture, gradient, grain overlay, or paper photograph for warmth.** Reason: warmth here is a value in the token layer. A texture would be the first decoration on a page whose entire argument is that it does not decorate, and a paper photograph is a stock-image tell.
+12. **A display size beyond `--text-display: 4rem`, or a measure below 64ch.** Reason: the first breaks the `<h1>`'s two-line budget at 1280px and would force the hero to grow into the space R5 freed; the second trades real reading comfort for a mood.
+13. **Any change to the pyramid, the three registers, the Reproducir section, or the admin surface.** Reason: settled by instruction, and each carries its own revision record. The admin's contrast pairs are re-verified above; nothing about its design is reopened.
 
 ## 40-deploy.md
 
