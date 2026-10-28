@@ -1,4 +1,5 @@
 import { DEFAULT_LOCALE, LOCALES } from '../content/types';
+import { canonicalUrl } from '../content/site';
 
 /**
  * The sitemap is generated from this explicit public manifest, never from filesystem
@@ -33,15 +34,34 @@ export function publicPathFor(locale: string): string {
   return locale === DEFAULT_LOCALE ? '/' : `/${locale}`;
 }
 
+/**
+ * `canonicalUrl` bound to a base: the single function that turns a path into the absolute URL the
+ * site publishes, so the sitemap's `<loc>`, its `hreflang` hrefs and the page's own alternate
+ * links cannot spell the same URL three ways.
+ */
 function absolute(baseUrl: string, path: string): string {
-  return new URL(path, baseUrl).toString();
+  return canonicalUrl(path, baseUrl);
+}
+
+/**
+ * The reciprocal alternate set every public route carries: the five locales plus `x-default`,
+ * which names the default locale. The sitemap entry's `alternates`, the page's
+ * `alternates.languages` and the served `<link rel="alternate">` set all come from here — a
+ * translation group is one claim, and two surfaces disagreeing about it is a crawler reading two
+ * different claims.
+ */
+export function alternateLinks(baseUrl: string): SitemapAlternate[] {
+  return [
+    ...LOCALES.map((locale) => ({
+      hreflang: HREFLANG[locale] ?? locale,
+      href: absolute(baseUrl, publicPathFor(locale)),
+    })),
+    { hreflang: 'x-default', href: absolute(baseUrl, publicPathFor(DEFAULT_LOCALE)) },
+  ];
 }
 
 export function sitemapEntries(baseUrl: string): SitemapEntry[] {
-  const alternates: SitemapAlternate[] = [
-    ...LOCALES.map((locale) => ({ hreflang: HREFLANG[locale] ?? locale, href: absolute(baseUrl, publicPathFor(locale)) })),
-    { hreflang: 'x-default', href: absolute(baseUrl, '/') },
-  ];
+  const alternates = alternateLinks(baseUrl);
   return PUBLIC_ROUTE_PATHS.map((path) => ({
     url: absolute(baseUrl, path),
     alternates,

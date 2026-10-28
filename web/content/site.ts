@@ -52,15 +52,21 @@ export const CONTACT_EMAIL = contactOf(process.env.CONTACT_EMAIL);
 export const COOKIELESS_COUNTER_ENABLED = false;
 
 /**
- * The absolute URL of one public path, from the origin above. The canonical `<link>`, `og:url`
- * and the footer line all call this with the same path, which is what makes them unable to drift:
- * there is one origin, and one function that applies it.
+ * The absolute URL of one public path, from the origin above. The canonical `<link>`, `og:url`,
+ * every `hreflang` alternate and the footer line all call this with the same path, which is what
+ * makes them unable to drift: there is one origin, and one function that applies it.
  *
  * A root URL serialises as its origin with no trailing slash — the form the `<link>` and `og:url`
  * carry once Next resolves them — so the three places print one string rather than three
- * spellings of it.
+ * spellings of it. `hreflang` follows the same rule for the same reason: an alternate for `es`
+ * that read `…/` while its canonical read `…` would be two spellings of one URL, and a crawler
+ * reading both has to decide whether they are the same page.
+ *
+ * `baseUrl` is a parameter, not a second source of truth: the build gate that checks the sitemap
+ * has to evaluate one origin against another to prove they agree, and `SITE_URL` stays the
+ * default for every caller that publishes a URL.
  */
-export function canonicalUrl(path: string): string {
-  const url = new URL(path, SITE_URL);
+export function canonicalUrl(path: string, baseUrl: string = SITE_URL): string {
+  const url = new URL(path, baseUrl);
   return url.pathname === '/' && url.search === '' && url.hash === '' ? url.origin : url.toString();
 }

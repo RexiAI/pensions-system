@@ -7,7 +7,7 @@ import { evaluateAdminRequest } from '../../web/admin/routes';
 import { adminT } from '../../web/content/admin';
 import { loadAdminConfig } from '../../web/admin/config';
 import { robotsPolicy, sitemapEntries } from '../../web/seo/routes';
-import { SITE_URL } from '../../web/content/site';
+import { SITE_URL, canonicalUrl } from '../../web/content/site';
 
 const PASSWORD = 'correct horse battery staple';
 const SECRET = 's'.repeat(48);
@@ -177,7 +177,9 @@ describe('admin authentication', () => {
 
     expect(plan.headers['X-Robots-Tag']).toContain('noindex');
     expect(urls.some((url) => url.includes('/admin'))).toBe(false);
-    expect(urls).toContain(`${SITE_URL}/`);
+    // The base locale is the origin itself — `canonicalUrl('/')`, never `…/` — which is the one
+    // spelling the canonical `<link>`, `og:url` and the sitemap's own alternates publish.
+    expect(urls).toContain(canonicalUrl('/'));
     expect(JSON.stringify(policy)).not.toContain('Disallow');
   });
 
