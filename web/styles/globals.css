@@ -377,8 +377,11 @@ svg {
 
 .hero__panel {
   /* Revision 3 F3: the panel is material, not a box. Its top edge is the 3px projection rule
-     inside the countdown; the border would be a second, meaningless edge. */
-  background: var(--surface-2);
+     inside the countdown; the border would be a second, meaningless edge.
+     Revision 4 §P2: the material is its own ground, not `--surface-2`. A second step of the same
+     beige reads as a shaded region of the page; a warmer, deeper sheet reads as paper laid on
+     paper, which is what makes the panel worth looking at. */
+  background: var(--surface-hero);
   padding: var(--space-5);
 }
 
@@ -1176,7 +1179,7 @@ svg {
 
   .hero--numeric .hero__panel-countdown,
   .hero--numeric .hero__panel-readings {
-    background: var(--surface-2);
+    background: var(--surface-hero);
     padding: var(--space-5);
   }
 

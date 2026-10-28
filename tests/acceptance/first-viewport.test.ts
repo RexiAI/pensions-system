@@ -147,11 +147,12 @@ describe('AC-001-107: the clock is inside the first viewport on a phone', () => 
     expect(MOBILE).toMatch(/\.hero__panel-countdown\s*\{\s*order:\s*1;/);
     expect(MOBILE).toMatch(/\.hero__lead\s*\{\s*order:\s*2;/);
     expect(MOBILE).toMatch(/\.hero__panel-readings,[\s\S]{0,40}?\{\s*order:\s*3;/);
-    // Each block keeps the panel's material, so nothing is hidden or restyled away.
+    // Each block keeps the panel's material, so nothing is hidden or restyled away: Revision 4
+    // §P2 moved that material from `--surface-2` to its own warmer `--surface-hero`.
     for (const selector of ['.hero--numeric .hero__panel-countdown,', '.hero--numeric .hero__panel-readings ']) {
       expect(MOBILE).toContain(selector);
     }
-    expect(MOBILE).toContain('background: var(--surface-2)');
+    expect(MOBILE).toContain('background: var(--surface-hero)');
   });
 
   it('AC-001-107: nothing on the way is shrunk or hidden to make room', () => {

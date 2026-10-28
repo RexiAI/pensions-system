@@ -62,21 +62,27 @@
   --chart-compact-w: 320;
   --figure-state-row-min: 48px;
 
-  /* Revision 3 §P1: warm paper, warmer ink, a present accent. Three hues, unchanged meanings. */
-  --surface-1: #f5efe2;
-  --surface-2: #eee7d7;
-  --surface-3: #e7decb;
-  --ink-1: #1b1610;
-  --ink-2: #443b2f;
-  --ink-3: #5f5544;
-  --rule-1: #d3c9b6;
-  --rule-2: #b5a992;
-  --accent: #0e5c3c;
-  --on-accent: #f5efe2;
+  /* Revision 4 §P1: warm paper, warmer ink, a present accent. Three hues, unchanged meanings.
+     Every value recomputed against its pairs (AC-001-117). The grounds lift +1.3 L* and gain
+     chroma at a hue 7 degrees less yellow than Revision 3's: warm paper, not beige. The L* ladder
+     keeps the Revision 3 ordering, measuring 2.75 / 3.04 apart (Revision 3: 2.79 / 3.08). */
+  --surface-1: #fdf2e1;
+  --surface-2: #f6ead7;
+  --surface-3: #f0e1c9;
+  /* Revision 4 §P2: the hero panel's own ground — a warmer, deeper sheet laid on the page, not
+     a second step of the same beige. It is the page's one large warm area. */
+  --surface-hero: #fee8d0;
+  --ink-1: #1e160d;
+  --ink-2: #47392a;
+  --ink-3: #645341;
+  --rule-1: #d6c8b7;
+  --rule-2: #b9a892;
+  --accent: #425425;
+  --on-accent: #fdf2e1;
   --data-deficit: #96472a;   /* byte-identical to Revision 2: its warmth is load-bearing */
 
   --chart-series-1: var(--accent);
-  --chart-series-2: #6b6759;   /* comparison, the past as reference (dark: #a8a292) */
+  --chart-series-2: #6f6658;   /* comparison, the past as reference (dark: #aba192) */
   --chart-ref: var(--ink-3);
   --chart-grid: var(--rule-1);
   --chart-hatch: repeating-linear-gradient(45deg, transparent 0 3px, color-mix(in srgb, var(--ink-1) 16%, transparent) 3px 4px);
@@ -116,18 +122,19 @@
 }
 
 [data-theme='dark'] {
-  --surface-1: #15110d;
-  --surface-2: #1d1813;
-  --surface-3: #27211a;
-  --ink-1: #f2ede1;
-  --ink-2: #c6bdae;
-  --ink-3: #9b9182;
+  --surface-1: #17110b;
+  --surface-2: #1f1810;
+  --surface-3: #292117;
+  --surface-hero: #201406;
+  --ink-1: #f5eddf;
+  --ink-2: #cbbead;
+  --ink-3: #a09180;
   --rule-1: #312a22;
   --rule-2: #473e34;
-  --accent: #63c398;
-  --on-accent: #15110d;
+  --accent: #9cc17f;
+  --on-accent: #17110b;
   --data-deficit: #d08a63;   /* unchanged: byte-identical to Revision 2 */
-  --chart-series-2: #a8a292;
+  --chart-series-2: #aba192;
   --data-projection: #d8bf60;
   --state-pending: #e0b25c;
   --state-danger: #e7907e;
