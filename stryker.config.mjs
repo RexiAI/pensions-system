@@ -22,10 +22,20 @@ export default {
     'web/manifest/**/*.ts',
     'web/sources/**/*.ts',
     'web/ingest/**/*.ts',
-    // Revision 2's calculation surface (T17 age structure, T18 countdown). Widened deliberately
-    // when those modules shipped: they carry the product's newest numeric claims, so leaving them
-    // out would let an aggregate score describe a tree that no longer exists.
+    // Revision 2's calculation surface (T17 age structure, T18 countdown) and revision 3's clock
+    // (T20: clock, clock-ticker, amended countdown). Widened deliberately when those modules
+    // shipped: they carry the product's newest numeric claims, so leaving them out would let an
+    // aggregate score describe a tree that no longer exists.
     'web/series/**/*.ts',
+    // T21's per-locale statement budget. One file, not all of `web/content/**`: this is the only
+    // module there that carries a product claim (the two-line fit) rather than presentation
+    // formatting. A wrong budget lets the headline overflow its column on a built page.
+    'web/content/budgets.ts',
+    // The repo-local 3-digit traceability gate. Normally `scripts/*.ts` is excluded because each
+    // entry point calls `process.exit(main())` at import time (see above); this one does not — it
+    // guards the invocation with `import.meta.url` and exports its predicates, so a mutant in it
+    // is reachable and killable from the test suite.
+    'scripts/check-scenario-traceability-3digit.ts',
   ],
   // Sandbox copy exclusions. `stryker.config.mjs` itself lives outside the mutate globs, and
   // none of these directories is needed to run the suite: `.opencode` and `.standards` in
@@ -33,10 +43,15 @@ export default {
   // (`EISDIR: illegal operation on a directory`), and `.standards` is a submodule we must
   // never touch. `data/derived` and `data/snapshots` are deliberately NOT ignored — the
   // ingest and gate tests read them.
+  //
+  // `specs/` is NOT ignored either, and that is load-bearing: `scripts/check-scenario-traceability-3digit.ts`
+  // is in the mutate globs, and the test that proves it counts this repository's real scenario
+  // IDs reads `specs/001-*/20-acceptance/`. With `specs` excluded from the sandbox, that test
+  // fails in Stryker's dry run (the gate then sees zero scenarios) and no mutation run starts at
+  // all. Copying one directory of markdown is the whole cost. No file under `specs/` is mutated.
   ignorePatterns: [
     '.opencode',
     '.standards',
-    'specs',
     '.github',
     '.githooks',
     '.playwright-mcp',

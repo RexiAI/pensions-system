@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "prebuild": "tsx scripts/verify-derived.ts && tsx scripts/check-content-scope.ts && tsx scripts/check-public-vocabulary.ts",
+    "prebuild": "tsx scripts/verify-derived.ts && tsx scripts/check-content-scope.ts && tsx scripts/check-public-vocabulary.ts && tsx scripts/check-scenario-traceability-3digit.ts",
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
