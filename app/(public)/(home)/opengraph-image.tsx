@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { shareAlt, shareCard } from '../../web/seo/share-card';
+import { shareAlt, shareCard } from '../../../web/seo/share-card';
 
 export const size = { width: 1200, height: 630 };
 export const alt = shareAlt('es');

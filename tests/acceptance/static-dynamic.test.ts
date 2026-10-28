@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ADMIN_SECURITY_HEADERS, evaluateAdminRequest } from '../../web/admin/routes';
 import { listSourceFiles, readSource } from '../helpers/source-scan';
 
-const PUBLIC_PAGE = 'app/(public)/page.tsx';
+const PUBLIC_PAGE = 'app/(public)/(home)/page.tsx';
 const LOCALE_PAGE = 'app/(public)/[locale]/page.tsx';
 const ADMIN_LAYOUT = 'app/(admin)/admin/layout.tsx';
 const AUTED_LAYOUT = 'app/(admin)/admin/(authed)/layout.tsx';

@@ -1,10 +1,13 @@
 import type { Metadata, Viewport } from 'next';
-import type { ReactNode } from 'react';
-import { BRAND } from '../web/brand/generated';
-import { SITE_URL } from '../web/content/site';
-import '../web/styles/globals.css';
+import { BRAND } from '../brand/generated';
+import { SITE_URL } from '../content/site';
 
-export const metadata: Metadata = {
+/**
+ * The metadata every root layout shares. A root layout owns the document, so each of them
+ * re-exports these two values rather than restating them: the icon set, `metadataBase` and the
+ * theme colours are the same on every route, and three copies would drift.
+ */
+export const siteMetadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: BRAND.wordmark,
   description: 'Cinco cifras oficiales con su fórmula, su fuente y el comando para reproducirlas.',
@@ -19,17 +22,9 @@ export const metadata: Metadata = {
 };
 
 /** Light and dark variants: the browser chrome follows the reader's OS setting (D7). */
-export const viewport: Viewport = {
+export const siteViewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: BRAND.onGround },
     { media: '(prefers-color-scheme: dark)', color: BRAND.ground },
   ],
 };
-
-export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
-    <html lang="es">
-      <body>{children}</body>
-    </html>
-  );
-}

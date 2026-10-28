@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { renderPublicPage } from '../../web/components/render-public-page';
-import { metadataFor } from '../../web/seo/metadata';
+import { renderPublicPage } from '../../../web/components/render-public-page';
+import { metadataFor } from '../../../web/seo/metadata';
 
 export const dynamic = 'force-static';
 
