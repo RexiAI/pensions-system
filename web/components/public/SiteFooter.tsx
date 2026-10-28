@@ -1,6 +1,7 @@
-import { CONTACT_EMAIL } from '../../content/site';
+import { CONTACT_EMAIL, canonicalUrl } from '../../content/site';
 import { LOCALES } from '../../content/types';
 import type { CountryLocaleContent } from '../../content/types';
+import { publicPathFor } from '../../seo/routes';
 import { SOURCE_DECLARATIONS } from '../../sources/types';
 import { localePath } from './SiteHeader';
 
@@ -45,10 +46,12 @@ export function SiteFooter({ content, snapshotIso }: SiteFooterProps) {
         <h2>{content.t('footer.doesNotClaimHeading')}</h2>
         <p>{content.t('footer.noTracking')}</p>
         <p>
-          {content.t('footer.contact')}: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+          {content.t('footer.contact')}:{' '}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         </p>
         <p>
-          {content.t('footer.canonical')}: <code>{localePath(content.locale)}</code>
+          {content.t('footer.canonical')}:{' '}
+          <code>{canonicalUrl(publicPathFor(content.locale))}</code>
         </p>
         <p>
           {content.t('footer.snapshot')}: <time dateTime={snapshotIso}>{snapshotIso}</time>

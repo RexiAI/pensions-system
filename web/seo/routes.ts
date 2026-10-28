@@ -28,7 +28,8 @@ export interface SitemapEntry {
   priority: number;
 }
 
-function pathForLocale(locale: string): string {
+/** The one place a locale becomes a path: the sitemap, the canonical link and the footer use it. */
+export function publicPathFor(locale: string): string {
   return locale === DEFAULT_LOCALE ? '/' : `/${locale}`;
 }
 
@@ -38,7 +39,7 @@ function absolute(baseUrl: string, path: string): string {
 
 export function sitemapEntries(baseUrl: string): SitemapEntry[] {
   const alternates: SitemapAlternate[] = [
-    ...LOCALES.map((locale) => ({ hreflang: HREFLANG[locale] ?? locale, href: absolute(baseUrl, pathForLocale(locale)) })),
+    ...LOCALES.map((locale) => ({ hreflang: HREFLANG[locale] ?? locale, href: absolute(baseUrl, publicPathFor(locale)) })),
     { hreflang: 'x-default', href: absolute(baseUrl, '/') },
   ];
   return PUBLIC_ROUTE_PATHS.map((path) => ({

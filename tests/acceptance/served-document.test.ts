@@ -8,6 +8,8 @@ import {
   type ServedApp,
 } from '../helpers/served-app';
 import { LOCALES } from '../../web/content/types';
+import { CONTACT_EMAIL, canonicalUrl } from '../../web/content/site';
+import { publicPathFor } from '../../web/seo/routes';
 import { shareAlt } from '../../web/seo/share-card';
 
 /**
@@ -50,6 +52,25 @@ describe.skipIf(!BUILD_PRESENT)('the served document', () => {
       const response = await fetch(`${app.baseUrl}${icon}`);
       expect(response.status, `${icon} is declared by the manifest`).toBe(200);
       expect(response.headers.get('content-type'), icon).toBe('image/png');
+    }
+  });
+
+  it('publishes one canonical URL per route, in the link, og:url and the footer', async () => {
+    // The three places that name this page's URL, read from the bytes a reader receives: a
+    // metadata helper that is right in isolation but never wired into the route would pass every
+    // other test in this file and still ship a page with no canonical.
+    for (const locale of LOCALES) {
+      const canonical = canonicalUrl(publicPathFor(locale));
+      const html = await (await fetch(`${app.baseUrl}${routePath(locale)}`)).text();
+
+      const link = /<link rel="canonical" href="([^"]*)"/.exec(html)?.[1];
+      const ogUrl = metaContent(html, 'og:url');
+      expect(link, `${locale}: <link rel="canonical">`).toBe(canonical);
+      expect(ogUrl, `${locale}: og:url`).toBe(canonical);
+      // The footer's citation line carries the same absolute URL — never a bare path.
+      expect(html, `${locale}: footer line`).toContain(canonical);
+      expect(html, `${locale}: no reserved-domain host`).not.toMatch(/pensiones\.example/);
+      expect(html, `${locale}: a real inbox`).toContain(`mailto:${CONTACT_EMAIL}`);
     }
   });
 

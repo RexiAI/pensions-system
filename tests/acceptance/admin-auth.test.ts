@@ -7,6 +7,7 @@ import { evaluateAdminRequest } from '../../web/admin/routes';
 import { adminT } from '../../web/content/admin';
 import { loadAdminConfig } from '../../web/admin/config';
 import { robotsPolicy, sitemapEntries } from '../../web/seo/routes';
+import { SITE_URL } from '../../web/content/site';
 
 const PASSWORD = 'correct horse battery staple';
 const SECRET = 's'.repeat(48);
@@ -168,13 +169,15 @@ describe('admin authentication', () => {
 
   it('AC-001-52: admin routes are noindex and excluded from the sitemap', () => {
     const plan = evaluateAdminRequest({ method: 'GET', pathname: '/admin/audit', env, now: NOW });
-    const entries = sitemapEntries('https://pensiones.example');
+    // The deployment's own origin, from the one place it is configured: a placeholder here would
+    // be a second, drifting copy of the site's identity.
+    const entries = sitemapEntries(SITE_URL);
     const urls = entries.flatMap((entry) => [entry.url, ...entry.alternates.map((alternate) => alternate.href)]);
-    const policy = robotsPolicy('https://pensiones.example');
+    const policy = robotsPolicy(SITE_URL);
 
     expect(plan.headers['X-Robots-Tag']).toContain('noindex');
     expect(urls.some((url) => url.includes('/admin'))).toBe(false);
-    expect(urls).toContain('https://pensiones.example/');
+    expect(urls).toContain(`${SITE_URL}/`);
     expect(JSON.stringify(policy)).not.toContain('Disallow');
   });
 

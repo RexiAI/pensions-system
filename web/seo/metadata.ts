@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { BRAND } from '../brand/generated';
 import { contentRegistry } from '../content/registry';
+import { canonicalUrl } from '../content/site';
+import { publicPathFor } from './routes';
 
 /**
  * Page metadata for one locale (T19, R4 level 3). The `<title>` and `og:title` take a scope
@@ -22,11 +24,18 @@ export function pageMetadata(locale: string): PageMetadata {
   return { title, ogTitle: title, description };
 }
 
+/**
+ * One locale's page metadata. `<link rel="canonical">` and `og:url` are the same absolute URL,
+ * and both come from `canonicalUrl(publicPathFor(locale))` — the footer's citation line calls the
+ * same pair, so the three cannot disagree about what this page's URL is.
+ */
 export function metadataFor(locale: string): Metadata {
   const meta = pageMetadata(locale);
+  const canonical = canonicalUrl(publicPathFor(locale));
   return {
     title: meta.title,
     description: meta.description,
-    openGraph: { title: meta.ogTitle, description: meta.description },
+    alternates: { canonical },
+    openGraph: { title: meta.ogTitle, description: meta.description, url: canonical },
   };
 }
