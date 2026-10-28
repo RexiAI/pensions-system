@@ -100,14 +100,28 @@ export function formatValue(
   return FORMATTERS[kind](value, locale);
 }
 
-export function formatDate(iso: string, locale: Locale): string {
+/**
+ * A reusable integer formatter, returned as a function. The clock's day count is written once
+ * per mount and once per tick, so it constructs `Intl.NumberFormat` once rather than 86 400
+ * times a day; `Intl` still lives only in this module (design §Number and date formatting).
+ */
+export function integerFormatter(locale: Locale): (value: number) => string {
+  const formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+  return (value: number) => formatter.format(value);
+}
+
+/**
+ * `timeZone` is a parameter because a calendar date is a local fact: the clock's anchor is
+ * 1 January in Madrid, and formatting it in UTC would print 31 December for a `+01:00` instant.
+ */
+export function formatDate(iso: string, locale: Locale, timeZone = 'UTC'): string {
   const parsed = new Date(iso);
   if (Number.isNaN(parsed.getTime())) return iso;
   return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-    timeZone: 'UTC',
+    timeZone,
   }).format(parsed);
 }
 

@@ -1,9 +1,11 @@
 import { FIGURE_ID_KEYS, SERIES_TITLE_KEYS } from '../../content/keys';
-import { formatCount, formatDate } from '../../content/format';
+import { formatCount, formatDate, formatYear } from '../../content/format';
 import type { CountryLocaleContent } from '../../content/types';
 import type { DerivedFigure } from '../../ingest/types';
 import type { DerivedSeries } from '../../ingest/series-types';
 import { reproduceCommand, seriesReproduceCommand } from '../reproduce-command';
+import { CLOCK_TIME_ZONE } from '../../series/clock';
+import type { CountdownValue } from '../../series/countdown';
 
 export interface ReproduceBlockProps {
   content: CountryLocaleContent;
@@ -18,6 +20,25 @@ interface Row {
   fetchedAt: string;
   inputHash: string;
   command: string;
+  /** The countdown's two-reference disclosure, stated in its own group (AC-001-119). */
+  note?: string;
+}
+
+/**
+ * `countdown.clock.arithmetic` belongs here, not only in the clock block: the Reproducir group
+ * is where a reader compares quantities, so it is where "the years are year-number arithmetic
+ * and the days are date arithmetic" has to be said (AC-001-119, never dropped for length).
+ */
+function countdownNote(content: CountryLocaleContent, entry: DerivedSeries): string | undefined {
+  if (entry.seriesId !== 'countdown' || entry.value === null) return undefined;
+  const value = entry.value as CountdownValue;
+  if (value.anchor === null || value.years === null || value.thresholdYear === null) return undefined;
+  return content.t('countdown.clock.arithmetic', {
+    years: formatYear(value.years, content.locale),
+    thresholdYear: formatYear(value.thresholdYear, content.locale),
+    snapshotYear: formatYear(value.snapshotYear, content.locale),
+    date: formatDate(value.anchor, content.locale, CLOCK_TIME_ZONE),
+  });
 }
 
 /**
@@ -48,6 +69,7 @@ export function ReproduceBlock({ content, figures, series = [] }: ReproduceBlock
     fetchedAt: entry.manifest.fetchedAt,
     inputHash: entry.manifest.inputHash,
     command: seriesReproduceCommand(entry.manifest, entry.seriesId),
+    note: countdownNote(content, entry),
   }));
   return (
     <section className="reproduce" id="reproducir" aria-labelledby="reproduce-heading" data-operator="true">
@@ -104,12 +126,15 @@ function countLabel(
 
 function ReproduceRow({ content, row }: { content: CountryLocaleContent; row: Row }) {
   return (
-    <div className="reproduce__row">
-      <span>{row.title}</span>
-      <code>{row.formulaId}</code>
-      <time dateTime={row.fetchedAt}>{formatDate(row.fetchedAt, content.locale)}</time>
-      <code className="hash hash--full">{row.inputHash}</code>
-      <code>{row.command}</code>
-    </div>
+    <>
+      <div className="reproduce__row">
+        <span>{row.title}</span>
+        <code>{row.formulaId}</code>
+        <time dateTime={row.fetchedAt}>{formatDate(row.fetchedAt, content.locale)}</time>
+        <code className="hash hash--full">{row.inputHash}</code>
+        <code>{row.command}</code>
+      </div>
+      {row.note ? <p className="reproduce__note">{row.note}</p> : null}
+    </>
   );
 }

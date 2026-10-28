@@ -18,6 +18,7 @@ import { readDerivedFigures } from '../web/ingest/write-derived';
 import { SERIES_DIR, readDerivedSeries } from '../web/derived/series-store';
 import { validateManifest } from '../web/manifest/validate';
 import { AGE_BANDS } from '../web/series/age-bands';
+import { anchorProblem, countdownSchemaProblems } from '../web/series/clock';
 
 const DERIVED_DIR = 'data/derived';
 
@@ -104,6 +105,20 @@ function pyramidProblems(series: readonly DerivedSeries[]): string[] {
   });
 }
 
+/**
+ * The countdown's derived schema is closed (T18, T20): its documented fields are the contract,
+ * and its `anchor` must be the one `thresholdYear` produces. An extra field is a schema change
+ * nobody documented; a wrong anchor is a clock counting to a date the data does not name.
+ */
+function countdownProblems(series: readonly DerivedSeries[]): string[] {
+  const countdown = series.find((entry) => entry.seriesId === 'countdown');
+  if (!countdown || countdown.value === null) return [];
+  const value = countdown.value as Record<string, unknown>;
+  const thresholdYear = typeof value.thresholdYear === 'number' ? value.thresholdYear : null;
+  const anchor = anchorProblem(thresholdYear, value.anchor);
+  return [...countdownSchemaProblems(value), ...(anchor === null ? [] : [`countdown: ${anchor}`])];
+}
+
 function main(): number {
   const figures = readDerivedFigures(DERIVED_DIR);
   const series = readDerivedSeries(SERIES_DIR);
@@ -117,6 +132,7 @@ function main(): number {
     ...figures.flatMap(figureProblems),
     ...seriesProblems(series),
     ...pyramidProblems(series),
+    ...countdownProblems(series),
   ];
   for (const problem of problems) console.error(problem);
   if (problems.length > 0) return 1;

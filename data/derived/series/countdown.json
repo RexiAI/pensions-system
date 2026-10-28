@@ -27,6 +27,7 @@
   "seriesId": "countdown",
   "unresolvedSources": [],
   "value": {
+    "anchor": "2042-01-01T00:00:00+01:00",
     "backCast": {
       "difference": 0.69,
       "observed": 31.22,

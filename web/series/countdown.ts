@@ -8,6 +8,7 @@
  * computed over every projection variant the payload publishes.
  */
 import { roundTo } from '../metrics/rounding';
+import { anchorFor } from './clock';
 import { IngestError, categoryLabels, jsonStatPoints, resolveCategoryCode } from '../sources/eurostat';
 import { readAgeCounts } from './age-structure';
 
@@ -45,6 +46,12 @@ export interface CountdownValue {
   threshold: number;
   snapshotYear: number;
   thresholdYear: number | null;
+  /**
+   * The anchor instant `{thresholdYear}-01-01T00:00:00+01:00`, assembled from `thresholdYear`
+   * and never authored (T20, AC-001-108). `null` when there is no threshold year, which is what
+   * makes "no anchor, no clock" structural rather than a render-time check.
+   */
+  anchor: string | null;
   /** `thresholdYear - snapshotYear`, both integers. Never a sub-annual unit. */
   years: number | null;
   /** The horizon's last published year, printed in the `not-crossed` sentence. */
@@ -239,6 +246,7 @@ export function computeCountdown(inputs: CountdownInputs): CountdownValue {
   const pinned = readDependencySeries(inputs.projected, { denominator, variant: pinnedCode });
   if (pinned.length === 0) throw new IngestError('proj_23np has no baseline dependency series');
   const crossings = variantCrossings(inputs.projected, threshold, denominator);
+  const state = computedState(pinned, threshold, inputs.snapshotYear);
   return {
     variant: pinnedCode,
     variantLabel: BASELINE_PROJECTION_LABEL,
@@ -248,6 +256,7 @@ export function computeCountdown(inputs: CountdownInputs): CountdownValue {
     range: rangeOf(crossings),
     variants: crossings,
     backCast: backCast(pinned, inputs.observed, inputs.snapshotYear, denominator),
-    ...computedState(pinned, threshold, inputs.snapshotYear),
+    ...state,
+    anchor: anchorFor(state.thresholdYear),
   };
 }

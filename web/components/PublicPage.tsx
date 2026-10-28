@@ -32,6 +32,11 @@ export interface PublicPageProps {
   series?: readonly DerivedSeries[];
   /** The published countries, resolved from the content model, for the scope mark. */
   countries?: readonly ScopeEntry[];
+  /**
+   * The render instant. The clock's server render is computed from it, so the page is
+   * deterministic when a caller pins it (a test, or the static build's own instant).
+   */
+  now?: Date;
 }
 
 function orderedFigures(figures: readonly DerivedFigure[]): DerivedFigure[] {
@@ -76,6 +81,7 @@ export function PublicPage({
   stale,
   series = [],
   countries,
+  now = new Date(),
 }: PublicPageProps) {
   const ordered = orderedFigures(figures);
   const pyramid = findSeries(series, 'pyramid');
@@ -92,7 +98,7 @@ export function PublicPage({
       {stale ? <p className="banner">{content.t('banner.stale')}</p> : null}
       <SiteHeader content={content} snapshotIso={snapshotIso} />
       <main id="main">
-        <Hero content={content} figures={ordered} countdown={countdown} countries={scopes} />
+        <Hero content={content} figures={ordered} countdown={countdown} countries={scopes} nowMs={now.getTime()} />
         <SourceStrip content={content} sources={sources} />
         {pyramid === undefined ? null : (
           <PyramidPlate content={content} series={pyramid} freshnessWindowDays={freshnessWindowDays} />

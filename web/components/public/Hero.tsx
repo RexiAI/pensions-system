@@ -19,6 +19,8 @@ export interface HeroProps {
   countdown?: CountdownValue;
   /** The published countries, resolved from the content model (one renders as plain text). */
   countries?: readonly ScopeEntry[];
+  /** The render instant the clock's server value is computed from. */
+  nowMs?: number;
 }
 
 type FigureSubject = Extract<HeroSubject, { kind: 'figure' }>;
@@ -70,11 +72,13 @@ function NumericHero({
   subject,
   countdown,
   countries,
+  nowMs,
 }: {
   content: CountryLocaleContent;
   subject: FigureSubject;
   countdown?: CountdownValue;
   countries?: readonly ScopeEntry[];
+  nowMs: number;
 }) {
   const keys = subjectKeys(subject);
   const demoted = countdown?.state === 'computed';
@@ -96,7 +100,7 @@ function NumericHero({
       <div className="hero__panel">
         {countdown === undefined ? null : (
           <>
-            <CountdownBlock content={content} countdown={countdown} />
+            <CountdownBlock content={content} countdown={countdown} nowMs={nowMs} />
             <hr className="hero__panel-rule" />
           </>
         )}
@@ -135,7 +139,7 @@ function StatusRow({ content, figure }: { content: CountryLocaleContent; figure:
 }
 
 /** Tier 3: no eligible figure, so the largest type on the page is the proposition. */
-function PropositionHero({ content, figures, countdown, countries }: HeroProps) {
+function PropositionHero({ content, figures, countdown, countries, nowMs }: HeroProps & { nowMs: number }) {
   const computed = figures.filter((figure) => viewStateFor({ figure, content }) === 'computed').length;
   return (
     <section className="hero hero--proposition" aria-labelledby="hero-title">
@@ -153,7 +157,7 @@ function PropositionHero({ content, figures, countdown, countries }: HeroProps) 
         </div>
       </div>
       <div className="hero__status">
-        {countdown === undefined ? null : <CountdownBlock content={content} countdown={countdown} />}
+        {countdown === undefined ? null : <CountdownBlock content={content} countdown={countdown} nowMs={nowMs} />}
         <ul className="hero__status-list" aria-label={content.t('figure.statusLabel')}>
           {figures.map((figure) => (
             <StatusRow content={content} figure={figure} key={figure.figureId} />
@@ -172,10 +176,20 @@ function PropositionHero({ content, figures, countdown, countries }: HeroProps) 
  * that either figure exists: the largest type on the page is never spent announcing an
  * absence.
  */
-export function Hero({ content, figures, countdown, countries }: HeroProps) {
+export function Hero({ content, figures, countdown, countries, nowMs = Date.now() }: HeroProps) {
   const subject = selectHeroSubject(figures);
   if (subject.kind === 'proposition') {
-    return <PropositionHero content={content} figures={figures} countdown={countdown} countries={countries} />;
+    return (
+      <PropositionHero
+        content={content}
+        figures={figures}
+        countdown={countdown}
+        countries={countries}
+        nowMs={nowMs}
+      />
+    );
   }
-  return <NumericHero content={content} subject={subject} countdown={countdown} countries={countries} />;
+  return (
+    <NumericHero content={content} subject={subject} countdown={countdown} countries={countries} nowMs={nowMs} />
+  );
 }

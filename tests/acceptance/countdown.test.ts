@@ -85,13 +85,26 @@ describe('AC-001-99: the countdown is the difference of two printed integers', (
     expect(Number.isInteger(value.thresholdYear)).toBe(true);
   });
 
-  it('AC-001-99: both integers are printed beside the number, and no sub-annual unit appears', () => {
+  it('AC-001-99: both integers are printed beside the number, and the years quantity carries no sub-annual unit', () => {
     const html = renderCountdown(value);
     expect(html).toContain('2042');
     expect(html).toContain('2026');
     expect(html).toContain('16');
+
+    // The rule is scoped as Revision 3 rewrote it: the years quantity carries no sub-annual
+    // unit, and the clock is a separate quantity with its own anchor, definition and scenarios
+    // (AC-001-108…AC-001-119). So the assertion is made on the years numeral and on the whole
+    // projection group above the clock rail — not on the clock, whose field labels are the
+    // sub-day units the same block now legitimately renders.
+    const projectionGroup = html.slice(0, html.indexOf('class="clock"'));
+    const numeral = projectionGroup.slice(
+      projectionGroup.indexOf('class="countdown__value"'),
+      projectionGroup.indexOf('</p>', projectionGroup.indexOf('class="countdown__value"')),
+    );
+    expect(numeral).toContain('16');
     for (const unit of ['día', 'dias', 'días', 'mes', 'meses', 'hora', 'horas', 'minuto', 'minutos', 'segundo']) {
-      expect(html.toLowerCase(), unit).not.toContain(unit);
+      expect(numeral.toLowerCase(), unit).not.toContain(unit);
+      expect(projectionGroup.toLowerCase(), unit).not.toContain(unit);
     }
   });
 
@@ -236,6 +249,38 @@ describe('the countdown copy obeys the register rules in every locale', () => {
   it('states the horizon in the not-crossed sentence', () => {
     for (const locale of ['es', 'en', 'fr', 'de', 'it'] as const) {
       expect(content(locale).strings['countdown.notCrossed']).toContain('{year}');
+    }
+  });
+
+  it('the clock copies obey the extended ban list, in every locale', () => {
+    // §P5 extends R2's bans for the clock: the owner's metaphor is the brief, never the copy.
+    // `fin` is checked as a word, because it is a substring of ordinary words in three locales.
+    const EXTENDED = [
+      'destrucción',
+      'destruccion',
+      'destruction',
+      'colapso',
+      'collapse',
+      'explosión',
+      'explosion',
+      'se agota',
+      'agota',
+      'última oportunidad',
+      'ultima oportunidad',
+      'last chance',
+    ];
+
+    for (const locale of ['es', 'en', 'fr', 'de', 'it'] as const) {
+      const clock = Object.entries(content(locale).strings)
+        .filter(([key]) => key.startsWith('countdown.clock.'))
+        .map(([, value]) => value);
+      expect(clock.length, locale).toBe(10);
+      for (const text of clock) {
+        const lower = text.toLocaleLowerCase();
+        for (const word of EXTENDED) expect(lower, `${locale}: ${text}`).not.toContain(word);
+        expect(/\bfin\b/.test(lower), `${locale}: ${text}`).toBe(false);
+        expect(text, `${locale}: ${text}`).not.toContain('!');
+      }
     }
   });
 });

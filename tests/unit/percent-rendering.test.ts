@@ -44,12 +44,23 @@ function region(html: string, start: string, end: string): string {
   return at === -1 ? '' : html.slice(at, html.indexOf(end, at) + end.length);
 }
 
+/**
+ * The hero panel's markup, from its opening tag to the snapshot stamp that closes it.
+ *
+ * The end marker is the stamp, not `</div></section>`: since Revision 3 the countdown block's
+ * clock rail is a `div` inside the section, so the closing-tag sequence appears twice and a
+ * first-match slice would stop inside the countdown instead of at the panel's end.
+ */
+function heroPanelRegion(html: string): string {
+  const at = html.indexOf('<div class="hero__panel">');
+  const end = html.indexOf('<p class="site-header__stamp">', at === -1 ? 0 : at);
+  return at === -1 || end === -1 ? '' : html.slice(at, end);
+}
+
 /** The rendered hero panel: the largest type on the page. */
 function heroPanel(locale: Locale): string {
-  return region(
+  return heroPanelRegion(
     renderComponent(Hero, { content: content(locale), figures: [dependencyFigure(), shareFigure()] }),
-    '<div class="hero__panel">',
-    '</div></section>',
   );
 }
 
@@ -152,7 +163,7 @@ describe('the committed page carries the published percentage points', () => {
     const html = committedPage('es');
     const plate = figureRegion(html, 2);
 
-    expect(region(html, '<div class="hero__panel">', '</div></section>')).toContain(`13,23${NBSP}%`);
+    expect(heroPanelRegion(html)).toContain(`13,23${NBSP}%`);
     expect(readout(plate, 2)).toContain(`13,23${NBSP}%`);
     expect(readout(plate, 2)).toContain(`9,82${NBSP}%`);
     expect(readout(plate, 2)).toContain(`14,39${NBSP}%`);
@@ -170,7 +181,7 @@ describe('the committed page carries the published percentage points', () => {
     const html = committedPage('en');
     const plate = figureRegion(html, 2);
 
-    expect(region(html, '<div class="hero__panel">', '</div></section>')).toContain('13.23%');
+    expect(heroPanelRegion(html)).toContain('13.23%');
     expect(readout(plate, 2)).toContain('13.23%');
     expect(readout(plate, 2)).toContain('9.82%');
     expect(readout(plate, 2)).toContain('14.39%');
