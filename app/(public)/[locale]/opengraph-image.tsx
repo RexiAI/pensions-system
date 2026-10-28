@@ -11,7 +11,17 @@ export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
 
-export const alt = shareAlt(DEFAULT_LOCALE);
+/**
+ * `og:image:alt` per locale. The `alt` export of this file is a single string for the whole
+ * route, so it could only ever hold one locale's text — which is why `/[locale]` links used to
+ * announce themselves in Spanish. `generateImageMetadata` is the metadata-file API that is
+ * called with the route's params, so the alt is resolved per rendered locale. It also requires
+ * an `id`, which Next appends to the image URL.
+ */
+export async function generateImageMetadata({ params }: { params: Promise<{ locale?: string }> }) {
+  const { locale } = await params;
+  return [{ id: 'card', alt: shareAlt(locale ?? DEFAULT_LOCALE), size, contentType: 'image/png' }];
+}
 
 export default async function Image({ params }: { params: Promise<{ locale?: string }> }) {
   const { locale } = await params;
