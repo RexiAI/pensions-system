@@ -1,13 +1,17 @@
-/* Design tokens (spec 001, 15-design.md §Global Tokens). No component may use a literal. */
+/* Design tokens (spec 001, 15-design.md §Global Tokens, superseded by Revision 3 §New tokens
+   and §P1). No component may use a literal. */
 :root {
   --font-sans: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --font-serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  /* Revision 3 §P3 F2: labels are not measurements. The one new font token. */
+  --font-label: var(--font-sans);
 
-  --text-display: clamp(2.25rem, 4.6vw, 3.75rem);
-  --text-h2: clamp(1.5rem, 2.1vw, 2rem);
+  /* Revision 3 §P3 F4: the top of the scale rises; the brief's 5.33x display-to-micro range. */
+  --text-display: clamp(2.5rem, 4.9vw, 4rem);
+  --text-h2: clamp(1.625rem, 2.4vw, 2.375rem);
   --text-h3: 1.25rem;
-  --text-plate: clamp(1.125rem, 1.4vw, 1.375rem);
+  --text-plate: clamp(1.1875rem, 1.55vw, 1.5rem);
   --text-body-lg: 1.1875rem;
   --text-body: 1.0625rem;
   --text-small: 0.9375rem;
@@ -17,12 +21,17 @@
   --text-num-l: 2rem;
   --text-num-m: 1.25rem;
 
-  --leading-tight: 1.04;
+  --leading-tight: 1.02;
   --leading-snug: 1.18;
   --leading-body: 1.62;
   --leading-meta: 1.45;
-  --tracking-display: -0.018em;
-  --tracking-label: 0.06em;
+  --tracking-display: -0.026em;
+  --tracking-label: 0.02em;
+
+  /* Revision 3 §P2: the anchored clock. */
+  --clock-gap: var(--space-5);
+  --clock-days-min: 5ch;
+  --clock-unit-min: 2ch;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -47,26 +56,27 @@
   --chart-compact-w: 320;
   --figure-state-row-min: 48px;
 
-  --surface-1: #f4f5f2;
-  --surface-2: #eceee8;
-  --surface-3: #e4e7df;
-  --ink-1: #141a1b;
-  --ink-2: #384446;
-  --ink-3: #5a6769;
-  --rule-1: #c9cfc7;
-  --rule-2: #a9b2a8;
-  --accent: #17564a;
-  --on-accent: #f4f5f2;
-  --data-deficit: #96472a;
+  /* Revision 3 §P1: warm paper, warmer ink, a present accent. Three hues, unchanged meanings. */
+  --surface-1: #f5efe2;
+  --surface-2: #eee7d7;
+  --surface-3: #e7decb;
+  --ink-1: #1b1610;
+  --ink-2: #443b2f;
+  --ink-3: #5f5544;
+  --rule-1: #d3c9b6;
+  --rule-2: #b5a992;
+  --accent: #0e5c3c;
+  --on-accent: #f5efe2;
+  --data-deficit: #96472a;   /* byte-identical to Revision 2: its warmth is load-bearing */
 
   --chart-series-1: var(--accent);
-  --chart-series-2: #6E7A79;   /* comparison, the past as reference (dark: #A8B3B1) */
+  --chart-series-2: #6b6759;   /* comparison, the past as reference (dark: #a8a292) */
   --chart-ref: var(--ink-3);
   --chart-grid: var(--rule-1);
   --chart-hatch: repeating-linear-gradient(45deg, transparent 0 3px, color-mix(in srgb, var(--ink-1) 16%, transparent) 3px 4px);
 
   /* Revision 2 — the alarm register. One hue, two aliases, layout only beyond that. */
-  --data-projection: #6A5A12;   /* dark: #D8C05C. Projected extent, never a measurement. */
+  --data-projection: #6b520a;   /* dark: #d8bf60. Projected extent, never a measurement. */
   --data-projection-ground: color-mix(in srgb, var(--data-projection) 12%, var(--surface-1));
   --data-projection-edge: color-mix(in srgb, var(--data-projection) 40%, transparent);
   --chart-observed: var(--accent);          /* measured; aliased so the pair is symmetric */
@@ -100,19 +110,19 @@
 }
 
 [data-theme='dark'] {
-  --surface-1: #0f1416;
-  --surface-2: #161c1e;
-  --surface-3: #1d2426;
-  --ink-1: #e9ede8;
-  --ink-2: #b9c2be;
-  --ink-3: #8d9a96;
-  --rule-1: #2a3335;
-  --rule-2: #3c4747;
-  --accent: #56b39a;
-  --on-accent: #0f1416;
-  --data-deficit: #d08a63;
-  --chart-series-2: #a8b3b1;
-  --data-projection: #d8c05c;
+  --surface-1: #15110d;
+  --surface-2: #1d1813;
+  --surface-3: #27211a;
+  --ink-1: #f2ede1;
+  --ink-2: #c6bdae;
+  --ink-3: #9b9182;
+  --rule-1: #312a22;
+  --rule-2: #473e34;
+  --accent: #63c398;
+  --on-accent: #15110d;
+  --data-deficit: #d08a63;   /* unchanged: byte-identical to Revision 2 */
+  --chart-series-2: #a8a292;
+  --data-projection: #d8bf60;
   --state-pending: #e0b25c;
   --state-danger: #e7907e;
 }

@@ -19,12 +19,14 @@ function renderCountdown(): string {
 
 describe('AC-001-106: a projected value is encoded by dash, position and a printed word, not hue alone', () => {
   it('AC-001-106: the projection hue and its dash alias are declared, light and dark', () => {
-    expect(TOKENS).toMatch(/--data-projection:\s*#6A5A12/);
+    // Revision 3 P1 moved the projection hue for contrast on the warmer ground: 85.2 deg, a
+    // lightness correction, not a hue change. The dash and the printed word are what encode it.
+    expect(TOKENS).toMatch(/--data-projection:\s*#6b520a/);
     expect(TOKENS).toMatch(/--chart-projection:\s*var\(--data-projection\)/);
     expect(TOKENS).toMatch(/--dash-projection:\s*6 4/);
     expect(TOKENS).toMatch(/--rule-projection:\s*3px/);
     const dark = TOKENS.slice(TOKENS.indexOf("[data-theme='dark']"));
-    expect(dark).toMatch(/--data-projection:\s*#d8c05c/i);
+    expect(dark).toMatch(/--data-projection:\s*#d8bf60/i);
   });
 
   it('AC-001-106: the projected panel is its own panel, dash-encoded and word-labelled', () => {

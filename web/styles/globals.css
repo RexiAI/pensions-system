@@ -243,7 +243,7 @@ svg {
 }
 
 .index-panel__theme legend {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   color: var(--ink-3);
   text-transform: uppercase;
@@ -376,15 +376,16 @@ svg {
 }
 
 .hero__panel {
+  /* Revision 3 F3: the panel is material, not a box. Its top edge is the 3px projection rule
+     inside the countdown; the border would be a second, meaningless edge. */
   background: var(--surface-2);
-  border: var(--border-hair);
   padding: var(--space-5);
 }
 
 .hero__panel-label,
 .plate__label,
 .register__label {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   color: var(--ink-3);
@@ -441,7 +442,7 @@ svg {
 
 .hero__comparison dt,
 .readout__item dt {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   color: var(--ink-3);
 }
@@ -463,7 +464,7 @@ svg {
 }
 
 .hero__subject-field dt {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   color: var(--ink-3);
@@ -481,7 +482,7 @@ svg {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-5);
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-meta);
   color: var(--ink-2);
   border-top: var(--border-hair);
@@ -503,7 +504,7 @@ svg {
    it is a count of the registers actually rendered (AC-001-91). */
 .register-key__method {
   margin: var(--space-5) 0 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-meta);
 }
 
@@ -547,7 +548,7 @@ svg {
 }
 
 .plate__limit-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   color: var(--ink-3);
 }
 
@@ -567,10 +568,11 @@ svg {
 }
 
 .figure-row {
+  /* Revision 3 F5: five ruled rows in a vertical run was the most form-like passage on the
+     page. The rows separate by space, not by a field boundary; D1's structure is untouched. */
   min-height: var(--figure-state-row-min);
-  border-top: var(--border-hair);
-  padding: var(--space-3) 0;
-  margin: 0;
+  padding: 0;
+  margin: 0 0 var(--space-5);
 }
 
 .figure-row__head {
@@ -581,8 +583,9 @@ svg {
 }
 
 .figure-row__title {
-  font-size: var(--text-body);
+  font-size: var(--text-body-lg);
   font-weight: 600;
+  color: var(--ink-1);
   margin: 0;
 }
 
@@ -592,8 +595,8 @@ svg {
 }
 
 .figure-row__chip {
-  font-family: var(--font-mono);
-  font-size: var(--text-micro);
+  font-family: var(--font-label);
+  font-size: var(--text-small);
   color: var(--ink-3);
   border: var(--border-hair);
   padding: 0 var(--space-2);
@@ -609,7 +612,7 @@ svg {
 
 .figure-row__definition-label,
 .plate__definition-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   color: var(--ink-3);
   letter-spacing: var(--tracking-label);
@@ -632,7 +635,7 @@ svg {
 }
 
 .figure-row__method {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   display: inline-flex;
   align-items: center;
@@ -718,7 +721,7 @@ svg {
 
 .data-table summary {
   cursor: pointer;
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-meta);
   border: var(--border-strong);
   padding: var(--space-3);
@@ -740,7 +743,7 @@ svg {
 
 .data-table caption {
   text-align: left;
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   color: var(--ink-3);
   padding: var(--space-2) 0;
@@ -785,7 +788,7 @@ svg {
 }
 
 .provenance__field dt {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   color: var(--ink-3);
 }
@@ -820,7 +823,7 @@ svg {
   align-items: center;
   gap: var(--space-1);
   min-block-size: 44px;
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   cursor: pointer;
 }
@@ -850,6 +853,7 @@ svg {
 }
 
 .provenance__detail dt {
+  font-family: var(--font-label);
   color: var(--ink-3);
 }
 
@@ -957,7 +961,7 @@ svg {
 }
 
 .citation__chip {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-meta);
   border: var(--border-strong);
   padding: var(--space-1) var(--space-2);
@@ -1163,7 +1167,7 @@ svg {
 .countdown__source,
 .countdown__year-label,
 .countdown__backcast {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   color: var(--ink-3);
@@ -1235,7 +1239,7 @@ svg {
 /* ---------- Revision 2: the scope mark (R4) ---------- */
 
 .scope {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-meta);
   letter-spacing: var(--tracking-label);
   color: var(--ink-2);
@@ -1282,6 +1286,7 @@ svg {
 }
 
 .demography__readout-item dt {
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   color: var(--ink-3);
@@ -1300,13 +1305,14 @@ svg {
 
 .demography__panel-head {
   margin: 0 0 var(--space-2);
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   color: var(--ink-3);
 }
 
 .demography__panel-year {
+  font-family: var(--font-mono);
   color: var(--ink-1);
 }
 
@@ -1355,18 +1361,17 @@ svg {
   border-top: var(--border-hair);
 }
 
-.reproduce__count,
-.reproduce__omitted {
+.reproduce__count {
   font-family: var(--font-mono);
   font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   color: var(--ink-3);
 }
 
+/* The omitted line is prose, not a count (P3 F2): sans, and no dead mono declaration above it. */
 .reproduce__omitted {
-  font-family: var(--font-sans);
+  font-family: var(--font-label);
   font-size: var(--text-small);
-  letter-spacing: 0;
   color: var(--ink-2);
   margin-top: var(--space-4);
 }
@@ -1410,4 +1415,99 @@ svg {
   .demography__tick {
     display: none;
   }
+}
+
+/* ---------- Revision 3: the anchored clock (§P2) ---------- */
+
+/* The clock is the bottom rail of the countdown block, behind one 1px rule. No ground of its
+   own, no border, no chip, no icon. That rule is also what keeps the years numeral above it and
+   the day count below it out of one typographic group (AC-001-119). */
+.clock {
+  margin-top: var(--space-4);
+  border-top: var(--border-hair);
+  padding-top: var(--space-3);
+}
+
+.clock__fields {
+  display: flex;
+  gap: var(--clock-gap);
+  align-items: baseline;
+}
+
+.clock__field {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.clock__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.clock__value--days {
+  font-size: var(--text-num-l);
+  color: var(--ink-1);
+  min-inline-size: var(--clock-days-min);
+}
+
+.clock__value--sub {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  min-inline-size: var(--clock-unit-min);
+}
+
+.clock__label {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+}
+
+.clock__anchor {
+  font-family: var(--font-label);
+  font-size: var(--text-small);
+  color: var(--ink-1);
+  margin: var(--space-2) 0 0;
+}
+
+.clock__anchor-label {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+}
+
+.clock__definition {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  margin: var(--space-3) 0 0;
+}
+
+/* Rendered always in the countdown's own group in Reproducir; in the block itself at >=1024px. */
+.clock__arithmetic {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+  margin: var(--space-2) 0 0;
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .clock__arithmetic {
+    display: block;
+  }
+}
+
+/* The sub-day fields are hidden, never frozen: a seconds field that never changes is a stopped
+   clock, and the day count is complete without them (AC-001-112). */
+@media (prefers-reduced-motion: reduce) {
+  .clock__field--sub {
+    display: none;
+  }
+}
+
+.reproduce__note {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+  margin: calc(-1 * var(--space-2)) 0 var(--space-3);
 }

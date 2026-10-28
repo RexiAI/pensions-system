@@ -3,6 +3,7 @@ import en from './data/ES/en.json';
 import es from './data/ES/es.json';
 import fr from './data/ES/fr.json';
 import it from './data/ES/it.json';
+import { HERO_STATEMENT_BUDGETS } from './budgets';
 import { missingKeys, unknownKeys } from './keys';
 import type { LocaleKey } from './keys';
 import { headingCountProblem } from './registers';
@@ -23,7 +24,8 @@ export type DocumentProblemCode =
   | 'unknown-keys'
   | 'heading-count'
   | 'country-record'
-  | 'scope-statement';
+  | 'scope-statement'
+  | 'statement-budget';
 
 export interface DocumentProblem {
   country: string;
@@ -73,6 +75,25 @@ function scopeStatementProblems(doc: LocaleDocument, base: Base): DocumentProble
   return [{ ...base, code: 'scope-statement', detail: `hero.statement omits "${doc.countryName}"` }];
 }
 
+/**
+ * T8, Revision 3 §P3 F4: the headline is bounded as content-model validation. The budget moved
+ * (46 to 42 in `es`, 60 to 55 in `de`) so the display type could rise; a statement over its
+ * locale's budget is a content bug and fails the build, rather than shipping a three-line `<h1>`.
+ */
+function statementBudgetProblems(doc: LocaleDocument, base: Base): DocumentProblem[] {
+  if (!isLocale(doc.locale)) return [];
+  const statement = doc.strings['hero.statement'] ?? '';
+  const budget = HERO_STATEMENT_BUDGETS[doc.locale];
+  if (statement.length <= budget) return [];
+  return [
+    {
+      ...base,
+      code: 'statement-budget',
+      detail: `hero.statement is ${statement.length} characters, budget ${budget}`,
+    },
+  ];
+}
+
 /** AC-001-91: a heading that names a count names the number of registers rendered. */
 function headingCountProblems(doc: LocaleDocument, base: Base): DocumentProblem[] {
   const countProblem = headingCountProblem(doc.strings, doc.locale);
@@ -93,6 +114,7 @@ export function validateDocument(doc: LocaleDocument): DocumentProblem[] {
     ...keyProblems(doc, base),
     ...countryRecordProblems(doc, base),
     ...scopeStatementProblems(doc, base),
+    ...statementBudgetProblems(doc, base),
     ...headingCountProblems(doc, base),
   ];
 }
