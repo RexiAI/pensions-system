@@ -28,7 +28,7 @@ import {
   pyramidSeries,
   unavailableSeries,
 } from '../fixtures/series';
-import { listSourceFiles, readSource } from '../helpers/source-scan';
+import { listSourceFiles, readSource, stripComments } from '../helpers/source-scan';
 
 const ES = content('es');
 const ANCHOR = '2042-01-01T00:00:00+01:00';
@@ -590,9 +590,135 @@ describe('AC-001-119: the two reference instants are disclosed', () => {
   });
 });
 
+/**
+ * Revision 4 §C1: the clock face is centred within its panel, at both breakpoints, in every state
+ * that renders a clock.
+ *
+ * **How this is checked.** vitest runs with `environment: 'node'` and there is no layout engine,
+ * so the centring is asserted as the mechanism that produces it — the grid, the span, the
+ * centring keywords, and the absence of every left-aligning alternative — and the geometry below
+ * is the documented manual measurement: Chromium against the built app (`npm run build`,
+ * `next start`), `getBoundingClientRect()` for the boxes and a `Range` over the numeral's text
+ * node for the glyph run, taken 2026-10-28.
+ *
+ *   viewport   panel content (x)    day numeral glyphs (x)   optical centre − axis
+ *   390x844    40.00 – 335.00       148.95 – 226.02          −0.02px  (`5543`, 4 chars)
+ *              40.00 – 335.00       177.86 – 197.13          −0.01px  (forced `9`, 1 char)
+ *   1440x900   847.83 – 1276.50     1023.61 – 1100.67        −0.02px  (`5543`, 4 chars)
+ *              847.83 – 1276.50     1052.52 – 1071.78        −0.02px  (forced `9`, 1 char)
+ *
+ * Two things that table is there to prove, and that a `text-align: center` on the numeral would
+ * not have proved: the numeral is centred on the panel's axis to within a hundredth of a pixel,
+ * and its centre does not move when the numeral's own width changes from one character to four.
+ * Before the fix it sat 68.00px left of the axis at both widths — the flex row put the day field
+ * first and the three sub-day fields after it, so the face was measured from its own left edge.
+ * At 390x844 the panel is `display: contents` (the mobile reorder) and the material lives on
+ * `.hero__panel-countdown`; both are the same 295px box, so both have the same axis.
+ */
+describe('AC-001-111: the clock face is horizontally centred within its panel', () => {
+  const CSS = readFileSync('web/styles/globals.css', 'utf8');
+  const TOKENS = readFileSync('web/styles/tokens.css', 'utf8');
+
+  /** Every rule in the clock's own section of the stylesheet, selector list split. Comments are
+   *  stripped first — a declaration that follows a comment inside a rule body would otherwise be
+   *  invisible to the `;`-anchored match. A rule inside a media query is included: that is how a
+   *  breakpoint override would be caught. */
+  const CLOCK_RULES = (() => {
+    const region = stripComments(CSS.slice(CSS.indexOf('/* ---------- Revision 3: the anchored clock')));
+    return [...region.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((match) => ({
+      selectors: (match[1] ?? '')
+        .split(',')
+        .map((selector) => selector.trim().replace(/\s+/g, ' '))
+        .filter(Boolean),
+      body: match[2] ?? '',
+    }));
+  })();
+
+  /** Every value the clock's section declares for `selector { property }`, in document order. */
+  function declared(selector: string, property: string): string[] {
+    return CLOCK_RULES.filter((rule) => rule.selectors.includes(selector))
+      .map((rule) => new RegExp(`(?:^|;)\\s*${property}:\\s*([^;]+)`).exec(rule.body)?.[1]?.trim())
+      .filter((value): value is string => Boolean(value));
+  }
+
+  it('AC-001-111: the face is a centred grid, not a left-aligned flex row', () => {
+    expect(declared('.clock__fields', 'display')).toEqual(['grid']);
+    expect(declared('.clock__fields', 'display')).not.toContain('flex');
+    expect(declared('.clock__fields', 'justify-content')).toEqual(['center']);
+    expect(declared('.clock__fields', 'justify-items')).toEqual(['center']);
+    // One declaration each, so no breakpoint and no state re-declares them: the face is centred
+    // at 320px and at 1440px from the same rule, and reduced motion only hides the sub-day fields.
+    expect(CLOCK_RULES.filter((rule) => rule.selectors.includes('.clock__fields'))).toHaveLength(1);
+  });
+
+  it('AC-001-111: the day count spans the whole row, so its centre is the row’s centre', () => {
+    // The span is what makes the centring geometric rather than measured: the day cell is as wide
+    // as the three sub-day columns and their gaps, so its centre cannot drift from theirs.
+    expect(declared('.clock__field--days', 'grid-column')).toEqual(['1 / -1']);
+    const clock = renderClock('es', THREE_DAYS_OUT);
+    const fields = clock.slice(clock.indexOf('clock__fields'), clock.indexOf('clock__anchor'));
+    expect(fields).toContain('clock__field clock__field--days');
+    // The spanning field is the day count, and it comes first: a span declared on a sub-day field
+    // would centre the wrong element.
+    expect(fields.indexOf('clock__field--days')).toBeLessThan(fields.indexOf('clock__field--sub'));
+    expect(fields.slice(fields.indexOf('clock__field--days'), fields.indexOf('clock__field--sub'))).toContain(
+      'clock__value--days',
+    );
+  });
+
+  it('AC-001-111: the three sub-day columns are equal and fixed, so no numeral can inflate them', () => {
+    // `auto` tracks would absorb the spanning numeral's width — the measured failure: the first
+    // column grew to 96px and the three numerals then sat at 119 / 213 / 281 instead of symmetric
+    // about the axis. Fixed equal columns plus equal gaps are symmetric by construction.
+    expect(declared('.clock__fields', 'grid-template-columns')).toEqual([
+      'repeat(3, var(--clock-sub-col))',
+    ]);
+    expect(declared('.clock__fields', 'grid-template-columns').join('')).not.toMatch(/\bauto\b/);
+    expect(declared('.clock__fields', 'column-gap')).toEqual(['var(--clock-gap)']);
+    // The one size the row depends on: wide enough for the longest label any published locale
+    // uses (`Stunden`), and narrow enough that three columns and two gaps fit the 320px floor.
+    const subCol = /--clock-sub-col:\s*([^;]+);/.exec(TOKENS)?.[1]?.trim();
+    expect(subCol).toBe('3rem');
+  });
+
+  it('AC-001-111: the numeral and its label share one axis, so a wide label cannot drag the numeral', () => {
+    // The failure the brief names: a short numeral over a wide label row. The numeral is a grid
+    // item with `justify-items: center`, so the *box* is centred in the cell and the label's width
+    // never becomes the numeral's sizing authority; `text-align: center` then centres the glyphs
+    // inside the box that `min-inline-size` makes width-invariant.
+    expect(declared('.clock__field', 'justify-items')).toEqual(['center']);
+    expect(declared('.clock__field', 'text-align')).toEqual(['center']);
+    expect(declared('.clock__value--days', 'min-inline-size')).toEqual(['var(--clock-days-min)']);
+    // The label is not given a width, an order, or an inline size: it is centred, not load-bearing.
+    for (const property of ['inline-size', 'width', 'min-inline-size', 'order', 'float', 'position']) {
+      expect(declared('.clock__label', property), `.clock__label { ${property} }`).toEqual([]);
+    }
+  });
+
+  it('AC-001-111: nothing in the clock re-aligns the face to the left', () => {
+    const LEFT = /^(start|flex-start|left|self-start)$/;
+    for (const rule of CLOCK_RULES) {
+      for (const property of ['justify-content', 'justify-items', 'justify-self', 'text-align', 'float']) {
+        const value = new RegExp(`(?:^|;)\\s*${property}:\\s*([^;]+)`).exec(rule.body)?.[1]?.trim();
+        if (value) expect(value, `${rule.selectors.join(', ')} { ${property} }`).not.toMatch(LEFT);
+      }
+      expect(rule.body, rule.selectors.join(', ')).not.toMatch(/(^|;)\s*margin-(left|inline-start):\s*0/);
+    }
+  });
+
+  it('AC-001-111: the elapsed state renders the same centred face', () => {
+    // The layout is state-independent: the elapsed clock keeps the same grid, the same span and
+    // the same class, and only the four values and the definition sentence change.
+    const AFTER = Date.parse(ANCHOR) + 60_000;
+    const clock = renderClock('es', AFTER);
+    expect(clock).toContain('clock__field clock__field--days');
+    expect(clock).toContain('data-clock-state="elapsed"');
+    expect(declared('.clock__field--days', 'grid-column')).toEqual(['1 / -1']);
+  });
+});
+
 /** The anchor date as the page renders it: `formatDate` in Madrid, never in UTC. */
-function anchorDate(locale: Locale): string {
-  return new Intl.DateTimeFormat(locale, {
+function anchorDate(locale: Locale): string {  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

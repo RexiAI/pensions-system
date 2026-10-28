@@ -91,7 +91,7 @@ export function CountdownClock({ anchor, nowMs, locale, strings }: CountdownCloc
       data-clock-state={reading.elapsed ? 'elapsed' : 'running'}
     >
       <div className="clock__fields">
-        <p className="clock__field">
+        <p className="clock__field clock__field--days">
           <span className="clock__value clock__value--days" ref={refs.days} suppressHydrationWarning>
             {formatDays(reading.days)}
           </span>

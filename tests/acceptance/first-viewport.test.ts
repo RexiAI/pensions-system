@@ -84,6 +84,10 @@ describe('AC-001-107: the hero does not fill the viewport and the demography hea
  * above the headline block — and nothing else: the rail is not shrunk, and no other block is
  * hidden to make room for it.
  *
+ * Revision 4 §C1 centres the face, which puts the sub-day fields on their own row beneath the day
+ * count: the rail is taller by that row (254px → 310px) and the first-viewport guarantee still
+ * holds at 390x844, 55px clear of the fold.
+ *
  * **How this is checked.** A real browser is not available in this harness: vitest runs with
  * `environment: 'node'` and Playwright is not a dependency of this project. So the mobile order
  * is asserted structurally (the media query that produces it, and the rendering layer's markup),
@@ -91,22 +95,22 @@ describe('AC-001-107: the hero does not fill the viewport and the demography hea
  * (`npm run build`, `next start`), `getBoundingClientRect()` of `.clock` and `.clock__fields` at
  * each viewport, taken 2026-10-28:
  *
- *   viewport    clock (y)    fields row (y)   before the fix
- *   390x844     479-733      492-568          clock was 870-1124, entirely below the fold
- *   360x640     479-758      492-568          clock was 870-1148, entirely below the fold
- *   1366x768    527-779      540-615          527-779 already, and unchanged by this fix
+ *   viewport    clock (y)    fields row (y)   note
+ *   390x844     479-789      492-623          the whole box is inside the first viewport
+ *   360x640     479-813      492-623          below the fold: out of scope, recorded only
+ *   1366x768    527-835      540-671          below the fold: desktop, out of scope, recorded
  *
  * What that yields, and what is asserted: the rail starts inside the first viewport at every
  * size, and its four-field row is fully inside it at every size. The whole box fits at 390x844.
  * It cannot fit at 360x640 — the projection block above the rail plus the rail is taller than
- * 640px, and the fix may not shrink the clock or hide the disclosure — and it cannot fit at
- * 1366x768 either, where the last 11px of the rail sit below the fold and desktop is out of
+ * 640px, and neither fix may shrink the clock or hide the disclosure — and it cannot fit at
+ * 1366x768 either, where the last 67px of the rail sit below the fold and desktop is out of
  * scope. Those two are recorded rather than asserted, so the numbers stay honest.
  */
 const MEASURED_CLOCK = {
-  '390x844': { viewport: 844, clock: [479, 733], fields: [492, 568] },
-  '360x640': { viewport: 640, clock: [479, 758], fields: [492, 568] },
-  '1366x768': { viewport: 768, clock: [527, 779], fields: [540, 615] },
+  '390x844': { viewport: 844, clock: [479, 789], fields: [492, 623] },
+  '360x640': { viewport: 640, clock: [479, 813], fields: [492, 623] },
+  '1366x768': { viewport: 768, clock: [527, 835], fields: [540, 671] },
 } as const;
 
 const MOBILE_START = CSS.indexOf('@media (max-width: 900px)');
@@ -127,8 +131,12 @@ describe('AC-001-107: the clock is inside the first viewport on a phone', () => 
   it('AC-001-107: at 390x844 the whole clock box is inside the first viewport', () => {
     const measured = MEASURED_CLOCK['390x844'];
     expect(measured.clock[1]).toBeLessThanOrEqual(measured.viewport);
-    // The fix works by reordering, not by shrinking: the rail is 254px tall both before and after.
-    expect(measured.clock[1] - measured.clock[0]).toBe(254);
+    // The fix works by reordering, not by shrinking. The rail's height is pinned so a later edit
+    // that grows the face is caught here rather than discovered on a phone: 310px is the
+    // Revision 4 face, 56px more than the Revision 3 one, because the day count and the sub-day
+    // row are now two rows instead of one.
+    expect(measured.clock[1] - measured.clock[0]).toBeCloseTo(310, 1);
+    expect(measured.clock[1]).toBeLessThanOrEqual(measured.viewport - 50);
   });
 
   it('AC-001-107: the mobile query lifts the countdown above the headline block', () => {

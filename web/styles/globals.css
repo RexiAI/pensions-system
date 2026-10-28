@@ -1482,16 +1482,38 @@ svg {
   padding-top: var(--space-3);
 }
 
+/* Revision 4 §C1: the face is centred. It is a three-column grid, not a baseline-aligned flex
+   run, for one reason: the day count spans every column, so its centre *is* the row's centre by
+   construction — not by measuring a numeral that runs from `3` to `1.234`. `justify-content`
+   centres the track set on the face (the face fills the panel, so that is the panel's axis too,
+   at every width); `justify-items` centres each numeral's box inside its own cell.
+   The columns are fixed, never `auto`: an `auto` track absorbs the spanning numeral's width and
+   the three sub-day fields then start at different offsets from the day count's axis. Fixed,
+   equal tracks keep the row symmetric whatever the numeral says.
+   Nothing here is state-dependent: there is no left-aligned variant, in motion, reduced motion,
+   or elapsed. */
 .clock__fields {
-  display: flex;
-  gap: var(--clock-gap);
-  align-items: baseline;
+  display: grid;
+  grid-template-columns: repeat(3, var(--clock-sub-col));
+  justify-content: center;
+  justify-items: center;
+  column-gap: var(--clock-gap);
+  row-gap: var(--space-2);
+}
+
+/* The day cell owns the whole first row: no label can size it and no sibling can pull it. */
+.clock__field--days {
+  grid-column: 1 / -1;
 }
 
 .clock__field {
   display: grid;
+  /* The numeral and its label share one axis, so a label wider than the numeral does not drag
+     the numeral sideways — the "short numeral over a wide label" failure. */
+  justify-items: center;
   gap: var(--space-1);
   margin: 0;
+  text-align: center;
 }
 
 .clock__value {

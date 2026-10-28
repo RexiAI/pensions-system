@@ -32,6 +32,12 @@
   --clock-gap: var(--space-5);
   --clock-days-min: 5ch;
   --clock-unit-min: 2ch;
+  /* Revision 4 §C1: one column per sub-day field, fixed and equal, wide enough for the longest
+     label any published locale uses (`Stunden`, 7 characters at --text-micro). Fixed rather than
+     `minmax(…, auto)` on purpose: an auto track lets the spanning day numeral inflate the first
+     column and the three sub-day fields then sit off the face's axis. Equal columns are also what
+     make the sub-day row read as a row rather than three arbitrarily spaced pairs. */
+  --clock-sub-col: 3rem;
 
   --space-1: 4px;
   --space-2: 8px;
