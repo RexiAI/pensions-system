@@ -13,6 +13,24 @@ import { publicPathFor } from '../../web/seo/routes';
 import { shareAlt } from '../../web/seo/share-card';
 
 /**
+ * The `<link rel="alternate" hreflang="…">` set the document actually carries, as a plain map.
+ * Attribute order is not guaranteed by the renderer, so each `<link>` tag is matched whole and
+ * then read for its `hreflang` and `href` — a `rel="alternate"` link without a `hreflang` (an
+ * RSS feed, for instance) is not part of this set and is skipped.
+ */
+function localeAlternates(html: string): Record<string, string> {
+  const links = [...html.matchAll(/<link\b[^>]*>/g)].map((match) => match[0]);
+  return Object.fromEntries(
+    links.flatMap((link) => {
+      if (!/rel="alternate"/.test(link)) return [];
+      const hreflang = /\shreflang="([^"]*)"/i.exec(link)?.[1];
+      const href = /\shref="([^"]*)"/i.exec(link)?.[1];
+      return hreflang && href ? [[hreflang, href.replaceAll('&amp;', '&')]] : [];
+    }),
+  );
+}
+
+/**
  * The defects this file pins down were invisible from the source tree: each one needed the
  * served bytes. Every assertion here is against `next start` on a real build.
  *
@@ -74,8 +92,27 @@ describe.skipIf(!BUILD_PRESENT)('the served document', () => {
     }
   });
 
-  it('announces the share card in the route s own language', async () => {
-    const observed: Record<string, string | null> = {};
+  it('publishes the locale alternate set in every served <head>', async () => {
+    // AC-001-52: the metadata helper was correct in isolation before this existed and the page
+    // still shipped without alternates — `generateMetadata` is what decides whether a value the
+    // helper returns ever reaches the `<head>`. Read from the bytes, on the two ends of the set:
+    // the default locale at `/` and a prefixed one at `/en`.
+    const expected: Record<string, string> = {
+      es: canonicalUrl('/'),
+      en: canonicalUrl('/en'),
+      fr: canonicalUrl('/fr'),
+      de: canonicalUrl('/de'),
+      it: canonicalUrl('/it'),
+      'x-default': canonicalUrl('/'),
+    };
+    for (const locale of ['es', 'en']) {
+      const html = await (await fetch(`${app.baseUrl}${routePath(locale)}`)).text();
+      const alternates = localeAlternates(html);
+      expect(alternates, `${routePath(locale)}: served alternates`).toEqual(expected);
+    }
+  });
+
+  it('announces the share card in the route s own language', async () => {    const observed: Record<string, string | null> = {};
     const cardStatus: Record<string, number> = {};
     for (const locale of LOCALES) {
       const html = await (await fetch(`${app.baseUrl}${routePath(locale)}`)).text();

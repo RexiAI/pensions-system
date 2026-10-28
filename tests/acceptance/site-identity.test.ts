@@ -6,7 +6,7 @@ import { citationRegistry } from '../../web/content/citations';
 import { LOCALES } from '../../web/content/types';
 import type { Locale } from '../../web/content/types';
 import { metadataFor } from '../../web/seo/metadata';
-import { publicPathFor } from '../../web/seo/routes';
+import { publicPathFor, sitemapEntries } from '../../web/seo/routes';
 import { siteMetadata } from '../../web/seo/site-metadata';
 import { content, PLATE_FIXTURES, renderComponent } from '../fixtures/figures';
 import { seriesFixtures } from '../fixtures/series';
@@ -159,6 +159,65 @@ describe('AC-001-35: no shipped surface carries a reserved-domain placeholder', 
             ? 'web/content/data/admin/es.json'
             : `web/content/data/ES/${locale}.json`;
       expect(readSource(path), path).not.toMatch(/\.(example|invalid)\b|@pensiones\./i);
+    }
+  });
+});
+
+/**
+ * The design's locale contract (`15-design.md` §i18n): five static routes per locale, with
+ * `hreflang` alternates and `x-default` pointing at Spanish. Nothing emitted it — the served
+ * `<head>` carried no `<link rel="alternate" hreflang="…">` and zero `x-default` occurrences —
+ * so the site told a crawler that five near-identical pages were five unrelated pages.
+ *
+ * The set lives in the shared metadata (`metadataFor`), which both route branches call, so a
+ * route cannot emit a partial set by forgetting to pass something. Its URLs come from
+ * `canonicalUrl`, the same function the canonical `<link>` and `og:url` use, so the alternate
+ * for `es` *is* the canonical URL rather than a second spelling of it.
+ */
+describe('AC-001-52: every route advertises the reciprocal locale alternate set', () => {
+  /** The six entries the design requires: five locales plus `x-default`, which names Spanish. */
+  const EXPECTED: Record<string, string> = {
+    es: canonicalUrl('/'),
+    en: canonicalUrl('/en'),
+    fr: canonicalUrl('/fr'),
+    de: canonicalUrl('/de'),
+    it: canonicalUrl('/it'),
+    'x-default': canonicalUrl('/'),
+  };
+
+  it('AC-001-52: all five locales plus x-default, on every locale route', () => {
+    for (const locale of LOCALES) {
+      const languages = metadataFor(locale).alternates?.languages;
+      expect(languages, `${locale}: alternates.languages`).toBeTruthy();
+      // Sets, not order: `Record` iteration order is a Next serialisation detail.
+      expect(Object.keys(languages ?? {}).sort(), `${locale}: hreflang set`).toEqual(
+        Object.keys(EXPECTED).sort(),
+      );
+      expect(languages, `${locale}: hrefs`).toEqual(EXPECTED);
+    }
+  });
+
+  it('AC-001-52: x-default names the Spanish route, and every href is an absolute canonical URL', () => {
+    for (const locale of LOCALES) {
+      const languages = (metadataFor(locale).alternates?.languages ?? {}) as Record<string, string>;
+      expect(languages['x-default'], `${locale}: x-default`).toBe(canonicalUrl(publicPathFor('es')));
+      for (const [hreflang, href] of Object.entries(languages)) {
+        expect(new URL(href).origin, `${locale}: ${hreflang} origin`).toBe(SITE_URL);
+        // Never a relative href and never a trailing-slash variant of `/`: both would be a
+        // second spelling of the URL the canonical link already publishes.
+        expect(href, `${locale}: ${hreflang} is canonical`).toBe(canonicalUrl(new URL(href).pathname));
+      }
+      // Five distinct routes: `x-default` shares Spanish's URL, every other entry is its own.
+      expect(new Set(Object.values(languages)).size, `${locale}: distinct locales`).toBe(LOCALES.length);
+    }
+  });
+
+  it('AC-001-52: the sitemap advertises the same set as the pages do', () => {
+    // One source, two surfaces: a page whose alternates disagree with the sitemap's is a crawler
+    // reading two different stories about which URLs are translations of each other.
+    for (const entry of sitemapEntries(SITE_URL)) {
+      const fromSitemap = Object.fromEntries(entry.alternates.map((alternate) => [alternate.hreflang, alternate.href]));
+      expect(fromSitemap, `sitemap ${entry.url}`).toEqual(EXPECTED);
     }
   });
 });
