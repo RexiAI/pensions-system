@@ -5775,3 +5775,6 @@ failure of this spec:
   only, if the admin login flow is to be exercised end-to-end. They are deliberately
   unset now, which is why `503` is the correct observed behaviour rather than a gap.
 - An E2E journey suite, which this repository does not yet have.
+
+PR: https://github.com/RexiAI/pensions-system/pull/3
+Commits: 8 for revision 3 (7 task commits + 1 re-archive commit); 9 including this record.
