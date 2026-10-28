@@ -8,8 +8,12 @@
  *   app/icon.svg         32, scales (the tab icon; the measured 404 on every route)
  *   app/favicon.ico      32, PNG payload inside an ICO container
  *   app/apple-icon.png   180
- *   app/icon-192.png     192, manifest
- *   app/icon-512.png     512, manifest
+ *   public/icon-192.png  192, manifest
+ *   public/icon-512.png  512, manifest
+ *
+ * The two manifest rasters are written to `public/`, not `app/`, because Next's `app/`
+ * conventions only publish files named exactly `icon.*`, `apple-icon.*` and `favicon.*`:
+ * `app/icon-192.png` was emitted but never routed, so the manifest pointed at two 404s.
  *   app/manifest.ts      web app manifest, colours read from the tokens
  *   web/brand/generated.ts  the mark as data, for anything that cannot read CSS
  *
@@ -229,12 +233,12 @@ const report = [
   write('app/icon.svg', iconSvg()),
   write('app/favicon.ico', encodeIco(encodePng(32, pixels(32)))),
   write('app/apple-icon.png', encodePng(180, pixels(180))),
-  write('app/icon-192.png', encodePng(192, pixels(192))),
-  write('app/icon-512.png', encodePng(512, pixels(512))),
+  write('public/icon-192.png', encodePng(192, pixels(192))),
+  write('public/icon-512.png', encodePng(512, pixels(512))),
   write('app/manifest.ts', manifestModule()),
   write('web/brand/generated.ts', brandModule()),
 ];
 
 console.log(`brand: letter "${brand.letter}", ground ${brand.ground}, ink ${brand.letterColor}`);
-console.log(`share card: ${SHARE_CARD.width}x${SHARE_CARD.height} (app/opengraph-image.tsx)`);
+console.log(`share card: ${SHARE_CARD.width}x${SHARE_CARD.height} (app/(public)/(home)/opengraph-image.tsx)`);
 for (const line of report) console.log(line);

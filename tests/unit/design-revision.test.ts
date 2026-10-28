@@ -531,7 +531,9 @@ describe('Revision 1 D7: mark, favicon and share card', () => {
   });
 
   it('ships the favicon, the apple icon and the manifest icons', () => {
-    for (const path of ['app/favicon.ico', 'app/apple-icon.png', 'app/icon-192.png', 'app/icon-512.png']) {
+    // The two manifest rasters live in `public/`: `app/` only publishes files named exactly
+    // `icon.*`, `apple-icon.*` and `favicon.*`, so `app/icon-192.png` was never routed.
+    for (const path of ['app/favicon.ico', 'app/apple-icon.png', 'public/icon-192.png', 'public/icon-512.png']) {
       expect(statSync(path).size, path).toBeGreaterThan(100);
     }
     const ico = readFileSync('app/favicon.ico');
