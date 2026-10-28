@@ -88,6 +88,23 @@ describe('AC-001-107: the hero does not fill the viewport and the demography hea
  * count: the rail is taller by that row (254px → 310px) and the first-viewport guarantee still
  * holds at 390x844, 55px clear of the fold.
  *
+ * Revision 4 §C2 centres the *whole* face and gives its prose a measure (`--measure-face`, 280px),
+ * which is a fold-budget question: a narrower measure wraps a sentence onto one more line and
+ * pushes the rail down. The measure was therefore chosen against this guarantee rather than
+ * against the typography alone — 390x844, whole-rail clearance from the fold, per locale:
+ *
+ *   measure   es     en     fr     de     it
+ *   272px     54.9   35.5   35.5   −8.3   54.9
+ *   276px     54.9   54.9   35.5   16.0   54.9
+ *   280px     54.9   54.9   35.5   54.9   54.9      ← the token
+ *   288px     54.9   54.9   54.9   54.9   54.9
+ *   (no measure) 54.9 35.5 35.5  −8.3   54.9
+ *
+ * 280px is the narrowest measure at which no locale is worse than the Spanish baseline; 288px is
+ * wider and buys nothing. The numbers below are unchanged by it — the rail still starts at 479.3
+ * and ends at 789.1 at 390x844 — because at 280px every sentence breaks on the same lines it did
+ * at full width, except the lower disclosure, which stops running to the panel's edge.
+ *
  * **How this is checked.** A real browser is not available in this harness: vitest runs with
  * `environment: 'node'` and Playwright is not a dependency of this project. So the mobile order
  * is asserted structurally (the media query that produces it, and the rendering layer's markup),

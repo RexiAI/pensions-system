@@ -1214,9 +1214,16 @@ svg {
 
 /* ---------- Revision 2: the countdown (R2, R5) ---------- */
 
+/* Revision 4 §C2: the whole face is centred, not just the numeral row. `justify-items` centres
+   every child that has a box of its own (the numeral row, the year row, the rules, the prose
+   blocks below); `text-align` is inherited, so the eyebrow, the threshold year and the sentences
+   all sit on the same axis as the clock rail underneath. One declaration each, no breakpoint and
+   no state re-declares them — the centred face is not a desktop variant. */
 .countdown {
   display: grid;
   gap: var(--space-2);
+  justify-items: center;
+  text-align: center;
 }
 
 .countdown__eyebrow,
@@ -1235,15 +1242,20 @@ svg {
   text-transform: uppercase;
 }
 
-/* The threshold rule: one of the two coloured marks permitted above the fold. */
+/* The threshold rule: one of the two coloured marks permitted above the fold, and the face's
+   axis. A centred grid item shrinks to fit and a rule has no content, so `justify-self: stretch`
+   is what keeps it spanning the panel while everything it separates is centred. */
 .countdown__rule {
   height: var(--rule-projection);
   background: var(--data-projection);
+  justify-self: stretch;
 }
 
 .countdown__value {
   margin: 0;
   display: flex;
+  /* The numeral and its unit centre as one group, not the numeral alone with the unit trailing. */
+  justify-content: center;
   align-items: baseline;
   gap: var(--space-2);
 }
@@ -1264,6 +1276,8 @@ svg {
 .countdown__year-line {
   margin: 0;
   display: flex;
+  /* The threshold year and its label centre as one group, like the numeral row above them. */
+  justify-content: center;
   align-items: baseline;
   gap: var(--space-2);
 }
@@ -1280,6 +1294,22 @@ svg {
   font-size: var(--text-small);
   color: var(--ink-2);
   margin: 0;
+}
+
+/* Revision 4 §C2: prose that wraps centres as a block inside a measure, never across the panel.
+   Centred ragged-right prose at the panel's full width (295px on a phone, 429px on a desktop)
+   reads worse than flush left — the eye loses the left edge and finds no right one. The measure
+   is 280px at the default root size: 65% of the desktop panel, and the narrowest that still keeps
+   the whole rail inside the first viewport at 390x844 in every locale (see `--measure-face`).
+   `text-wrap: balance` is progressive: an engine without it wraps normally and still centres. */
+.countdown__definition,
+.countdown__statement,
+.countdown__range,
+.countdown__source,
+.countdown__backcast {
+  max-inline-size: var(--measure-face);
+  margin-inline: auto;
+  text-wrap: balance;
 }
 
 .hero__panel-rule {
@@ -1478,11 +1508,16 @@ svg {
 
 /* The clock is the bottom rail of the countdown block, behind one 1px rule. No ground of its
    own, no border, no chip, no icon. That rule is also what keeps the years numeral above it and
-   the day count below it out of one typographic group (AC-001-119). */
+   the day count below it out of one typographic group (AC-001-119).
+   Revision 4 §C2: the rail centres its own text, so it reads as one face with the projection
+   block above it even where it is mounted on its own; `justify-self: stretch` keeps the hairline
+   spanning the panel while the fields and the lines below are centred. */
 .clock {
   margin-top: var(--space-4);
   border-top: var(--border-hair);
   padding-top: var(--space-3);
+  justify-self: stretch;
+  text-align: center;
 }
 
 /* Revision 4 §C1: the face is centred. It is a three-column grid, not a baseline-aligned flex
@@ -1574,6 +1609,19 @@ svg {
   .clock__arithmetic {
     display: block;
   }
+}
+
+/* Revision 4 §C2: the rail's three lines centre as blocks inside the same measure as the
+   projection block above them. The anchor line is the first to wrap — `fecha convencional del
+   umbral` plus the date is 46 characters at `--text-small` inside a 295px panel — and a centred
+   line that wraps across the panel's full width would be the exact ragged-right shape the
+   flush-left version at least aligned to an edge. */
+.clock__anchor,
+.clock__definition,
+.clock__arithmetic {
+  max-inline-size: var(--measure-face);
+  margin-inline: auto;
+  text-wrap: pretty;
 }
 
 /* The sub-day fields are hidden, never frozen: a seconds field that never changes is a stopped

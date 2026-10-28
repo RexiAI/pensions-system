@@ -614,31 +614,140 @@ describe('AC-001-119: the two reference instants are disclosed', () => {
  * first and the three sub-day fields after it, so the face was measured from its own left edge.
  * At 390x844 the panel is `display: contents` (the mobile reorder) and the material lives on
  * `.hero__panel-countdown`; both are the same 295px box, so both have the same axis.
+ *
+ * **Revision 4 §C2 — the whole face.** Centring only the numeral row left the panel carrying two
+ * alignment systems: everything above and below it was flush left. The entire section now shares
+ * one axis — `text-align: center` and `justify-items: center` on `.countdown`, `text-align:
+ * center` on the rail — and the prose that wraps centres as a block inside `--measure-face`.
+ * Measured in Chromium against the built app (`npm run build`, `next start`), 2026-10-28, as the
+ * offset between each block's glyph run and the section's axis (a `Range` over the text, so it is
+ * the ink and not the box):
+ *
+ *   block                    390x844 (axis 187.50)   1440x900 (axis 1062.16)   measure / longest line
+ *   eyebrow                  0.00px                   0.00px                    —
+ *   years numeral + unit    −0.01px                   0.00px                    —
+ *   threshold year + label   0.00px                   0.00px                    —
+ *   definition               0.00px                   0.00px                    280 / 259.09
+ *   variants                 0.01px                   0.00px                    280 / 131.48
+ *   source                   0.01px                   0.01px                    280 / 142.36
+ *   back-cast sentence       0.00px                   0.00px                    280 / 240.13
+ *   day numeral             −0.02px                  −0.02px                    —
+ *   anchor line              0.00px                   0.00px                    280 / 184.69
+ *   disclosure               0.00px                   0.00px                    280 / 275.13
+ *   arithmetic (>=1024px)    —                        0.00px                    280 / 276.81
+ *
+ * No prose block exceeds its measure at either width, and the panel is 295px / 428.67px, so the
+ * measure is 95% / 65% of it — the phone is the binding case, because the first-viewport guarantee
+ * (`AC-001-107`) forbids a narrower one there.
  */
+/** One parsed CSS rule: its selector list and its declaration block, both comment-free. */
+interface StyleRule {
+  selectors: string[];
+  body: string;
+}
+
 describe('AC-001-111: the clock face is horizontally centred within its panel', () => {
   const CSS = readFileSync('web/styles/globals.css', 'utf8');
   const TOKENS = readFileSync('web/styles/tokens.css', 'utf8');
 
-  /** Every rule in the clock's own section of the stylesheet, selector list split. Comments are
-   *  stripped first — a declaration that follows a comment inside a rule body would otherwise be
+  /** Every rule in one region of the stylesheet, selector list split. Comments are stripped
+   *  first — a declaration that follows a comment inside a rule body would otherwise be
    *  invisible to the `;`-anchored match. A rule inside a media query is included: that is how a
    *  breakpoint override would be caught. */
-  const CLOCK_RULES = (() => {
-    const region = stripComments(CSS.slice(CSS.indexOf('/* ---------- Revision 3: the anchored clock')));
-    return [...region.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((match) => ({
+  function rulesIn(region: string): StyleRule[] {
+    return [...stripComments(region).matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((match) => ({
       selectors: (match[1] ?? '')
         .split(',')
         .map((selector) => selector.trim().replace(/\s+/g, ' '))
         .filter(Boolean),
       body: match[2] ?? '',
     }));
-  })();
+  }
+
+  /** The clock's own section, from its Revision 3 heading to the end of the file. */
+  const CLOCK_RULES = rulesIn(CSS.slice(CSS.indexOf('/* ---------- Revision 3: the anchored clock')));
+  /** The countdown block's section: the face's heading block, above the clock rail's own rule. */
+  const COUNTDOWN_RULES = rulesIn(
+    CSS.slice(
+      CSS.indexOf('/* ---------- Revision 2: the countdown'),
+      CSS.indexOf('/* ---------- Revision 2: the scope mark'),
+    ),
+  );
+  /** The face is both sections: Revision 4 §C2 centres the projection block and the rail below. */
+  const FACE_RULES = [...COUNTDOWN_RULES, ...CLOCK_RULES];
+
+  function valueIn(rules: readonly StyleRule[], selector: string, property: string): string[] {
+    return rules
+      .filter((rule) => rule.selectors.includes(selector))
+      .map((rule) => new RegExp(`(?:^|;)\\s*${property}:\\s*([^;]+)`).exec(rule.body)?.[1]?.trim())
+      .filter((value): value is string => Boolean(value));
+  }
 
   /** Every value the clock's section declares for `selector { property }`, in document order. */
   function declared(selector: string, property: string): string[] {
-    return CLOCK_RULES.filter((rule) => rule.selectors.includes(selector))
-      .map((rule) => new RegExp(`(?:^|;)\\s*${property}:\\s*([^;]+)`).exec(rule.body)?.[1]?.trim())
-      .filter((value): value is string => Boolean(value));
+    return valueIn(CLOCK_RULES, selector, property);
+  }
+
+  /** Every value either section of the face declares for `selector { property }`. */
+  function declaredOnFace(selector: string, property: string): string[] {
+    return valueIn(FACE_RULES, selector, property);
+  }
+
+  /**
+   * Every element the countdown section renders that can hold a line of text or a rule, and
+   * therefore has to be on the face's axis. Written out rather than derived so that an element
+   * *joining* the face is a test failure rather than a silent left-aligned straggler — the defect
+   * this describe exists for was exactly one block (the numeral row) being centred while its
+   * eleven neighbours stayed flush left.
+   */
+  const FACE_ELEMENTS = [
+    'countdown',
+    'countdown--not-crossed',
+    'countdown__eyebrow',
+    'countdown__rule',
+    'countdown__value',
+    'countdown__numeral',
+    'countdown__unit',
+    'countdown__year-line',
+    'countdown__year',
+    'countdown__year-label',
+    'countdown__definition',
+    'countdown__range',
+    'countdown__source',
+    'countdown__backcast',
+    'countdown__statement',
+    'clock',
+    'clock__fields',
+    'clock__field',
+    'clock__field--days',
+    'clock__field--sub',
+    'clock__value',
+    'clock__value--days',
+    'clock__value--sub',
+    'clock__label',
+    'clock__anchor',
+    'clock__anchor-label',
+    'clock__anchor-date',
+    'clock__definition',
+    'clock__arithmetic',
+  ];
+
+  /** The elements that centre as a block within a measure, because they are prose that wraps. */
+  const FACE_PROSE = [
+    '.countdown__definition',
+    '.countdown__statement',
+    '.countdown__range',
+    '.countdown__source',
+    '.countdown__backcast',
+    '.clock__anchor',
+    '.clock__definition',
+    '.clock__arithmetic',
+  ];
+
+  /** Every `countdown__*` / `clock__*` class in a piece of rendered markup, deduplicated. */
+  function faceClasses(html: string): string[] {
+    const classes = [...html.matchAll(/class="([^"]*)"/g)].flatMap((match) => (match[1] ?? '').split(/\s+/));
+    return [...new Set(classes.filter((name) => /^(countdown|clock)(__|--|$)/.test(name)))].sort();
   }
 
   it('AC-001-111: the face is a centred grid, not a left-aligned flex row', () => {
@@ -695,9 +804,9 @@ describe('AC-001-111: the clock face is horizontally centred within its panel', 
     }
   });
 
-  it('AC-001-111: nothing in the clock re-aligns the face to the left', () => {
+  it('AC-001-111: nothing in either section re-aligns the face to the left', () => {
     const LEFT = /^(start|flex-start|left|self-start)$/;
-    for (const rule of CLOCK_RULES) {
+    for (const rule of FACE_RULES) {
       for (const property of ['justify-content', 'justify-items', 'justify-self', 'text-align', 'float']) {
         const value = new RegExp(`(?:^|;)\\s*${property}:\\s*([^;]+)`).exec(rule.body)?.[1]?.trim();
         if (value) expect(value, `${rule.selectors.join(', ')} { ${property} }`).not.toMatch(LEFT);
@@ -714,6 +823,84 @@ describe('AC-001-111: the clock face is horizontally centred within its panel', 
     expect(clock).toContain('clock__field clock__field--days');
     expect(clock).toContain('data-clock-state="elapsed"');
     expect(declared('.clock__field--days', 'grid-column')).toEqual(['1 / -1']);
+  });
+
+  /**
+   * Revision 4 §C2: the *whole* face, not just the numeral row. The projection block above the
+   * rail — eyebrow, years numeral, threshold year, definition, variants, source, back-cast
+   * sentence — was flush left while the clock below it was centred, so the panel carried two
+   * alignment systems. These five tests are the contract for one axis: one text alignment on the
+   * section, one centring keyword on its grid, one measure for the prose that wraps, and the two
+   * rules still spanning the face.
+   */
+  it('AC-001-111: the section and the rail both centre their text, from one declaration each', () => {
+    // `text-align` is inherited, so one declaration on `.countdown` reaches the eyebrow, the
+    // numeral row, the threshold year line, the definition, the variants, the source and the
+    // back-cast sentence; `.clock` declares it too so the rail does not depend on its mount.
+    expect(valueIn(COUNTDOWN_RULES, '.countdown', 'text-align')).toEqual(['center']);
+    expect(valueIn(COUNTDOWN_RULES, '.countdown', 'justify-items')).toEqual(['center']);
+    expect(declared('.clock', 'text-align')).toEqual(['center']);
+    // One rule each: no breakpoint and no state re-declares the alignment, so mobile and desktop
+    // and the elapsed and not-crossed states are the same axis.
+    expect(COUNTDOWN_RULES.filter((rule) => rule.selectors.includes('.countdown'))).toHaveLength(1);
+    expect(CLOCK_RULES.filter((rule) => rule.selectors.includes('.clock'))).toHaveLength(1);
+  });
+
+  it('AC-001-111: the two baseline-aligned rows centre their contents', () => {
+    // `justify-items: center` makes each row a fit-content box on the axis; `justify-content`
+    // then centres the pair inside it, so the numeral-and-unit and the year-and-label groups
+    // centre as groups rather than the numerals centring and their labels trailing.
+    for (const selector of ['.countdown__value', '.countdown__year-line']) {
+      expect(valueIn(COUNTDOWN_RULES, selector, 'justify-content'), `${selector}`).toEqual(['center']);
+    }
+  });
+
+  it('AC-001-111: the threshold rule and the rail hairline still span the whole face', () => {
+    // A centred grid item shrinks to fit its content, and a rule has no content: without an
+    // explicit stretch the 3px threshold rule and the rail's hairline would collapse to zero
+    // width. They are the axis, so they keep the panel's full width while everything they
+    // separate is centred.
+    expect(valueIn(COUNTDOWN_RULES, '.countdown__rule', 'justify-self')).toEqual(['stretch']);
+    expect(declared('.clock', 'justify-self')).toEqual(['stretch']);
+    expect(valueIn(COUNTDOWN_RULES, '.countdown__rule', 'height')).toEqual(['var(--rule-projection)']);
+    expect(declared('.clock', 'border-top')).toEqual(['var(--border-hair)']);
+  });
+
+  it('AC-001-111: prose that wraps centres as a block inside a measure, never across the panel', () => {
+    // Centred ragged-right prose spanning the full panel reads worse than flush left, so the
+    // wrapping sentences are given their own measure and centred as a block inside it.
+    const measure = /--measure-face:\s*([^;]+);/.exec(TOKENS)?.[1]?.trim();
+    expect(measure, '--measure-face').toBe('17.5rem');
+    for (const selector of FACE_PROSE) {
+      expect(declaredOnFace(selector, 'max-inline-size'), `${selector} { max-inline-size }`).toEqual([
+        'var(--measure-face)',
+      ]);
+      expect(declaredOnFace(selector, 'margin-inline'), `${selector} { margin-inline }`).toEqual(['auto']);
+      const wrap = declaredOnFace(selector, 'text-wrap').join('');
+      expect(wrap, `${selector} { text-wrap }`).toMatch(/^(balance|pretty)$/);
+    }
+  });
+
+  it('AC-001-111: every element the face renders is one this contract covers', () => {
+    // The failure mode this catches: a new element joining the face and inheriting the browser's
+    // default left edge. The expected list is written out, so adding one is a deliberate edit
+    // here rather than a silent straggler in the panel.
+    const rendered = faceClasses(renderBlock('es', THREE_DAYS_OUT));
+    // `countdown__statement` and the `--not-crossed` modifier belong to the other branch below.
+    const computedOnly = FACE_ELEMENTS.filter(
+      (element) => element !== 'countdown__statement' && element !== 'countdown--not-crossed',
+    );
+    for (const element of computedOnly) {
+      expect(rendered, `${element} renders`).toContain(element);
+    }
+    expect(rendered.filter((element) => !FACE_ELEMENTS.includes(element)), 'uncovered elements').toEqual([]);
+
+    // The not-crossed branch renders no clock (AC-001-110) and has its own prose. It is centred
+    // by the same `.countdown` rule — the alignment is not a property of the clock's presence.
+    const notCrossed = faceClasses(renderBlock('es', THREE_DAYS_OUT, countdownAt(99)));
+    expect(notCrossed).toContain('countdown__statement');
+    expect(notCrossed.filter((element) => !FACE_ELEMENTS.includes(element))).toEqual([]);
+    expect(notCrossed.filter((element) => element.startsWith('clock'))).toEqual([]);
   });
 });
 
