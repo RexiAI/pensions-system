@@ -1,0 +1,152 @@
+/* Design tokens (spec 001, 15-design.md §Global Tokens, superseded by Revision 3 §New tokens
+   and §P1). No component may use a literal. */
+:root {
+  --font-sans: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font-serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  /* Revision 3 §P3 F2: labels are not measurements. The one new font token. */
+  --font-label: var(--font-sans);
+
+  /* Revision 3 §P3 F4: the top of the scale rises; the brief's 5.33x display-to-micro range. */
+  --text-display: clamp(2.5rem, 4.9vw, 4rem);
+  --text-h2: clamp(1.625rem, 2.4vw, 2.375rem);
+  --text-h3: 1.25rem;
+  --text-plate: clamp(1.1875rem, 1.55vw, 1.5rem);
+  --text-body-lg: 1.1875rem;
+  --text-body: 1.0625rem;
+  --text-small: 0.9375rem;
+  --text-meta: 0.8125rem;
+  --text-micro: 0.75rem;
+  --text-num-xl: clamp(2.75rem, 6.4vw, 5rem);
+  --text-num-l: 2rem;
+  --text-num-m: 1.25rem;
+
+  --leading-tight: 1.02;
+  --leading-snug: 1.18;
+  --leading-body: 1.62;
+  --leading-meta: 1.45;
+  --tracking-display: -0.026em;
+  --tracking-label: 0.02em;
+
+  /* Revision 3 §P2: the anchored clock. */
+  --clock-gap: var(--space-5);
+  --clock-days-min: 5ch;
+  --clock-unit-min: 2ch;
+  /* Revision 4 §C1: one column per sub-day field, fixed and equal, wide enough for the longest
+     label any published locale uses (`Stunden`, 7 characters at --text-micro). Fixed rather than
+     `minmax(…, auto)` on purpose: an auto track lets the spanning day numeral inflate the first
+     column and the three sub-day fields then sit off the face's axis. Equal columns are also what
+     make the sub-day row read as a row rather than three arbitrarily spaced pairs. */
+  --clock-sub-col: 3rem;
+  /* Revision 4 §C2: the measure the centred face's prose wraps to — 280px at the default root
+     size, 65% of the desktop panel (428.67px) and 95% of the phone one (295px). A physical measure
+     rather than a `ch` one on purpose: the face sets the same sentences at `--text-small` and at
+     `--text-micro`, and one `ch` value would give those two sizes two different line lengths.
+     280px is the narrowest measure at which the whole clock rail stays inside the first viewport,
+     at the same 54.9px clearance, in all five locales at 390x844 (AC-001-107): at 276px German
+     drops to 16.0px of clearance, at 272px to −8.3px, and at 288px the measure buys nothing. The
+     phone is the binding constraint — the panel is 295px there, so the block's margin is 7.5px
+     rather than the 74px it gets on a desktop. Measured in Chromium against the built app,
+     2026-10-28 — see the table in `tests/acceptance/first-viewport.test.ts`. */
+  --measure-face: 17.5rem;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+
+  --grid-max: 1240px;
+  --gutter: clamp(16px, 4vw, 32px);
+  --measure: 64ch;
+  --header-h: 64px;
+
+  /* Revision 1 (D4, D8): the 320px floor, the mobile header row, and the state row. */
+  --bp-min: 320px;
+  --locale-cell: 36px;
+  --header-h-mobile: 56px;
+  --chart-compact-w: 320;
+  --figure-state-row-min: 48px;
+
+  /* Revision 4 §P1: warm paper, warmer ink, a present accent. Three hues, unchanged meanings.
+     Every value recomputed against its pairs (AC-001-117). The grounds lift +1.3 L* and gain
+     chroma at a hue 7 degrees less yellow than Revision 3's: warm paper, not beige. The L* ladder
+     keeps the Revision 3 ordering, measuring 2.75 / 3.04 apart (Revision 3: 2.79 / 3.08). */
+  --surface-1: #fdf2e1;
+  --surface-2: #f6ead7;
+  --surface-3: #f0e1c9;
+  /* Revision 4 §P2: the hero panel's own ground — a warmer, deeper sheet laid on the page, not
+     a second step of the same beige. It is the page's one large warm area. */
+  --surface-hero: #fee8d0;
+  --ink-1: #1e160d;
+  --ink-2: #47392a;
+  --ink-3: #645341;
+  --rule-1: #d6c8b7;
+  --rule-2: #b9a892;
+  --accent: #425425;
+  --on-accent: #fdf2e1;
+  --data-deficit: #96472a;   /* byte-identical to Revision 2: its warmth is load-bearing */
+
+  --chart-series-1: var(--accent);
+  --chart-series-2: #6f6658;   /* comparison, the past as reference (dark: #aba192) */
+  --chart-ref: var(--ink-3);
+  --chart-grid: var(--rule-1);
+  --chart-hatch: repeating-linear-gradient(45deg, transparent 0 3px, color-mix(in srgb, var(--ink-1) 16%, transparent) 3px 4px);
+
+  /* Revision 2 — the alarm register. One hue, two aliases, layout only beyond that. */
+  --data-projection: #6b520a;   /* dark: #d8bf60. Projected extent, never a measurement. */
+  --data-projection-ground: color-mix(in srgb, var(--data-projection) 12%, var(--surface-1));
+  --data-projection-edge: color-mix(in srgb, var(--data-projection) 40%, transparent);
+  --chart-observed: var(--accent);          /* measured; aliased so the pair is symmetric */
+  --chart-projection: var(--data-projection); /* projected; never used without --dash-projection */
+  --dash-projection: 6 4;                   /* stroke-dasharray on every projected line */
+  --rule-projection: 3px;                   /* the countdown threshold rule */
+  --hero-min-h: 560px;                      /* supersedes the full-viewport hero >=1024px */
+  --pyramid-band-h: 14px;                   /* 5-year band pitch; 8px <1024px, 6px <768px */
+
+  --ground-instrument: var(--surface-1);
+  --ground-consensus: var(--surface-1);
+  --ground-dispute: var(--surface-2);
+  --ground-thesis: var(--surface-3);
+
+  --radius: 0;
+  --border-hair: 1px solid var(--rule-1);
+  --border-strong: 1px solid var(--rule-2);
+  --border-register: 4px solid var(--ink-1);
+  --shadow: none;
+  --focus: 2px solid var(--accent);
+  --focus-offset: 2px;
+
+  --state-pending: #7a5310;
+  --state-danger: #8a2c1e;
+  --admin-max: 1440px;
+  --admin-row-h: 40px;
+  --admin-gap: var(--space-5);
+  --operator-bar-h: 48px;
+  --z-sticky: 20;
+  --z-operator: 30;
+}
+
+[data-theme='dark'] {
+  --surface-1: #17110b;
+  --surface-2: #1f1810;
+  --surface-3: #292117;
+  --surface-hero: #201406;
+  --ink-1: #f5eddf;
+  --ink-2: #cbbead;
+  --ink-3: #a09180;
+  --rule-1: #312a22;
+  --rule-2: #473e34;
+  --accent: #9cc17f;
+  --on-accent: #17110b;
+  --data-deficit: #d08a63;   /* unchanged: byte-identical to Revision 2 */
+  --chart-series-2: #aba192;
+  --data-projection: #d8bf60;
+  --state-pending: #e0b25c;
+  --state-danger: #e7907e;
+}

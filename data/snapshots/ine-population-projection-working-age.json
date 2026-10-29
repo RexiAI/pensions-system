@@ -1,0 +1,271 @@
+{
+  "meta": {
+    "dataset": "Tablas de mortalidad, tabla 27150, esperanza de vida a los 65 años",
+    "filter": "ages 16 to 64, summed per projected year",
+    "publisher": "Instituto Nacional de Estadística (INE)",
+    "retrievedAt": "2026-10-25T22:26:05Z",
+    "seriesCodes": [
+      "PROP243",
+      "PROP244",
+      "PROP245",
+      "PROP246",
+      "PROP247",
+      "PROP248",
+      "PROP249",
+      "PROP250",
+      "PROP251",
+      "PROP252",
+      "PROP253",
+      "PROP254",
+      "PROP255",
+      "PROP256",
+      "PROP257",
+      "PROP258",
+      "PROP259",
+      "PROP260",
+      "PROP261",
+      "PROP262",
+      "PROP263",
+      "PROP264",
+      "PROP265",
+      "PROP266",
+      "PROP267",
+      "PROP268",
+      "PROP269",
+      "PROP270",
+      "PROP271",
+      "PROP272",
+      "PROP273",
+      "PROP274",
+      "PROP275",
+      "PROP276",
+      "PROP277",
+      "PROP278",
+      "PROP279",
+      "PROP280",
+      "PROP281",
+      "PROP282",
+      "PROP283",
+      "PROP284",
+      "PROP285",
+      "PROP286",
+      "PROP287",
+      "PROP288",
+      "PROP289",
+      "PROP290",
+      "PROP291"
+    ],
+    "sourceClass": "machine",
+    "sourceId": "ine-population-projection-working-age",
+    "sourceUrl": "https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/36643",
+    "units": "persons"
+  },
+  "payload": {
+    "years": [
+      {
+        "population": 49571389,
+        "year": 2026
+      },
+      {
+        "population": 50059214,
+        "year": 2027
+      },
+      {
+        "population": 50533241,
+        "year": 2028
+      },
+      {
+        "population": 50978427,
+        "year": 2029
+      },
+      {
+        "population": 51387234,
+        "year": 2030
+      },
+      {
+        "population": 51754993,
+        "year": 2031
+      },
+      {
+        "population": 52082288,
+        "year": 2032
+      },
+      {
+        "population": 52370171,
+        "year": 2033
+      },
+      {
+        "population": 52623239,
+        "year": 2034
+      },
+      {
+        "population": 52846224,
+        "year": 2035
+      },
+      {
+        "population": 53043548,
+        "year": 2036
+      },
+      {
+        "population": 53219606,
+        "year": 2037
+      },
+      {
+        "population": 53380627,
+        "year": 2038
+      },
+      {
+        "population": 53529810,
+        "year": 2039
+      },
+      {
+        "population": 53669337,
+        "year": 2040
+      },
+      {
+        "population": 53791921,
+        "year": 2041
+      },
+      {
+        "population": 53910652,
+        "year": 2042
+      },
+      {
+        "population": 54019274,
+        "year": 2043
+      },
+      {
+        "population": 54116068,
+        "year": 2044
+      },
+      {
+        "population": 54203842,
+        "year": 2045
+      },
+      {
+        "population": 54280715,
+        "year": 2046
+      },
+      {
+        "population": 54348035,
+        "year": 2047
+      },
+      {
+        "population": 54402242,
+        "year": 2048
+      },
+      {
+        "population": 54441386,
+        "year": 2049
+      },
+      {
+        "population": 54469481,
+        "year": 2050
+      },
+      {
+        "population": 54485665,
+        "year": 2051
+      },
+      {
+        "population": 54487745,
+        "year": 2052
+      },
+      {
+        "population": 54475077,
+        "year": 2053
+      },
+      {
+        "population": 54450344,
+        "year": 2054
+      },
+      {
+        "population": 54414480,
+        "year": 2055
+      },
+      {
+        "population": 54366646,
+        "year": 2056
+      },
+      {
+        "population": 54308689,
+        "year": 2057
+      },
+      {
+        "population": 54240089,
+        "year": 2058
+      },
+      {
+        "population": 54164243,
+        "year": 2059
+      },
+      {
+        "population": 54082221,
+        "year": 2060
+      },
+      {
+        "population": 53994877,
+        "year": 2061
+      },
+      {
+        "population": 53904593,
+        "year": 2062
+      },
+      {
+        "population": 53811093,
+        "year": 2063
+      },
+      {
+        "population": 53714791,
+        "year": 2064
+      },
+      {
+        "population": 53615772,
+        "year": 2065
+      },
+      {
+        "population": 53518916,
+        "year": 2066
+      },
+      {
+        "population": 53423479,
+        "year": 2067
+      },
+      {
+        "population": 53329372,
+        "year": 2068
+      },
+      {
+        "population": 53239461,
+        "year": 2069
+      },
+      {
+        "population": 53152991,
+        "year": 2070
+      },
+      {
+        "population": 53070440,
+        "year": 2071
+      },
+      {
+        "population": 52991438,
+        "year": 2072
+      },
+      {
+        "population": 52915956,
+        "year": 2073
+      },
+      {
+        "population": 52844437,
+        "year": 2074
+      },
+      {
+        "population": 52775858,
+        "year": 2075
+      },
+      {
+        "population": 52713185,
+        "year": 2076
+      }
+    ]
+  }
+}

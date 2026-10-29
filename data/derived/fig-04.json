@@ -1,0 +1,26 @@
+{
+  "assumptions": {},
+  "availability": "unavailable",
+  "definition": "Counts the present value of accrued pension obligations minus the Fondo de Reserva balance, at four discount rates. Excludes future accrual and assets other than the Fondo de Reserva.",
+  "definitionId": "implicit-debt.national",
+  "figureId": "fig-04",
+  "formulaId": "implicit-debt.v1",
+  "manifest": {
+    "definitionId": "implicit-debt.national",
+    "fetchedAt": "2026-10-25T00:00:00Z",
+    "formulaId": "implicit-debt.v1",
+    "inputHash": "95b2bc3e0e119ce092e69f8e2d662f8ad71394bef337d0f7a08c113defdb7998",
+    "reproducePath": "scripts/compute.ts",
+    "sourceUrl": [
+      "https://www.airef.es/",
+      "https://www.seg-social.es/wps/portal/wss/internet/EstadisticasPresupuestosEstudios/Estadisticas"
+    ]
+  },
+  "unit": "EUR",
+  "unresolvedReason": "airef-obligations: Flujo anual de obligaciones acumuladas (AIReF): la tabla no está resuelta (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con tabla y fecha exactas.; fondo-de-reserva: Saldo del Fondo de Reserva en una fecha exacta: la serie no está resuelta (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con fecha exacta.",
+  "unresolvedSources": [
+    "airef-obligations",
+    "fondo-de-reserva"
+  ],
+  "value": null
+}

@@ -1,0 +1,474 @@
+{
+  "meta": {
+    "dataset": "spr_pns_ben, beneficiarios de pensiones por tipo de pensión (ESSPROS), España",
+    "filter": "format=JSON&lang=EN&geo=ES&spdepm=TOTAL&sex=T&unit=PER",
+    "publisher": "Eurostat",
+    "retrievedAt": "2026-10-25T22:26:02Z",
+    "sourceClass": "machine",
+    "sourceId": "eurostat-spr-pns-ben",
+    "sourceUrl": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/spr_pns_ben?format=JSON&lang=EN&geo=ES&spdepm=TOTAL&sex=T&unit=PER"
+  },
+  "payload": {
+    "class": "dataset",
+    "dimension": {
+      "freq": {
+        "category": {
+          "index": {
+            "A": 0
+          },
+          "label": {
+            "A": "Annual"
+          }
+        },
+        "label": "Time frequency"
+      },
+      "geo": {
+        "category": {
+          "index": {
+            "ES": 0
+          },
+          "label": {
+            "ES": "Spain"
+          }
+        },
+        "label": "Geopolitical entity (reporting)"
+      },
+      "sex": {
+        "category": {
+          "index": {
+            "T": 0
+          },
+          "label": {
+            "T": "Total"
+          }
+        },
+        "label": "Sex"
+      },
+      "spdepb": {
+        "category": {
+          "index": {
+            "AOLD": 4,
+            "DIS": 7,
+            "DIS_TOT": 6,
+            "ERLM": 10,
+            "ERRC": 9,
+            "OLD": 3,
+            "OLD_SRV": 1,
+            "OLD_TOT": 2,
+            "PART": 5,
+            "SRV": 8,
+            "TOTAL": 0
+          },
+          "label": {
+            "AOLD": "Anticipated old age pension",
+            "DIS": "Disability pension",
+            "DIS_TOT": "Total disability pensions",
+            "ERLM": "Early retirement benefit for labour market reasons",
+            "ERRC": "Early retirement benefit due to reduced capacity to work",
+            "OLD": "Old age pension",
+            "OLD_SRV": "Old age and survivors' pension",
+            "OLD_TOT": "Total old age pensions",
+            "PART": "Partial pension",
+            "SRV": "Survivors' pension",
+            "TOTAL": "Total"
+          }
+        },
+        "label": "Pension type"
+      },
+      "spdepm": {
+        "category": {
+          "index": {
+            "TOTAL": 0
+          },
+          "label": {
+            "TOTAL": "Total"
+          }
+        },
+        "label": "Means testing"
+      },
+      "spscheme": {
+        "category": {
+          "index": {
+            "TOTAL": 0
+          },
+          "label": {
+            "TOTAL": "All schemes"
+          }
+        },
+        "label": "Category of schemes"
+      },
+      "time": {
+        "category": {
+          "index": {
+            "2006": 0,
+            "2007": 1,
+            "2008": 2,
+            "2009": 3,
+            "2010": 4,
+            "2011": 5,
+            "2012": 6,
+            "2013": 7,
+            "2014": 8,
+            "2015": 9,
+            "2016": 10,
+            "2017": 11,
+            "2018": 12,
+            "2019": 13,
+            "2020": 14,
+            "2021": 15,
+            "2022": 16,
+            "2023": 17,
+            "2024": 18
+          },
+          "label": {
+            "2006": "2006",
+            "2007": "2007",
+            "2008": "2008",
+            "2009": "2009",
+            "2010": "2010",
+            "2011": "2011",
+            "2012": "2012",
+            "2013": "2013",
+            "2014": "2014",
+            "2015": "2015",
+            "2016": "2016",
+            "2017": "2017",
+            "2018": "2018",
+            "2019": "2019",
+            "2020": "2020",
+            "2021": "2021",
+            "2022": "2022",
+            "2023": "2023",
+            "2024": "2024"
+          }
+        },
+        "label": "Time"
+      },
+      "unit": {
+        "category": {
+          "index": {
+            "PER": 0
+          },
+          "label": {
+            "PER": "Person"
+          }
+        },
+        "label": "Unit of measure"
+      }
+    },
+    "extension": {
+      "agencyId": "ESTAT",
+      "annotation": [
+        {
+          "date": "2024-11-07T14:26:30+0100",
+          "type": "CREATED"
+        },
+        {
+          "title": "<adms:identifier xmlns:adms=\"http://www.w3.org/ns/adms#\" xmlns:skos=\"http://www.w3.org/2004/02/skos/core.html\" xmlns:dct=\"http://purl.org/dc/terms/\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"><adms:Identifier rdf:about=\"https://doi.org/10.2908/SPR_PNS_BEN\"><skos:notation rdf:datatype=\"http://purl.org/spar/datacite/doi\">10.2908/SPR_PNS_BEN</skos:notation><dct:creator rdf:resource=\"http://publications.europa.eu/resource/authority/corporate-body/ESTAT\"/><dct:issued rdf:datatype=\"http://www.w3.org/2001/XMLSchema#date\">2023-01-19</dct:issued></adms:Identifier></adms:identifier>",
+          "type": "DISSEMINATION_DOI_XML"
+        },
+        {
+          "href": "https://ec.europa.eu/eurostat/databrowser-backend/api/public/explanatory-notes/get/Info_note_SPR_20241119.pdf",
+          "text": "Information note",
+          "title": "text-category",
+          "type": "DISSEMINATION_EXPLANATORY_LINK"
+        },
+        {
+          "href": "https://ec.europa.eu/eurostat/databrowser-backend/api/public/explanatory-notes/get/Info_note_SPR_20241119.pdf",
+          "title": "text-category",
+          "type": "DISSEMINATION_EXPLANATORY_LINK"
+        },
+        {
+          "href": "https://ec.europa.eu/eurostat/databrowser-backend/api/public/explanatory-notes/get/Info_note_SPR_20241119.pdf",
+          "title": "text-category",
+          "type": "DISSEMINATION_EXPLANATORY_LINK"
+        },
+        {
+          "title": "DATASET",
+          "type": "DISSEMINATION_OBJECT_TYPE"
+        },
+        {
+          "date": "2026-10-08T23:00:00+0200",
+          "type": "DISSEMINATION_TIMESTAMP_DATA"
+        },
+        {
+          "date": "2026-10-08T23:00:00+0200",
+          "type": "DISSEMINATION_TIMESTAMP_GLOBAL"
+        },
+        {
+          "date": "2026-10-08T23:00:00+0200",
+          "type": "DISSEMINATION_TIMESTAMP_PLANNED"
+        },
+        {
+          "href": "https://ec.europa.eu/eurostat/cache/metadata/en/spr_esms.htm",
+          "title": "Explanatory texts (metadata)",
+          "type": "ESMS_HTML"
+        },
+        {
+          "href": "https://ec.europa.eu/eurostat/api/dissemination/files?file=metadata/spr_esms.sdmx.zip",
+          "title": "Explanatory texts (metadata)",
+          "type": "ESMS_SDMX"
+        },
+        {
+          "title": "38162",
+          "type": "OBS_COUNT"
+        },
+        {
+          "title": "2024",
+          "type": "OBS_PERIOD_OVERALL_LATEST"
+        },
+        {
+          "title": "2006",
+          "type": "OBS_PERIOD_OVERALL_OLDEST"
+        },
+        {
+          "text": "Eurostat",
+          "type": "SOURCE_INSTITUTIONS"
+        },
+        {
+          "date": "2026-10-08T23:00:00+0200",
+          "type": "UPDATE_DATA"
+        },
+        {
+          "date": "2026-05-05T23:00:00+0200",
+          "type": "UPDATE_STRUCTURE"
+        }
+      ],
+      "datastructure": {
+        "agencyId": "ESTAT",
+        "id": "SPR_PNS_BEN",
+        "version": "54.0"
+      },
+      "description": "<p>Number of pension beneficiaries classified by type of pension and sex, distinguishing between means-tested and non means-tested benefits. Pension types cover old age, anticipated and partial pensions, disability pensions, survivors’ pensions and early retirement benefits due to reduced capacity to work or labour market reasons. Figures are expressed as persons, as the double counting (the same person receiving more than one pension) is generally removed from the data.</p>",
+      "id": "SPR_PNS_BEN",
+      "lang": "EN",
+      "positions-with-no-data": {
+        "freq": [],
+        "geo": [],
+        "sex": [],
+        "spdepb": [
+          5,
+          9
+        ],
+        "spdepm": [],
+        "spscheme": [],
+        "time": [],
+        "unit": []
+      },
+      "status": {
+        "label": {
+          "b": "break in time series"
+        }
+      },
+      "version": "1.0"
+    },
+    "id": [
+      "freq",
+      "spdepm",
+      "spscheme",
+      "spdepb",
+      "sex",
+      "unit",
+      "geo",
+      "time"
+    ],
+    "label": "Pension beneficiaries by type of pension, sex and means-testing",
+    "size": [
+      1,
+      1,
+      1,
+      11,
+      1,
+      1,
+      1,
+      19
+    ],
+    "source": "ESTAT",
+    "status": {
+      "3": "b",
+      "22": "b",
+      "41": "b",
+      "60": "b",
+      "79": "b",
+      "117": "b",
+      "136": "b",
+      "155": "b",
+      "193": "b"
+    },
+    "updated": "2026-10-08T23:00:00+0200",
+    "value": {
+      "0": 8333592,
+      "1": 8483957,
+      "2": 8548158,
+      "3": 8751426,
+      "4": 8880722,
+      "5": 8993616,
+      "6": 9114531,
+      "7": 9251948,
+      "8": 9374301,
+      "9": 9448336,
+      "10": 9558626,
+      "11": 9664977,
+      "12": 9782544,
+      "13": 9885991,
+      "14": 9898563,
+      "15": 10006553,
+      "16": 10090464,
+      "17": 10215287,
+      "18": 10380547,
+      "19": 7255054,
+      "20": 7361275,
+      "21": 7458117,
+      "22": 7639758,
+      "23": 7762782,
+      "24": 7862064,
+      "25": 7982309,
+      "26": 8127797,
+      "27": 8251366,
+      "28": 8318719,
+      "29": 8420489,
+      "30": 8522346,
+      "31": 8638098,
+      "32": 8738701,
+      "33": 8768847,
+      "34": 8876944,
+      "35": 8969227,
+      "36": 9097763,
+      "37": 9259549,
+      "38": 5335753,
+      "39": 5427339,
+      "40": 5516018,
+      "41": 5674882,
+      "42": 5789875,
+      "43": 5884565,
+      "44": 5990206,
+      "45": 6120349,
+      "46": 6228538,
+      "47": 6306500,
+      "48": 6418308,
+      "49": 6534992,
+      "50": 6666973,
+      "51": 6781033,
+      "52": 6838538,
+      "53": 6954252,
+      "54": 7069115,
+      "55": 7218147,
+      "56": 7407183,
+      "57": 5001549,
+      "58": 5055386,
+      "59": 5105960,
+      "60": 5266793,
+      "61": 5372076,
+      "62": 5452958,
+      "63": 5541293,
+      "64": 5680339,
+      "65": 5798458,
+      "66": 5879384,
+      "67": 5987665,
+      "68": 6107891,
+      "69": 6232646,
+      "70": 6361935,
+      "71": 6444416,
+      "72": 6582849,
+      "73": 6723648,
+      "74": 6883885,
+      "75": 7059353,
+      "76": 334204,
+      "77": 371953,
+      "78": 410058,
+      "79": 408089,
+      "80": 417799,
+      "81": 431607,
+      "82": 448913,
+      "83": 440010,
+      "84": 430080,
+      "85": 427116,
+      "86": 430643,
+      "87": 427101,
+      "88": 434327,
+      "89": 419098,
+      "90": 394122,
+      "91": 371403,
+      "92": 345467,
+      "93": 334262,
+      "94": 347830,
+      "114": 1069416,
+      "115": 1111773,
+      "116": 1124042,
+      "117": 1139014,
+      "118": 1142546,
+      "119": 1159408,
+      "120": 1158433,
+      "121": 1150969,
+      "122": 1150766,
+      "123": 1158363,
+      "124": 1167681,
+      "125": 1172621,
+      "126": 1174471,
+      "127": 1177152,
+      "128": 1158801,
+      "129": 1158219,
+      "130": 1149087,
+      "131": 1145560,
+      "132": 1149059,
+      "133": 1069416,
+      "134": 1111773,
+      "135": 1124042,
+      "136": 1139014,
+      "137": 1142546,
+      "138": 1159408,
+      "139": 1158433,
+      "140": 1150969,
+      "141": 1150766,
+      "142": 1158363,
+      "143": 1167681,
+      "144": 1172621,
+      "145": 1174471,
+      "146": 1177152,
+      "147": 1158801,
+      "148": 1158219,
+      "149": 1149087,
+      "150": 1145560,
+      "151": 1149059,
+      "152": 2637365,
+      "153": 2670910,
+      "154": 2691971,
+      "155": 2724801,
+      "156": 2748203,
+      "157": 2768359,
+      "158": 2797759,
+      "159": 2829247,
+      "160": 2859141,
+      "161": 2857751,
+      "162": 2861791,
+      "163": 2861147,
+      "164": 2861967,
+      "165": 2865253,
+      "166": 2848677,
+      "167": 2861600,
+      "168": 2858359,
+      "169": 2859489,
+      "170": 2854944,
+      "190": 8657,
+      "191": 8888,
+      "192": 9277,
+      "193": 9115,
+      "194": 8415,
+      "195": 7738,
+      "196": 6461,
+      "197": 4905,
+      "198": 3395,
+      "199": 2487,
+      "200": 1528,
+      "201": 626,
+      "202": 326,
+      "203": 190,
+      "204": 72,
+      "205": 29,
+      "206": 283,
+      "207": 225,
+      "208": 231
+    },
+    "version": "2.0"
+  }
+}

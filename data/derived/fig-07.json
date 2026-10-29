@@ -1,0 +1,25 @@
+{
+  "assumptions": {},
+  "availability": "unavailable",
+  "definition": "Counts social contributions divided by contributory pension expenditure. Excludes transfers from general taxation and debt.",
+  "definitionId": "contribution-cover.national",
+  "figureId": "fig-07",
+  "formulaId": "contribution-cover.v1",
+  "manifest": {
+    "definitionId": "contribution-cover.national",
+    "fetchedAt": "2026-10-25T00:00:00Z",
+    "formulaId": "contribution-cover.v1",
+    "inputHash": "ca5c6d861678550cf8d9ba3a3d403f6cf2f20bc69a9e7fa67e40b5227c68d691",
+    "reproducePath": "scripts/compute.ts",
+    "sourceUrl": [
+      "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Paginas/Inicio.aspx"
+    ]
+  },
+  "unit": "ratio",
+  "unresolvedReason": "igae-social-contributions: Cotizaciones sociales del sistema (cuentas de la IGAE): la línea no está resuelta (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con línea y fecha exactas.; igae-pension-expenditure: Gasto en pensiones contributivas (cuentas de la IGAE): la línea no está resuelta (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con línea y fecha exactas.",
+  "unresolvedSources": [
+    "igae-social-contributions",
+    "igae-pension-expenditure"
+  ],
+  "value": null
+}

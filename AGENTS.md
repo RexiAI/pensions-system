@@ -8,3 +8,7 @@ and a dangling `AGENTS.md` symlink crashes builds that stat it (Next.js
 
 Run `git submodule update --init --recursive`, then read the full standards
 index at [.standards/AGENTS.md](.standards/AGENTS.md).
+
+## Conformance tier
+
+Conformance tier: production

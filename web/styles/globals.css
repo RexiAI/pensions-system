@@ -1,0 +1,1640 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+  background: var(--surface-1);
+  color: var(--ink-1);
+  font-family: var(--font-sans);
+  line-height: var(--leading-body);
+  hyphens: auto;
+  /* D4 rule 7: never hide overflow on the root — it hides the next regression. */
+  overflow-wrap: break-word;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+:focus-visible {
+  outline: var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+/* D4 rule 1: an identifier wraps anywhere. This is the direct fix for the 64-char digest
+   that measured 713px inside a 390px window. */
+code,
+samp,
+kbd,
+.hash,
+.url,
+.identifier,
+.provenance__detail code,
+.reproduce__row code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-inline-size: 100%;
+}
+
+/* D4 rule 3: an SVG never forces the page wider than the window. */
+svg {
+  display: block;
+  max-inline-size: 100%;
+  height: auto;
+}
+
+/* D4 rule 8: no ellipsis on anything a reader might cite. */
+.plate__title,
+.figure-row__title,
+.provenance__list,
+.index-panel a,
+.site-header__wordmark,
+.site-header__iso {
+  text-overflow: clip;
+  overflow: visible;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+
+.skip-link:focus {
+  left: var(--space-4);
+  top: var(--space-4);
+  background: var(--surface-2);
+  padding: var(--space-2);
+}
+
+.page {
+  max-width: var(--grid-max);
+  margin: 0 auto;
+  padding: 0 var(--gutter) var(--space-9);
+}
+
+/* D4 rule 2: a grid or flex child holding a table, a <pre>, a <code> or an <svg> must be
+   allowed to shrink below its content, or it pushes the page wider than the window. */
+.plate > *,
+.plate__caption > *,
+.hero > *,
+.hero__status-row > *,
+.figure-slot > *,
+.figure-row > *,
+.figure-row__head > *,
+.provenance > *,
+.provenance__fields > *,
+.provenance__field,
+.provenance__detail > *,
+.data-table,
+.data-table__scroll,
+.reproduce__row > *,
+.assumptions__clusters > *,
+.site-footer > *,
+.dossier > *,
+.index-panel > *,
+.index-panel__locales > li,
+.index-panel__locales a {
+  min-inline-size: 0;
+}
+
+/* ---------- Header: one component, three density modes (D8) ---------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  height: var(--header-h-mobile);
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--space-2);
+  border-bottom: var(--border-hair);
+  background: var(--surface-1);
+  padding: 0;
+}
+
+.site-header__wordmark {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-transform: lowercase;
+  max-inline-size: 88px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.site-header__iso,
+.site-header__stamp {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+}
+
+.site-header__iso {
+  margin-inline-start: auto;
+}
+
+.site-header__stamp {
+  display: none;
+  margin: 0;
+  margin-inline-start: auto;
+}
+
+.site-header__nav {
+  display: none;
+  gap: var(--space-4);
+  font-size: var(--text-meta);
+}
+
+.site-header__theme,
+.site-header__index-trigger {
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--ink-2);
+  cursor: pointer;
+  list-style: none;
+}
+
+.site-header__index-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.site-header__index {
+  position: static;
+}
+
+.index-panel {
+  position: absolute;
+  inset-inline: 0;
+  top: var(--header-h-mobile);
+  background: var(--surface-2);
+  border-bottom: var(--border-hair);
+  max-height: min(70dvh, 420px);
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-4) var(--space-4);
+}
+
+.index-panel__anchors {
+  display: grid;
+}
+
+.index-panel__anchors a {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  border-bottom: var(--border-hair);
+  text-decoration: none;
+}
+
+.index-panel__rule {
+  border: 0;
+  border-top: var(--border-hair);
+  margin: var(--space-2) 0;
+  width: 100%;
+}
+
+.index-panel__locales {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.index-panel__locales a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  text-decoration: none;
+}
+
+.index-panel__locales a[aria-current='page'] {
+  font-weight: 600;
+}
+
+.index-panel__stamp {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--ink-2);
+  margin: 0;
+  padding: var(--space-2) 0;
+}
+
+.index-panel__theme {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.index-panel__theme legend {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  padding: var(--space-2) 0;
+}
+
+.index-panel__theme-row {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The five-cell locale group: one bordered box, inverted active cell (D8). */
+.locale-group {
+  display: none;
+  border: var(--border-hair);
+  border-radius: 0;
+}
+
+.locale-group__cell {
+  display: grid;
+  place-items: center;
+  inline-size: var(--locale-cell);
+  block-size: var(--locale-cell);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-2);
+  text-decoration: none;
+  text-transform: uppercase;
+  border-inline-start: var(--border-hair);
+}
+
+.locale-group__cell:first-child {
+  border-inline-start: none;
+}
+
+.locale-group__cell:hover {
+  background: var(--surface-2);
+}
+
+.locale-group__cell[aria-current='page'] {
+  background: var(--ink-1);
+  color: var(--surface-1);
+}
+
+@media (min-width: 768px) {
+  .site-header {
+    height: var(--header-h);
+    gap: var(--space-4);
+  }
+
+  .site-header__wordmark {
+    font-size: 1.0625rem;
+    max-inline-size: 96px;
+  }
+
+  .site-header__iso {
+    display: none;
+  }
+
+  .site-header__stamp {
+    display: block;
+  }
+
+  .index-panel {
+    top: var(--header-h);
+  }
+}
+
+@media (min-width: 1024px) {
+  .site-header__nav {
+    display: flex;
+  }
+
+  .locale-group {
+    display: flex;
+  }
+
+  .site-header__index {
+    display: none;
+  }
+
+  .site-header__stamp {
+    margin-inline-start: auto;
+  }
+}
+
+/* ---------- Hero: numeric and propositional (D2) ---------- */
+
+.hero {
+  padding-top: var(--space-9);
+  display: grid;
+  grid-template-columns: 7fr 5fr;
+  gap: var(--space-6);
+}
+
+.hero--proposition {
+  grid-template-columns: 8fr 4fr;
+  padding-top: var(--space-7);
+}
+
+.hero__title {
+  font-size: var(--text-display);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  margin: 0 0 var(--space-4);
+  overflow-wrap: break-word;
+}
+
+.hero__sub {
+  font-size: var(--text-body-lg);
+  max-width: var(--measure);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  margin-top: var(--space-5);
+}
+
+.hero__cta {
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: var(--space-3) var(--space-5);
+  text-decoration: none;
+}
+
+.hero__panel {
+  /* Revision 3 F3: the panel is material, not a box. Its top edge is the 3px projection rule
+     inside the countdown; the border would be a second, meaningless edge.
+     Revision 4 §P2: the material is its own ground, not `--surface-2`. A second step of the same
+     beige reads as a shaded region of the page; a warmer, deeper sheet reads as paper laid on
+     paper, which is what makes the panel worth looking at. */
+  background: var(--surface-hero);
+  padding: var(--space-5);
+}
+
+/* The countdown block and the readings are wrapped so the mobile query can lift one above the
+   headline (see the `max-width: 900px` block below). At every wider width the wrappers have no
+   box at all, so the panel's flow — countdown, rule, label, value, … — is byte-for-byte the
+   layout this panel had before the wrappers existed. */
+.hero__panel-countdown,
+.hero__panel-readings {
+  display: contents;
+}
+
+.hero__panel-label,
+.plate__label,
+.register__label {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+
+.hero__value {
+  font-family: var(--font-mono);
+  font-size: var(--text-num-xl);
+  font-variant-numeric: tabular-nums;
+  margin: var(--space-2) 0;
+}
+
+.hero__status {
+  border: none;
+  padding: 0;
+}
+
+.hero__status-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hero__status-row {
+  min-height: var(--figure-state-row-min);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  border-top: var(--border-hair);
+  font-size: var(--text-small);
+}
+
+.hero__status-row a {
+  text-decoration: none;
+}
+
+.hero__status-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+  margin: var(--space-2) 0 0;
+}
+
+.hero__comparisons,
+.readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+}
+
+.hero__comparison dt,
+.readout__item dt {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+}
+
+.hero__comparison dd,
+.readout__item dd {
+  font-family: var(--font-mono);
+  font-size: var(--text-num-m);
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+.hero__subject {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-5) 0 0;
+  border-top: var(--border-hair);
+  padding-top: var(--space-3);
+}
+
+.hero__subject-field dt {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+
+.hero__subject-field dd {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  overflow-wrap: break-word;
+}
+
+.source-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  font-family: var(--font-label);
+  font-size: var(--text-meta);
+  color: var(--ink-2);
+  border-top: var(--border-hair);
+  border-bottom: var(--border-hair);
+  padding: var(--space-3) 0;
+  margin: var(--space-7) 0;
+}
+
+.register-key {
+  margin: var(--space-8) 0;
+}
+
+.register-key__row {
+  border-top: var(--border-hair);
+  padding: var(--space-4) 0;
+}
+
+/* Not a register: the register key's own method link, styled so a count of the rows above
+   it is a count of the registers actually rendered (AC-001-91). */
+.register-key__method {
+  margin: var(--space-5) 0 0;
+  font-family: var(--font-label);
+  font-size: var(--text-meta);
+}
+
+/* ---------- Figure plates ---------- */
+
+.plate {
+  margin: var(--space-9) 0;
+  border-top: var(--border-hair);
+  padding-top: var(--space-5);
+}
+
+.plate__caption {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.plate__title {
+  font-size: var(--text-plate);
+  font-weight: 600;
+  margin: 0;
+}
+
+.plate__finding {
+  font-size: var(--text-body);
+  color: var(--ink-2);
+  max-width: var(--measure);
+}
+
+.plate__note {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  max-width: var(--measure);
+}
+
+.plate__limit {
+  font-size: var(--text-meta);
+  color: var(--ink-2);
+  border-top: var(--border-hair);
+  padding-top: var(--space-2);
+}
+
+.plate__limit-label {
+  font-family: var(--font-label);
+  color: var(--ink-3);
+}
+
+.plate__assumptions {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+}
+
+/* ---------- The unresolved figure, as one 48px row (D1) ---------- */
+
+.figure-ledger-note {
+  font-size: var(--text-body-lg);
+  max-width: var(--measure);
+  color: var(--ink-2);
+  margin: var(--space-7) 0 var(--space-5);
+}
+
+.figure-row {
+  /* Revision 3 F5: five ruled rows in a vertical run was the most form-like passage on the
+     page. The rows separate by space, not by a field boundary; D1's structure is untouched. */
+  min-height: var(--figure-state-row-min);
+  padding: 0;
+  margin: 0 0 var(--space-5);
+}
+
+.figure-row__head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.figure-row__title {
+  font-size: var(--text-body-lg);
+  font-weight: 600;
+  color: var(--ink-1);
+  margin: 0;
+}
+
+.figure-row__title a {
+  text-decoration: none;
+  color: var(--ink-1);
+}
+
+.figure-row__chip {
+  font-family: var(--font-label);
+  font-size: var(--text-small);
+  color: var(--ink-3);
+  border: var(--border-hair);
+  padding: 0 var(--space-2);
+  white-space: nowrap;
+}
+
+.figure-row__definition {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  margin: var(--space-1) 0 0;
+  max-width: var(--measure);
+}
+
+.figure-row__definition-label,
+.plate__definition-label {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+  letter-spacing: var(--tracking-label);
+}
+
+.plate__definition {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  display: block;
+  max-width: var(--measure);
+  border-top: var(--border-hair);
+  padding-top: var(--space-3);
+}
+
+.figure-row__reason {
+  font-size: var(--text-small);
+  color: var(--ink-3);
+  margin: var(--space-1) 0 0;
+  max-width: var(--measure);
+}
+
+.figure-row__method {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: 44px;
+}
+
+/* ---------- Charts and tables ---------- */
+
+.chart {
+  width: 100%;
+  height: auto;
+  border-top: var(--border-hair);
+  border-bottom: var(--border-hair);
+}
+
+/* One variant is rendered; the other is out of the layout and out of the a11y tree (D4.5). */
+.chart__variant--compact {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .chart__variant--wide {
+    display: none;
+  }
+
+  .chart__variant--compact {
+    display: block;
+  }
+}
+
+.chart__grid {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+}
+
+.chart__ref {
+  stroke: var(--chart-ref);
+  stroke-width: 1;
+}
+
+.chart__series {
+  fill: none;
+  stroke: var(--chart-series-1);
+  stroke-width: 2;
+}
+
+.chart__whisker {
+  stroke: var(--chart-series-1);
+  stroke-width: 2;
+}
+
+.chart__dot {
+  fill: var(--chart-series-1);
+}
+
+.chart__bar {
+  fill: var(--chart-series-1);
+}
+
+.chart__bar--negative {
+  fill: var(--chart-hatch);
+}
+
+.chart__tick,
+.chart__row-label,
+.chart__ref-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  fill: var(--ink-3);
+}
+
+.chart__value {
+  font-family: var(--font-mono);
+  font-size: var(--text-num-m);
+  fill: var(--ink-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table {
+  margin-top: var(--space-4);
+}
+
+.data-table summary {
+  cursor: pointer;
+  font-family: var(--font-label);
+  font-size: var(--text-meta);
+  border: var(--border-strong);
+  padding: var(--space-3);
+  min-block-size: 44px;
+}
+
+/* D4 rule 4: tables scroll inside themselves, never the page. */
+.data-table__scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-gutter: stable;
+}
+
+.data-table table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--text-meta);
+}
+
+.data-table caption {
+  text-align: left;
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+  padding: var(--space-2) 0;
+}
+
+.data-table th,
+.data-table td {
+  padding: var(--space-1) var(--space-3);
+  text-align: left;
+}
+
+.data-table td {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.data-table tbody tr:first-child th,
+.data-table tbody tr:first-child td {
+  border-top: var(--border-hair);
+}
+
+/* ---------- Provenance strip (D6) ---------- */
+
+.provenance {
+  margin-top: var(--space-4);
+  border-top: var(--border-hair);
+  padding-top: var(--space-3);
+}
+
+.provenance__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.provenance__field {
+  display: grid;
+  gap: var(--space-1);
+  align-content: start;
+}
+
+.provenance__field dt {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+}
+
+.provenance__field dd {
+  margin: 0;
+  font-size: var(--text-meta);
+  color: var(--ink-2);
+  overflow-wrap: break-word;
+}
+
+.provenance__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.provenance__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  border-top: var(--border-hair);
+  padding-top: var(--space-2);
+}
+
+.provenance__original,
+.provenance__methods summary,
+.provenance__more summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: 44px;
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  cursor: pointer;
+}
+
+.provenance__methods,
+.provenance__more {
+  background: var(--surface-3);
+  border: var(--border-hair);
+  border-radius: 0;
+  padding: 0 var(--space-3);
+  min-inline-size: 0;
+}
+
+.provenance__methods[open],
+.provenance__more[open] {
+  padding-bottom: var(--space-3);
+  inline-size: 100%;
+}
+
+.provenance__detail {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-2) 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+}
+
+.provenance__detail dt {
+  font-family: var(--font-label);
+  color: var(--ink-3);
+}
+
+.provenance__detail dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.hash--full {
+  display: block;
+  border: var(--border-hair);
+  padding: var(--space-2);
+  width: 100%;
+}
+
+.provenance__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.provenance__copy-button {
+  font: inherit;
+  background: transparent;
+  border: var(--border-strong);
+  color: var(--ink-1);
+  padding: var(--space-1) var(--space-2);
+  min-block-size: 44px;
+  cursor: pointer;
+}
+
+.provenance__copy-status {
+  font-size: var(--text-micro);
+  color: var(--ink-2);
+}
+
+.provenance__meaning,
+.provenance__observed {
+  font-size: var(--text-meta);
+  color: var(--ink-2);
+  margin: var(--space-2) 0 0;
+}
+
+/* ---------- Registers ---------- */
+
+.register {
+  margin: var(--space-9) 0;
+}
+
+.register--agreement {
+  background: var(--ground-consensus);
+}
+
+.register--dispute {
+  background: var(--ground-dispute);
+  border-top: var(--border-hair);
+  border-bottom: var(--border-hair);
+  padding: var(--space-6) var(--gutter);
+}
+
+.register--thesis {
+  background: var(--ground-thesis);
+  border-left: var(--border-register);
+  padding: var(--space-6) var(--gutter);
+}
+
+.register__prose {
+  max-width: var(--measure);
+}
+
+.dossier {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-7);
+  max-width: var(--measure);
+}
+
+.dossier__position {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+}
+
+.dossier__quote {
+  margin: 0;
+  border-left: 2px solid var(--rule-2);
+  padding-left: var(--space-3);
+  overflow-wrap: break-word;
+}
+
+.thesis__statement {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(1.5rem, 3vw, 2.125rem);
+  line-height: var(--leading-body);
+  max-width: var(--measure);
+}
+
+.thesis__disclaimer {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+}
+
+.citation__chip {
+  font-family: var(--font-label);
+  font-size: var(--text-meta);
+  border: var(--border-strong);
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+  display: inline-block;
+}
+
+.citation__panel {
+  background: var(--surface-3);
+  border: var(--border-hair);
+  padding: var(--space-3);
+  overflow-wrap: anywhere;
+}
+
+.reproduce,
+.assumptions,
+.revisions {
+  margin: var(--space-8) 0;
+  border-top: var(--border-hair);
+  padding-top: var(--space-5);
+}
+
+.reproduce__row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  padding: var(--space-2) 0;
+  overflow-wrap: anywhere;
+}
+
+.assumptions__clusters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+
+.site-footer {
+  border-top: var(--border-hair);
+  padding-top: var(--space-5);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-7);
+  font-size: var(--text-small);
+}
+
+.footer__locales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  text-transform: uppercase;
+}
+
+/* ---------- Admin surface (its own dialect 8 / 2 / 2) ---------- */
+
+.admin-shell {
+  min-height: 100vh;
+  background: var(--surface-1);
+}
+
+.operator-bar {
+  min-height: var(--operator-bar-h);
+  background: var(--ink-1);
+  color: var(--surface-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: 0 var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-operator);
+}
+
+.admin-main {
+  max-width: var(--admin-max);
+  margin: 0 auto;
+  padding: var(--space-6) var(--gutter) var(--space-9);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-meta);
+}
+
+.admin-table caption {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+  padding: var(--space-2) 0;
+}
+
+.admin-table th,
+.admin-table td {
+  height: var(--admin-row-h);
+  padding: var(--space-1) var(--space-3);
+  text-align: left;
+  border-top: var(--border-hair);
+}
+
+.admin-table td {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-table tr[data-changed='true'] td,
+.admin-table tr[data-changed='true'] th {
+  border-left: 2px solid var(--state-pending);
+}
+
+.status-chip {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  border: 1px solid var(--rule-2);
+  padding: 0 var(--space-2);
+}
+
+.status-chip[data-state='pending'],
+.status-chip[data-state='running'] {
+  color: var(--state-pending);
+  border-color: var(--state-pending);
+}
+
+.status-chip[data-state='failed'] {
+  color: var(--state-danger);
+  border-color: var(--state-danger);
+}
+
+.admin-btn {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none;
+  padding: var(--space-3) var(--space-5);
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-btn[disabled] {
+  background: var(--surface-2);
+  color: var(--ink-3);
+  cursor: not-allowed;
+}
+
+.admin-failure {
+  color: var(--state-danger);
+}
+
+.config-closed {
+  max-width: var(--measure);
+  margin: var(--space-9) auto;
+  border-left: 4px solid var(--state-danger);
+  padding-left: var(--space-4);
+}
+
+.icon {
+  flex: none;
+}
+
+@media (max-width: 900px) {
+  .hero,
+  .dossier,
+  .assumptions__clusters,
+  .site-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .provenance__fields,
+  .provenance__detail,
+  .reproduce__row {
+    grid-template-columns: 1fr;
+  }
+
+  /* The clock is the page's hook (Revision 3 §P2), and on a phone it must not sit behind a
+     headline, a scope mark and two call-to-action links. The countdown block is lifted above the
+     headline block; the readings stay below it; the panel becomes transparent and its ground
+     moves onto the two blocks, so each keeps the material it had. Measured on the built app at
+     390x844: the clock rail moves from y 870-1124 (entirely below the fold) to 479-733 (inside
+     it). Nothing is hidden, nothing shrinks, and every rule here lives in this query, so the
+     desktop composition above 900px is untouched.
+     The visual order is therefore countdown, headline, readings, while the document order
+     remains headline, countdown, readings. That is deliberate: the document order is the one a
+     screen reader hears, and starting with the <h1> is the better reading order. Neither block
+     moved here contains a focusable element (`hero__panel` holds no link, no button and no
+     control), so the keyboard order is unaffected. */
+  .hero__panel,
+  .hero--proposition .hero__status {
+    display: contents;
+  }
+
+  .hero__panel-countdown,
+  .hero__panel-readings {
+    display: block;
+  }
+
+  .hero--numeric .hero__panel-countdown,
+  .hero--numeric .hero__panel-readings {
+    background: var(--surface-hero);
+    padding: var(--space-5);
+  }
+
+  .hero__panel-countdown {
+    order: 1;
+  }
+
+  .hero__lead {
+    order: 2;
+  }
+
+  .hero__panel-readings,
+  .hero__status-list {
+    order: 3;
+  }
+
+  .hero__status-count {
+    order: 4;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero {
+    padding-top: var(--space-7);
+  }
+
+  /* 320 floor: gutters shrink to keep the measured budget of 298px inside 320. */
+  :root {
+    --gutter: 16px;
+  }
+}
+
+/* ---------- Revision 2: the countdown (R2, R5) ---------- */
+
+/* Revision 4 §C2: the whole face is centred, not just the numeral row. `justify-items` centres
+   every child that has a box of its own (the numeral row, the year row, the rules, the prose
+   blocks below); `text-align` is inherited, so the eyebrow, the threshold year and the sentences
+   all sit on the same axis as the clock rail underneath. One declaration each, no breakpoint and
+   no state re-declares them — the centred face is not a desktop variant. */
+.countdown {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  text-align: center;
+}
+
+.countdown__eyebrow,
+.countdown__range,
+.countdown__source,
+.countdown__year-label,
+.countdown__backcast {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+  margin: 0;
+}
+
+.countdown__eyebrow {
+  text-transform: uppercase;
+}
+
+/* The threshold rule: one of the two coloured marks permitted above the fold, and the face's
+   axis. A centred grid item shrinks to fit and a rule has no content, so `justify-self: stretch`
+   is what keeps it spanning the panel while everything it separates is centred. */
+.countdown__rule {
+  height: var(--rule-projection);
+  background: var(--data-projection);
+  justify-self: stretch;
+}
+
+.countdown__value {
+  margin: 0;
+  display: flex;
+  /* The numeral and its unit centre as one group, not the numeral alone with the unit trailing. */
+  justify-content: center;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.countdown__numeral {
+  font-family: var(--font-mono);
+  font-size: var(--text-num-xl);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-tight);
+  color: var(--ink-1);
+}
+
+.countdown__unit {
+  font-size: var(--text-num-m);
+  color: var(--ink-2);
+}
+
+.countdown__year-line {
+  margin: 0;
+  display: flex;
+  /* The threshold year and its label centre as one group, like the numeral row above them. */
+  justify-content: center;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.countdown__year {
+  font-family: var(--font-mono);
+  font-size: var(--text-num-m);
+  font-variant-numeric: tabular-nums;
+  color: var(--data-projection);
+}
+
+.countdown__definition,
+.countdown__statement {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  margin: 0;
+}
+
+/* Revision 4 §C2: prose that wraps centres as a block inside a measure, never across the panel.
+   Centred ragged-right prose at the panel's full width (295px on a phone, 429px on a desktop)
+   reads worse than flush left — the eye loses the left edge and finds no right one. The measure
+   is 280px at the default root size: 65% of the desktop panel, and the narrowest that still keeps
+   the whole rail inside the first viewport at 390x844 in every locale (see `--measure-face`).
+   `text-wrap: balance` is progressive: an engine without it wraps normally and still centres. */
+.countdown__definition,
+.countdown__statement,
+.countdown__range,
+.countdown__source,
+.countdown__backcast {
+  max-inline-size: var(--measure-face);
+  margin-inline: auto;
+  text-wrap: balance;
+}
+
+.hero__panel-rule {
+  border: 0;
+  border-top: var(--border-hair);
+  margin: var(--space-4) 0;
+}
+
+/* The figure value is demoted while the countdown carries the largest type (R5). */
+.hero__value--demoted {
+  font-size: var(--text-num-l);
+}
+
+/* ---------- Revision 2: the scope mark (R4) ---------- */
+
+.scope {
+  font-family: var(--font-label);
+  font-size: var(--text-meta);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-2);
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.scope__name {
+  text-transform: uppercase;
+}
+
+.scope__list {
+  display: flex;
+  gap: var(--space-4);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-2) 0 0;
+}
+
+/* ---------- Revision 2: the age structure (R1) ---------- */
+
+.demography {
+  margin: var(--space-8) 0;
+  border-top: var(--border-hair);
+  padding-top: var(--space-5);
+}
+
+.demography__figure {
+  margin: 0;
+}
+
+.demography__finding {
+  font-size: var(--text-plate);
+  max-width: var(--measure);
+}
+
+.demography__readout {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-num-m);
+  font-variant-numeric: tabular-nums;
+}
+
+.demography__readout-item dt {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+}
+
+.demography__readout-item dd {
+  margin: 0;
+  color: var(--ink-1);
+}
+
+.demography__panels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+
+.demography__panel-head {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+}
+
+.demography__panel-year {
+  font-family: var(--font-mono);
+  color: var(--ink-1);
+}
+
+.demography__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* One hue per panel. Sex is encoded by side and by the column header, never by hue. */
+.demography__panel--reference {
+  --demography-hue: var(--chart-series-2);
+}
+
+.demography__panel--measured {
+  --demography-hue: var(--chart-series-1);
+}
+
+.demography__panel--projected {
+  --demography-hue: var(--chart-projection);
+}
+
+.demography__bar {
+  fill: var(--demography-hue);
+}
+
+.demography__baseline,
+.demography__grid {
+  stroke: var(--rule-1);
+  stroke-width: 1;
+}
+
+/* The projected panel is dash-encoded as well as hue-encoded and panel-positioned (AC-001-106). */
+.demography__panel--projected .demography__baseline {
+  stroke-dasharray: var(--dash-projection);
+}
+
+.demography__tick,
+.demography__age {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: var(--ink-3);
+}
+
+.demography--unavailable {
+  border-top: var(--border-hair);
+}
+
+.reproduce__count {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+}
+
+/* The omitted line is prose, not a count (P3 F2): sans, and no dead mono declaration above it. */
+.reproduce__omitted {
+  font-family: var(--font-label);
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  margin-top: var(--space-4);
+}
+
+@media (min-width: 1024px) {
+  /* The hero stops defining itself as the whole viewport (R5). */
+  .hero {
+    min-height: var(--hero-min-h);
+    align-content: start;
+  }
+
+  /* One age-label gutter on the outer left only. */
+  .demography__panel:not(:first-child) .demography__age {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .demography__panels {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .demography__panel {
+    --pyramid-band-h: 8px;
+  }
+}
+
+@media (max-width: 767px) {
+  .demography__readout {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    font-size: var(--text-meta);
+  }
+
+  .demography__panel {
+    --pyramid-band-h: 6px;
+  }
+
+  /* Age labels every twenty years only, and no percentage axis on the smallest screen. */
+  .demography__age:not(.demography__age--major),
+  .demography__tick {
+    display: none;
+  }
+}
+
+/* ---------- Revision 3: the anchored clock (§P2) ---------- */
+
+/* The clock is the bottom rail of the countdown block, behind one 1px rule. No ground of its
+   own, no border, no chip, no icon. That rule is also what keeps the years numeral above it and
+   the day count below it out of one typographic group (AC-001-119).
+   Revision 4 §C2: the rail centres its own text, so it reads as one face with the projection
+   block above it even where it is mounted on its own; `justify-self: stretch` keeps the hairline
+   spanning the panel while the fields and the lines below are centred. */
+.clock {
+  margin-top: var(--space-4);
+  border-top: var(--border-hair);
+  padding-top: var(--space-3);
+  justify-self: stretch;
+  text-align: center;
+}
+
+/* Revision 4 §C1: the face is centred. It is a three-column grid, not a baseline-aligned flex
+   run, for one reason: the day count spans every column, so its centre *is* the row's centre by
+   construction — not by measuring a numeral that runs from `3` to `1.234`. `justify-content`
+   centres the track set on the face (the face fills the panel, so that is the panel's axis too,
+   at every width); `justify-items` centres each numeral's box inside its own cell.
+   The columns are fixed, never `auto`: an `auto` track absorbs the spanning numeral's width and
+   the three sub-day fields then start at different offsets from the day count's axis. Fixed,
+   equal tracks keep the row symmetric whatever the numeral says.
+   Nothing here is state-dependent: there is no left-aligned variant, in motion, reduced motion,
+   or elapsed. */
+.clock__fields {
+  display: grid;
+  grid-template-columns: repeat(3, var(--clock-sub-col));
+  justify-content: center;
+  justify-items: center;
+  column-gap: var(--clock-gap);
+  row-gap: var(--space-2);
+}
+
+/* The day cell owns the whole first row: no label can size it and no sibling can pull it. */
+.clock__field--days {
+  grid-column: 1 / -1;
+}
+
+.clock__field {
+  display: grid;
+  /* The numeral and its label share one axis, so a label wider than the numeral does not drag
+     the numeral sideways — the "short numeral over a wide label" failure. */
+  justify-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  text-align: center;
+}
+
+.clock__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.clock__value--days {
+  font-size: var(--text-num-l);
+  color: var(--ink-1);
+  min-inline-size: var(--clock-days-min);
+}
+
+.clock__value--sub {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  min-inline-size: var(--clock-unit-min);
+}
+
+.clock__label {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+}
+
+.clock__anchor {
+  font-family: var(--font-label);
+  font-size: var(--text-small);
+  color: var(--ink-1);
+  margin: var(--space-2) 0 0;
+}
+
+.clock__anchor-label {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+}
+
+.clock__definition {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  margin: var(--space-3) 0 0;
+}
+
+/* Rendered always in the countdown's own group in Reproducir; in the block itself at >=1024px. */
+.clock__arithmetic {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+  margin: var(--space-2) 0 0;
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .clock__arithmetic {
+    display: block;
+  }
+}
+
+/* Revision 4 §C2: the rail's three lines centre as blocks inside the same measure as the
+   projection block above them. The anchor line is the first to wrap — `fecha convencional del
+   umbral` plus the date is 46 characters at `--text-small` inside a 295px panel — and a centred
+   line that wraps across the panel's full width would be the exact ragged-right shape the
+   flush-left version at least aligned to an edge. */
+.clock__anchor,
+.clock__definition,
+.clock__arithmetic {
+  max-inline-size: var(--measure-face);
+  margin-inline: auto;
+  text-wrap: pretty;
+}
+
+/* The sub-day fields are hidden, never frozen: a seconds field that never changes is a stopped
+   clock, and the day count is complete without them (AC-001-112). */
+@media (prefers-reduced-motion: reduce) {
+  .clock__field--sub {
+    display: none;
+  }
+}
+
+.reproduce__note {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  color: var(--ink-3);
+  margin: calc(-1 * var(--space-2)) 0 var(--space-3);
+}

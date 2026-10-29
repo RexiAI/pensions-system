@@ -1,0 +1,164 @@
+{
+  "assumptions": {
+    "alignment": "years observed by both series",
+    "beneficiarySex": "T",
+    "employmentAge": "From 15 to 64 years",
+    "employmentAgeCode": "Y15-64",
+    "employmentIndicator": "EMP_LFS",
+    "employmentUnit": "THS_PER",
+    "firstYear": 2009,
+    "lastYear": 2024,
+    "pensionMeansTesting": "TOTAL",
+    "pensionType": "OLD",
+    "pensionUnit": "PER"
+  },
+  "availability": "computed",
+  "definition": "Counts beneficiaries of old age pensions (Eurostat, persons) divided by employed persons aged 15 to 64 (Eurostat, labour force survey). Excludes survivor and disability pension beneficiaries from the numerator and non-employed persons from the denominator.",
+  "definitionId": "dependency-ratio.international",
+  "figureId": "fig-01",
+  "formulaId": "dependency-ratio.v1",
+  "manifest": {
+    "definitionId": "dependency-ratio.international",
+    "fetchedAt": "2026-10-25T22:26:02Z",
+    "formulaId": "dependency-ratio.v1",
+    "inputHash": "561a7daeb5b017259098ceb0b332e90a7abd1048aee68d25b2de2b5d23d0130f",
+    "reproducePath": "scripts/compute.ts",
+    "sourceUrl": [
+      "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?format=JSON&lang=EN&geo=ES&indic_em=EMP_LFS&sex=T&unit=THS_PER",
+      "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/spr_pns_ben?format=JSON&lang=EN&geo=ES&spdepm=TOTAL&sex=T&unit=PER"
+    ]
+  },
+  "unit": "ratio",
+  "unresolvedSources": [],
+  "value": {
+    "first": {
+      "denominator": 18957000,
+      "numerator": 5266793,
+      "period": "2009",
+      "ratio": 0.28,
+      "raw": 0.2778284011183204
+    },
+    "latest": {
+      "denominator": 21300000,
+      "numerator": 7059353,
+      "period": "2024",
+      "ratio": 0.33,
+      "raw": 0.3314250234741784
+    },
+    "meanLastTenYears": 0.33,
+    "points": [
+      {
+        "denominator": 18957000,
+        "numerator": 5266793,
+        "period": "2009",
+        "ratio": 0.28,
+        "raw": 0.2778284011183204
+      },
+      {
+        "denominator": 18574000,
+        "numerator": 5372076,
+        "period": "2010",
+        "ratio": 0.29,
+        "raw": 0.2892255841498869
+      },
+      {
+        "denominator": 18271000,
+        "numerator": 5452958,
+        "period": "2011",
+        "ratio": 0.3,
+        "raw": 0.2984487986426578
+      },
+      {
+        "denominator": 17477000,
+        "numerator": 5541293,
+        "period": "2012",
+        "ratio": 0.32,
+        "raw": 0.3170620243748927
+      },
+      {
+        "denominator": 17002000,
+        "numerator": 5680339,
+        "period": "2013",
+        "ratio": 0.33,
+        "raw": 0.3340982825549935
+      },
+      {
+        "denominator": 17211000,
+        "numerator": 5798458,
+        "period": "2014",
+        "ratio": 0.34,
+        "raw": 0.3369041891813375
+      },
+      {
+        "denominator": 17717000,
+        "numerator": 5879384,
+        "period": "2015",
+        "ratio": 0.33,
+        "raw": 0.33184986171473724
+      },
+      {
+        "denominator": 18183000,
+        "numerator": 5987665,
+        "period": "2016",
+        "ratio": 0.33,
+        "raw": 0.32930017048891824
+      },
+      {
+        "denominator": 18649000,
+        "numerator": 6107891,
+        "period": "2017",
+        "ratio": 0.33,
+        "raw": 0.32751841921818864
+      },
+      {
+        "denominator": 19136000,
+        "numerator": 6232646,
+        "period": "2018",
+        "ratio": 0.33,
+        "raw": 0.3257026546822743
+      },
+      {
+        "denominator": 19568000,
+        "numerator": 6361935,
+        "period": "2019",
+        "ratio": 0.33,
+        "raw": 0.325119327473426
+      },
+      {
+        "denominator": 18958000,
+        "numerator": 6444416,
+        "period": "2020",
+        "ratio": 0.34,
+        "raw": 0.33993121637303514
+      },
+      {
+        "denominator": 19546000,
+        "numerator": 6582849,
+        "period": "2021",
+        "ratio": 0.34,
+        "raw": 0.3367875268597155
+      },
+      {
+        "denominator": 20235000,
+        "numerator": 6723648,
+        "period": "2022",
+        "ratio": 0.33,
+        "raw": 0.33227813194959227
+      },
+      {
+        "denominator": 20851000,
+        "numerator": 6883885,
+        "period": "2023",
+        "ratio": 0.33,
+        "raw": 0.33014651575464005
+      },
+      {
+        "denominator": 21300000,
+        "numerator": 7059353,
+        "period": "2024",
+        "ratio": 0.33,
+        "raw": 0.3314250234741784
+      }
+    ]
+  }
+}

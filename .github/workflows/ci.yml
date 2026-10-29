@@ -12,13 +12,18 @@ permissions:
   packages: write
 
 jobs:
-  backend-ci-go:
-    uses: RexiAI/my-engineering-standards/.github/workflows/ci-go.yml@21046d96796467f8238d6d613ce3a552bf3fced0 # pinned; bump deliberately, never track a branch
-    with:
-      docker-registry: ghcr.io
-    secrets:
-      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-      PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+  # No Go backend job here — removed 2026-10-26. This repo is TypeScript-only: no go.mod,
+  # no *.go files. The Go reusable workflow (ci-go.yml) defaults go-version-file to go.mod,
+  # so setup-go failed every run with "The specified go version file at: go.mod does not
+  # exist" and its jobs could never pass. Removing it also removed a concurrency collision:
+  # ci-go.yml and ci-nextjs.yml both declare concurrency group
+  # ${{ github.workflow }}-${{ github.ref }} with cancel-in-progress: true, so invoked from
+  # this single caller they resolved to the same group ("CI-<ref>") and cancelled each
+  # other — which is why those jobs showed cancelled rather than failed.
+  # Re-add a Go job only if a Go service actually lands here: a `backend-ci-go` using
+  # ci-go.yml pinned to a submodule commit SHA, with `docker-registry: ghcr.io` and the
+  # GHCR_TOKEN / PACT_BROKER_URL secrets — and re-check the concurrency collision above,
+  # because a second reusable workflow from this caller reintroduces it.
   frontend-ci:
     uses: RexiAI/my-engineering-standards/.github/workflows/ci-nextjs.yml@21046d96796467f8238d6d613ce3a552bf3fced0 # pinned; bump deliberately, never track a branch
     with:

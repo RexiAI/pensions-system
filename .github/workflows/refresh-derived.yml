@@ -1,0 +1,27 @@
+name: Refresh derived figures
+
+# The admin panel dispatches this workflow (T2, T14). It recomputes into a pending
+# revision and never writes data/derived/ directly: publication is a separate, reviewed
+# approval inside the app. Exit code is non-zero when any required source is unresolved.
+on:
+  workflow_dispatch:
+    inputs:
+      request_id:
+        description: Request id reported by the admin panel
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  compute:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0, pinned per docs/SECURITY.md
+      - name: Install
+        run: npm ci
+      - name: Compute pending revision
+        run: npm run compute -- --pending
+      - name: Report the pending revision
+        run: ls -l data/pending/ || true

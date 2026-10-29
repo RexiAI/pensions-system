@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "sourceId": "ss-pensioners",
+    "sourceClass": "document",
+    "publisher": "Seguridad Social (Ministerio de Inclusión, Seguridad Social y Migraciones)",
+    "dataset": "Pensiones contributivas en vigor, alta mensual",
+    "sourceUrl": "https://www.seg-social.es/wps/portal/wss/internet/EstadisticasPresupuestosEstudios/Estadisticas",
+    "retrievedAt": "2026-10-25T00:00:00Z"
+  },
+  "resolved": false,
+  "unresolvedReason": "Serie mensual de pensiones contributivas en vigor: el código de serie no está resuelto (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con tabla y fecha exactas."
+}

@@ -1,0 +1,82 @@
+{
+  "assumptions": {
+    "backCast": 31.91,
+    "denominator": "15-64",
+    "observation": 31.22,
+    "snapshotYear": 2026,
+    "threshold": 50,
+    "variant": "BSL",
+    "variantsCrossing": "BSL:2042,HMIGR:2043,LFRT:2041,LMIGR:2040,LMRT:2041,NMIGR:2039"
+  },
+  "availability": "computed",
+  "definition": "Counts the population aged 65 and over divided by the population aged 15 to 64, per year, from the baseline projection. Excludes the other published projection variants from the series and reports them only as a range.",
+  "definitionId": "old-age-dependency-ratio",
+  "formulaId": "old-age-dependency-threshold.v1",
+  "manifest": {
+    "definitionId": "old-age-dependency-ratio",
+    "fetchedAt": "2026-10-26T12:35:57Z",
+    "formulaId": "old-age-dependency-threshold.v1",
+    "inputHash": "9b4e8154c74ce39f65ede5b035aff0a65b2161fc477918917df8a3b3d542477a",
+    "reproducePath": "scripts/compute.ts",
+    "snapshotYear": 2026,
+    "sourceUrl": [
+      "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_pjan?format=JSON&lang=EN&geo=ES&time=1995&time=2025",
+      "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/proj_23np?format=JSON&lang=EN&geo=ES&sex=T&age=Y_GE65&age=Y15-64"
+    ]
+  },
+  "seriesId": "countdown",
+  "unresolvedSources": [],
+  "value": {
+    "anchor": "2042-01-01T00:00:00+01:00",
+    "backCast": {
+      "difference": 0.69,
+      "observed": 31.22,
+      "projected": 31.91,
+      "year": 2025
+    },
+    "horizonEnd": 2100,
+    "range": {
+      "max": 2043,
+      "min": 2039
+    },
+    "snapshotYear": 2026,
+    "state": "computed",
+    "threshold": 50,
+    "thresholdYear": 2042,
+    "variant": "BSL",
+    "variantLabel": "Baseline projections",
+    "variants": [
+      {
+        "label": "Baseline projections",
+        "thresholdYear": 2042,
+        "variant": "BSL"
+      },
+      {
+        "label": "Sensitivity test: higher migration",
+        "thresholdYear": 2043,
+        "variant": "HMIGR"
+      },
+      {
+        "label": "Sensitivity test: lower fertility",
+        "thresholdYear": 2041,
+        "variant": "LFRT"
+      },
+      {
+        "label": "Sensitivity test: lower migration",
+        "thresholdYear": 2040,
+        "variant": "LMIGR"
+      },
+      {
+        "label": "Sensitivity test: lower mortality",
+        "thresholdYear": 2041,
+        "variant": "LMRT"
+      },
+      {
+        "label": "Sensitivity test: no migration",
+        "thresholdYear": 2039,
+        "variant": "NMIGR"
+      }
+    ],
+    "years": 16
+  }
+}
