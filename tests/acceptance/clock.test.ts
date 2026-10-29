@@ -17,17 +17,17 @@ import {
 } from '../../web/series/clock';
 import { startClockTicker } from '../../web/series/clock-ticker';
 import type { VisibilitySource } from '../../web/series/clock-ticker';
-import { computeCountdown } from '../../web/series/countdown';
 import type { CountdownValue } from '../../web/series/countdown';
 import type { DerivedSeries } from '../../web/ingest/series-types';
 import { content, dependencyFigure, renderComponent, shareFigure } from '../fixtures/figures';
 import {
-  committedPayload,
+  countdownAt,
   countdownSeries,
   countdownValue,
   pyramidSeries,
   unavailableSeries,
 } from '../fixtures/series';
+import { decodeText } from '../helpers/render-document';
 import { listSourceFiles, readSource, stripComments } from '../helpers/source-scan';
 
 const ES = content('es');
@@ -36,20 +36,6 @@ const ANCHOR = '2042-01-01T00:00:00+01:00';
 const THREE_DAYS_OUT = Date.parse('2041-12-28T20:57:55Z');
 /** 2 hours, 2 minutes and 9 seconds before the anchor instant: a sub-day value that must pad. */
 const SECONDS_OUT = Date.parse('2041-12-31T20:57:51Z');
-
-/**
- * Server markup, with React's text escapes undone: `l'année` is `l&#x27;année` in the HTML,
- * and a copy assertion should be about the sentence the reader sees, not about the escaping.
- */
-function decodeText(html: string): string {
-  return html
-    .replaceAll('&#x27;', "'")
-    .replaceAll('&#39;', "'")
-    .replaceAll('&quot;', '"')
-    .replaceAll('&lt;', '<')
-    .replaceAll('&gt;', '>')
-    .replaceAll('&amp;', '&');
-}
 
 /** The clock's own subtree: it is the last child of the countdown section. */
 function clockRegion(html: string): string {
@@ -65,14 +51,14 @@ function renderClock(locale: Locale, nowMs: number): string {
   return clockRegion(renderBlock(locale, nowMs));
 }
 
-/** A countdown computed at another threshold, so the anchor has to move with it. */
-function countdownAt(threshold: number): CountdownValue {
-  return computeCountdown({
-    projected: committedPayload('eurostat-proj-23np-ratio'),
-    observed: committedPayload('eurostat-demo-pjan'),
-    snapshotYear: 2026,
-    threshold,
-  });
+/** This file's own source: an assertion that a *test* changed has to read the test. */
+const OWN_SOURCE = readFileSync('tests/acceptance/clock.test.ts', 'utf8');
+
+/** The body of one `it(...)` in this file, from its name to its closing `});`. */
+function testBody(namePrefix: string): string {
+  const start = OWN_SOURCE.indexOf(`it('${namePrefix}`);
+  expect(start, `${namePrefix} must exist in this file`).toBeGreaterThan(-1);
+  return OWN_SOURCE.slice(start, OWN_SOURCE.indexOf('\n  });', start));
 }
 
 function pageWith(series: readonly DerivedSeries[], locale: Locale = 'es', nowMs = THREE_DAYS_OUT): string {
@@ -563,18 +549,43 @@ describe('AC-001-119: the two reference instants are disclosed', () => {
     }
   });
 
-  it('AC-001-119: the projection group and the clock rail are separated by a 1px rule', () => {
+  it('AC-001-119: the years numeral and the day count are one group, with no rule between them', () => {
     const CSS = readFileSync('web/styles/globals.css', 'utf8');
     const rule = CSS.slice(CSS.indexOf('.clock {'), CSS.indexOf('.clock__fields'));
-    expect(rule).toContain('border-top: var(--border-hair)');
+    // Spec 002 §T3 removed the 1px separator this assertion used to require. The old rationale
+    // — keep the two numerals out of one typographic group — is the decision the spec reverts;
+    // the risk it mitigated is recorded as accepted in `CountdownBlock.tsx`.
+    expect(rule).not.toContain('border-top');
 
     const block = renderBlock('es', THREE_DAYS_OUT);
     const yearsNumeralAt = block.indexOf('countdown__numeral');
     const railAt = block.indexOf('class="clock"');
+    const fieldsAt = block.indexOf('clock__fields');
     expect(yearsNumeralAt).toBeGreaterThan(-1);
-    expect(railAt).toBeGreaterThan(yearsNumeralAt);
-    // The years numeral and the day count are never in one typographic group.
-    expect(block.slice(yearsNumeralAt, railAt)).not.toContain('clock__fields');
+    expect(railAt).toBeGreaterThan(-1);
+    // The numeral renders *inside* the clock, above the four-field band: one group, so a reader
+    // is read `16 años` then `1.234 días …` and may divide one by the other. That is the
+    // accepted risk, not an accident.
+    expect(yearsNumeralAt).toBeGreaterThan(railAt);
+    expect(yearsNumeralAt).toBeLessThan(fieldsAt);
+    const between = block.slice(yearsNumeralAt, fieldsAt);
+    expect(between).not.toContain('<hr');
+    expect(between).not.toContain('countdown__rule');
+    expect(between).not.toContain('clock__value--days');
+  });
+
+  it('AC-002-15: AC-001-119 asserts the new structure, never the 1px rule', () => {
+    // The authorized rewrite (`docs/TESTING.md §Tests That Encode a Defect`): the assertion above
+    // encodes the decision spec 002 reverts, so it is re-pointed rather than deleted. This test
+    // reads its neighbour's body, because "the assertion changed" is itself the claim.
+    const body = testBody('AC-001-119: the years numeral and the day count are one group');
+    expect(body).not.toContain("toContain('border-top: var(--border-hair)')");
+    expect(body).not.toContain("not.toContain('clock__fields')");
+    // In the other direction: the two numerals are now asserted to be in one group.
+    expect(body).toContain('toBeGreaterThan(railAt)');
+    expect(body).toContain('toBeLessThan(fieldsAt)');
+    // The scenario ID survives the rewrite — traceability is why it is pinned.
+    expect(body).toContain('AC-001-119');
   });
 
   it('AC-001-119: Reproducir states it too, in the countdown’s own group', () => {
@@ -855,15 +866,15 @@ describe('AC-001-111: the clock face is horizontally centred within its panel', 
     }
   });
 
-  it('AC-001-111: the threshold rule and the rail hairline still span the whole face', () => {
+  it('AC-001-111: the threshold rule and the clock group still span the whole face', () => {
     // A centred grid item shrinks to fit its content, and a rule has no content: without an
-    // explicit stretch the 3px threshold rule and the rail's hairline would collapse to zero
-    // width. They are the axis, so they keep the panel's full width while everything they
-    // separate is centred.
+    // explicit stretch the 3px threshold rule would collapse to zero width. Spec 002 §T3 removed
+    // the rail's hairline, so the clock's span is carried by `justify-self: stretch` alone — the
+    // span is asserted here, the removed hairline is not.
     expect(valueIn(COUNTDOWN_RULES, '.countdown__rule', 'justify-self')).toEqual(['stretch']);
     expect(declared('.clock', 'justify-self')).toEqual(['stretch']);
     expect(valueIn(COUNTDOWN_RULES, '.countdown__rule', 'height')).toEqual(['var(--rule-projection)']);
-    expect(declared('.clock', 'border-top')).toEqual(['var(--border-hair)']);
+    expect(declared('.clock', 'border-top')).toEqual([]);
   });
 
   it('AC-001-111: prose that wraps centres as a block inside a measure, never across the panel', () => {
@@ -879,6 +890,55 @@ describe('AC-001-111: the clock face is horizontally centred within its panel', 
       const wrap = declaredOnFace(selector, 'text-wrap').join('');
       expect(wrap, `${selector} { text-wrap }`).toMatch(/^(balance|pretty)$/);
     }
+  });
+
+  it('AC-002-16: the face element list is left unchanged by the merge, and reviewable as such', () => {
+    // The merge moved the years numeral into `.clock` and kept every class — `countdown__value`,
+    // `countdown__numeral` and `countdown__unit` all still render, only their container changed —
+    // so no entry is added or removed. A reviewed-and-unchanged list and a forgotten one look
+    // identical in a diff; this assertion is what makes it a review.
+    expect(FACE_ELEMENTS).toHaveLength(29);
+    for (const element of [
+      'countdown__value',
+      'countdown__numeral',
+      'countdown__unit',
+      'clock__fields',
+      'clock__value--days',
+    ]) {
+      expect(FACE_ELEMENTS).toContain(element);
+    }
+    const merged = renderBlock('es', THREE_DAYS_OUT);
+    for (const element of FACE_ELEMENTS) {
+      // `countdown__statement` and the `--not-crossed` modifier belong to the other branch.
+      if (element === 'countdown__statement' || element === 'countdown--not-crossed') continue;
+      expect(merged, `${element} renders`).toContain(element);
+    }
+    // The centring invariant is not traded for the new structure: a centred grid, not a flex row;
+    // one axis; prose centred inside its measure.
+    expect(declared('.clock__fields', 'display')).toEqual(['grid']);
+    expect(declared('.clock__fields', 'display')).not.toContain('flex');
+    expect(declared('.clock__fields', 'justify-items')).toEqual(['center']);
+    expect(declared('.clock', 'text-align')).toEqual(['center']);
+    expect(declaredOnFace('.clock__anchor', 'max-inline-size')).toEqual(['var(--measure-face)']);
+  });
+
+  it('AC-002-29: AC-001-111’s hairline assertion is re-pointed to the surviving span', () => {
+    // The span did not go away with the hairline: it is carried by `justify-self: stretch` on the
+    // rule and on `.clock`. Re-pointing the assertion keeps the guard; deleting it would not.
+    const body = testBody(
+      'AC-001-111: the threshold rule and the clock group still span the whole face',
+    );
+    expect(body).not.toContain("toEqual(['var(--border-hair)'])");
+    expect(body).toContain(
+      "valueIn(COUNTDOWN_RULES, '.countdown__rule', 'justify-self')).toEqual(['stretch'])",
+    );
+    expect(body).toContain("declared('.clock', 'justify-self')).toEqual(['stretch'])");
+    expect(body).toContain(
+      "valueIn(COUNTDOWN_RULES, '.countdown__rule', 'height')).toEqual(['var(--rule-projection)'])",
+    );
+    // The removed hairline is asserted absent, never left unmentioned.
+    expect(body).toContain("declared('.clock', 'border-top')).toEqual([])");
+    expect(body).toContain('AC-001-111');
   });
 
   it('AC-001-111: every element the face renders is one this contract covers', () => {
@@ -930,6 +990,9 @@ describe('the client leaf renders the same four fields the block does', () => {
       anchor: ANCHOR,
       nowMs: THREE_DAYS_OUT,
       locale: 'es' as Locale,
+      // Spec 002 §T3: the years numeral is the group's first child, resolved by the parent.
+      years: '16',
+      yearsUnit: ES.t('countdown.unit'),
       strings: {
         a11y: ES.t('countdown.clock.a11y', { date: anchorDate('es') }),
         anchor: ES.t('countdown.clock.anchor', { date: anchorDate('es') }),

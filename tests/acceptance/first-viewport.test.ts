@@ -181,8 +181,32 @@ describe('AC-001-107: the clock is inside the first viewport on a phone', () => 
     expect(WIDE).not.toContain('.hero__lead {');
     expect(WIDE).not.toMatch(/\.hero__panel-(countdown|readings)[^{}]*\{[^}]*order:/);
     expect(WIDE).toMatch(/\.hero__panel-countdown,\s*\n\.hero__panel-readings\s*\{\s*display:\s*contents;/);
-    // The clock itself is still declared at its own type scale, never at a mobile override.
-    expect(CSS.slice(CSS.indexOf('.clock {'))).toContain('var(--border-hair)');
+    // The clock is still declared at its own type scale, in the desktop sheet, never at a mobile
+    // override. Spec 002 §T3 removed the `.clock` rule's `border-top`, so the proxy for "the rule
+    // exists here" is a declaration that survived that removal.
+    const clockRule = CSS.slice(CSS.indexOf('.clock {'), CSS.indexOf('.clock__fields'));
+    expect(clockRule).toContain('margin-top: var(--space-4)');
+    expect(CSS).toMatch(/\.clock__value--days\s*\{[^}]*font-size:\s*var\(--text-num-l\)/s);
+    expect(CSS).toMatch(/\.clock__value--sub\s*\{[^}]*font-size:\s*var\(--text-small\)/s);
+  });
+
+  it('AC-002-30: AC-001-107’s hairline proxy is re-pointed to a surviving declaration', () => {
+    // The authorized rewrite (`docs/TESTING.md §Tests That Encode a Defect`): `var(--border-hair)`
+    // after `.clock {` no longer exists, so the proxy is re-pointed rather than deleted — the
+    // invariant is that the clock is declared in the desktop sheet and never overridden on mobile.
+    const body = readFileSync('tests/acceptance/first-viewport.test.ts', 'utf8');
+    const start = body.indexOf("it('AC-001-107: nothing on the way is shrunk or hidden to make room'");
+    const rewritten = body.slice(start, body.indexOf('\n  });', start));
+    expect(rewritten).not.toContain("toContain('var(--border-hair)')");
+    expect(rewritten).toContain("expect(clockRule).toContain('margin-top: var(--space-4)')");
+    expect(rewritten).toContain('AC-001-107');
+
+    // And the invariant behind the proxy, asserted independently of the proxy: the clock's own
+    // sizes are declared once, at their own scale, and the mobile query carries none of them.
+    expect(CSS).toMatch(/\.clock__value--days\s*\{[^}]*--text-num-l/s);
+    expect(CSS).toMatch(/\.clock__value--sub\s*\{[^}]*--text-small/s);
+    expect(MOBILE).not.toMatch(/\.clock/);
+    expect(MOBILE).not.toMatch(/display:\s*none/);
   });
 
   it('AC-001-107: the wrappers are transparent on a desktop, so the panel box is unchanged', () => {
