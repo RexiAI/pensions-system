@@ -88,7 +88,7 @@
   --ink-3: #645341;
   --rule-1: #d6c8b7;
   --rule-2: #b9a892;
-  --accent: #425425;
+  --accent: #3b5512;   /* spec 002 §T2: same olive hue (H 122.1, drift −0.2°), chroma 29.6 → 40.0 */
   --on-accent: #fdf2e1;
   --data-deficit: #96472a;   /* byte-identical to Revision 2: its warmth is load-bearing */
 
@@ -142,7 +142,7 @@
   --ink-3: #a09180;
   --rule-1: #312a22;
   --rule-2: #473e34;
-  --accent: #9cc17f;
+  --accent: #91c46d;   /* spec 002 §T2: same olive hue (H 130.0, drift +0.4°), chroma 38.0 → 50.0 */
   --on-accent: #17110b;
   --data-deficit: #d08a63;   /* unchanged: byte-identical to Revision 2 */
   --chart-series-2: #aba192;
