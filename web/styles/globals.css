@@ -368,11 +368,30 @@ svg {
   margin-top: var(--space-5);
 }
 
+/* Spec 002 §T7: one dominant primary action, one clearly subordinate secondary. Before this the
+   two hero actions were both `a { color: var(--accent) }`, so raising the accent's chroma made the
+   secondary louder as well as the primary — a hierarchy that inverted the more the accent worked.
+   The accent now does exactly one job above the fold: it is the primary's material.
+   Every value here is a token: no literal colour, size, spacing or radius (AC-001-117). */
 .hero__cta {
   background: var(--accent);
   color: var(--on-accent);
+  font-size: var(--text-body);
   padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius);
   text-decoration: none;
+}
+
+/* The subordinate step: a text link, not a second button. It opts out of the global accent ink,
+   keeps a visible underline so the affordance never rests on colour alone, and sets at the
+   primary's own size — a step larger would invert the hierarchy this rule exists to fix.
+   `text-decoration-line` rather than the `text-decoration` shorthand on purpose: the shorthand
+   resets `text-decoration-thickness` to `auto`, and the 1px hairline the reader sees is the shared
+   `a` rule's own declaration. No literal is declared here. */
+.hero__cta-secondary {
+  color: var(--ink-2);
+  font-size: var(--text-body);
+  text-decoration-line: underline;
 }
 
 .hero__panel {
