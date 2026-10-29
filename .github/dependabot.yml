@@ -1,9 +1,13 @@
 # Generated Dependabot config
 # Template: ci/templates/dependabot.yml
+#
+# Ecosystem changed from `gomod` to `npm`: this repo is TypeScript/Next.js and
+# has no go.mod, so every gomod run failed. Restore a gomod entry only if a Go
+# service actually lands here.
 
 version: 2
 updates:
-  - package-ecosystem: "gomod"
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
