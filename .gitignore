@@ -21,3 +21,7 @@ data/proposals/*.json
 
 # Browser-automation scratch (Playwright MCP screenshots, console logs)
 .playwright-mcp/
+
+# Spec-pipeline scratch: the run reports directory and the append-only run log.
+reports/
+runs.jsonl
