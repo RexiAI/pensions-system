@@ -389,3 +389,19 @@ invented; no orchestrator loop summary was available to this stage, and none is 
 | Commit / push / PR | **not performed** — PR Opener's job (stage 5b) |
 
 **Mutation score: 86.26% (target ≥80%, met). Suite green. Uncommitted, per stage 5a's remit.**
+
+---
+
+## Evidence: PR
+
+command: gh pr create --draft --base main --head spec/002-hero-conversion
+exit: 0
+at: 2026-10-29T22:12:43Z
+
+PR: https://github.com/RexiAI/pensions-system/pull/9
+commits: 9 on `spec/002-hero-conversion` (8 product/spec commits + this record commit) — stage 5b, PR Opener
+
+Draft PR opened against `main`. Body links `10-tasks.md`, `25-verification.md`, `15-design.md` and
+this report, and carries the verbatim assertion-change record. The archive is stage 5d's job
+(`docs/SPEC_PIPELINE.md` §Archive in the PR) — 5b no longer archives, so `specs/002-hero-conversion/`
+is expected to be present on this PR head and gone after 5d runs.
