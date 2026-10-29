@@ -1506,16 +1506,19 @@ svg {
 
 /* ---------- Revision 3: the anchored clock (§P2) ---------- */
 
-/* The clock is the bottom rail of the countdown block, behind one 1px rule. No ground of its
-   own, no border, no chip, no icon. That rule is also what keeps the years numeral above it and
-   the day count below it out of one typographic group (AC-001-119).
-   Revision 4 §C2: the rail centres its own text, so it reads as one face with the projection
-   block above it even where it is mounted on its own; `justify-self: stretch` keeps the hairline
-   spanning the panel while the fields and the lines below are centred. */
+/* The clock is the countdown block's one centred group: the years numeral, then the four-field
+   band, then the anchor line and the lines below it. No ground of its own, no border, no chip, no
+   icon, and — since spec 002 §T3 — no separator above it either: the 1px rule that used to keep
+   the years numeral out of this group has been removed, and the risk it mitigated is recorded as
+   accepted in `CountdownBlock.tsx`. What replaces it is rhythm, not a line: `margin-top:
+   var(--space-4)` keeps the group clear of the back-cast sentence above, while the numeral and
+   the fields are separated by the tight `--space-2` the rest of the face already uses. The
+   `padding-top` went with the rule — it existed only to clear it.
+   Revision 4 §C2: the rail centres its own text, so it reads as one face with the block above it
+   even where it is mounted on its own; `justify-self: stretch` keeps the group spanning the panel
+   while its contents are centred. */
 .clock {
   margin-top: var(--space-4);
-  border-top: var(--border-hair);
-  padding-top: var(--space-3);
   justify-self: stretch;
   text-align: center;
 }

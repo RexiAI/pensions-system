@@ -6,6 +6,7 @@ import { runSeriesCompute } from '../../web/ingest/run-series';
 import { SERIES } from '../../web/ingest/series';
 import type { DerivedSeries, SeriesId } from '../../web/ingest/series-types';
 import type { PyramidValue } from '../../web/series/age-structure';
+import { computeCountdown } from '../../web/series/countdown';
 import type { CountdownValue } from '../../web/series/countdown';
 
 /**
@@ -63,6 +64,19 @@ export function pyramidValue(): PyramidValue {
 
 export function countdownValue(): CountdownValue {
   return countdownSeries().value as CountdownValue;
+}
+
+/**
+ * The countdown computed at another threshold, so the anchor has to move with it: the two
+ * committed snapshots through the committed harness, with the threshold as the only variable.
+ */
+export function countdownAt(threshold: number): CountdownValue {
+  return computeCountdown({
+    projected: committedPayload('eurostat-proj-23np-ratio'),
+    observed: committedPayload('eurostat-demo-pjan'),
+    snapshotYear: 2026,
+    threshold,
+  });
 }
 
 /** An `unavailable` series: no value, a reason, the same manifest shape. */
