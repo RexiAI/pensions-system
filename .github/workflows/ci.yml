@@ -27,6 +27,10 @@ jobs:
   frontend-ci:
     uses: RexiAI/my-engineering-standards/.github/workflows/ci-nextjs.yml@21046d96796467f8238d6d613ce3a552bf3fced0 # pinned; bump deliberately, never track a branch
     with:
-      docker-registry: ghcr.io
+      # No Dockerfile in this repo, and GHCR_TOKEN is unset: the callee's docker
+      # job failed every run with "Password required". Deployment is Vercel via
+      # Git integration, so there is no image to build or push.
+      # Set to true only if a Dockerfile is added and GHCR_TOKEN is configured.
+      deploy-on-main: false
     secrets:
        GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
