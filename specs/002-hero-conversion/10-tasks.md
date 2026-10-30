@@ -27,19 +27,29 @@ drift back:
 
 ## T1 — Close the pipeline scratch in `.gitignore`
 
-The working tree currently accumulates pipeline scratch (`reports/`, `runs.jsonl`)
-that is not ignored. Add both to `.gitignore`; change nothing else.
+The working tree accumulates Stryker scratch under `reports/` that is not ignored. Add
+it to `.gitignore`; change nothing else.
+
+> **Corrected 2026-10-30.** An earlier version of this task also told the Coder to ignore
+> `runs.jsonl`. That was wrong: `runs.jsonl` is the append-only telemetry log that
+> `.standards/scripts/record-gate-run.sh` writes ("one JSON object per line … tracked in
+> git — the trend is the point, it survives merges") and that
+> `.standards/scripts/gate-stats.sh` reads from `<repo-root>/runs.jsonl`. It must remain
+> **tracked** — ignoring it would mean the pipeline's own telemetry never survives a merge.
+> The requirement was wrong and is fixed here, not silently erased.
 
 **Acceptance criteria**
 - `.gitignore` gains an entry that ignores the `reports/` directory (a trailing-slash
   directory entry, matching the file's existing convention for directories).
-- `.gitignore` gains an entry that ignores the `runs.jsonl` file (a bare filename
-  entry, matching the existing convention for files).
+- `.gitignore` gains **no** entry for `runs.jsonl`; `runs.jsonl` is not listed in
+  `.gitignore`, and once committed it stays tracked so
+  `.standards/scripts/gate-stats.sh` can read it.
 - No pre-existing entry (`node_modules/`, `.next/`, `out/`, `coverage/`, `*.tsbuildinfo`,
   `.envrc`, `.env`, `.env.local`, `data/pending/*.json`, `data/proposals/*.json`,
   `.vitest/`, `.stryker-tmp/`, `.playwright-mcp/`) is removed, reordered, or altered.
-- With the change applied, a `reports/` directory and a `runs.jsonl` file at the repo
-  root are ignored by git (`git status` shows neither as untracked).
+- With the change applied, a `reports/` directory at the repo root is ignored by git
+  (`git status` shows it as untracked-free), and `runs.jsonl` is tracked by git
+  (`git ls-files runs.jsonl` lists it once committed).
 
 ---
 

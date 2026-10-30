@@ -22,6 +22,10 @@ data/proposals/*.json
 # Browser-automation scratch (Playwright MCP screenshots, console logs)
 .playwright-mcp/
 
-# Spec-pipeline scratch: the run reports directory and the append-only run log.
+# Spec-pipeline scratch: the Stryker report directory only.
+#
+# `runs.jsonl` is deliberately NOT ignored here. It is the append-only telemetry log —
+# `.standards/scripts/record-gate-run.sh` appends one JSON object per line to it, and
+# `.standards/scripts/gate-stats.sh` reads it from the repo root. It is tracked in git on
+# purpose: the trend is the point, and it has to survive merges.
 reports/
-runs.jsonl

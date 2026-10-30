@@ -7,12 +7,17 @@ When `.gitignore` is read
 Then it contains a directory entry `reports/` (with the trailing slash)
 And a `reports/` directory is not reported as untracked by `git status`
 
-## AC-002-02 — The runs log is ignored
+## AC-002-02 — The runs log is tracked, not ignored
 Given the repository's `.gitignore`
-And a `runs.jsonl` file can exist at the repository root
+And a `runs.jsonl` file at the repository root
 When `.gitignore` is read
-Then it contains an entry `runs.jsonl`
-And a `runs.jsonl` file is not reported as untracked by `git status`
+Then it contains no entry for `runs.jsonl`
+And a `runs.jsonl` file, once committed, is tracked by git (`git ls-files runs.jsonl`
+lists it) so `.standards/scripts/gate-stats.sh` can read it
+
+> Corrected 2026-10-30. This scenario previously asserted `runs.jsonl` is ignored. It now
+> asserts the opposite: `runs.jsonl` is the append-only telemetry log, tracked in git, not
+> scratch. Only `reports/` is ignored.
 
 ## AC-002-03 — Every pre-existing entry is preserved
 Given the `.gitignore` before this change

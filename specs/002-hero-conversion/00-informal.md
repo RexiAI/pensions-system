@@ -105,7 +105,12 @@ Dentro:
   `web/styles/globals.css`: años y reloj como un grupo centrado único.
 - `web/content/data/ES/{es,en,fr,de,it}.json`: claves `hero.*` en registro de
   conversión. Las claves `countdown.*` **no** cambian de registro.
-- `.gitignore`: `reports/` y `runs.jsonl`.
+- `.gitignore`: `reports/` únicamente. *(Corregido 2026-10-30: esta línea pedía
+  ignorar también `runs.jsonl`. Era un error de redacción de este brief —
+  `record-gate-run.sh` documenta que ese fichero es la telemetría append-only
+  **trackeada en git** y que `gate-stats.sh` la lee de la raíz del repo.
+  Ignorarla habría dejado la telemetría del pipeline sin sobrevivir a ningún
+  merge.)*
 
 Fuera:
 
