@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   COUNTDOWN_THRESHOLD,
@@ -93,19 +94,42 @@ describe('AC-001-99: the countdown is the difference of two printed integers', (
 
     // The rule is scoped as Revision 3 rewrote it: the years quantity carries no sub-annual
     // unit, and the clock is a separate quantity with its own anchor, definition and scenarios
-    // (AC-001-108…AC-001-119). So the assertion is made on the years numeral and on the whole
-    // projection group above the clock rail — not on the clock, whose field labels are the
-    // sub-day units the same block now legitimately renders.
-    const projectionGroup = html.slice(0, html.indexOf('class="clock"'));
-    const numeral = projectionGroup.slice(
-      projectionGroup.indexOf('class="countdown__value"'),
-      projectionGroup.indexOf('</p>', projectionGroup.indexOf('class="countdown__value"')),
-    );
+    // (AC-001-108…AC-001-119). Spec 002 §T3 moved the numeral into the clock's own centred
+    // group, so the assertion is made on the numeral wherever it now renders — no longer on a
+    // slice that ends at `class="clock"` — and, as before, on the whole block above the clock.
+    const numeralAt = html.indexOf('class="countdown__value"');
+    expect(numeralAt).toBeGreaterThan(-1);
+    const numeral = html.slice(numeralAt, html.indexOf('</p>', numeralAt));
     expect(numeral).toContain('16');
+    const aboveClock = html.slice(0, html.indexOf('class="clock"'));
     for (const unit of ['día', 'dias', 'días', 'mes', 'meses', 'hora', 'horas', 'minuto', 'minutos', 'segundo']) {
       expect(numeral.toLowerCase(), unit).not.toContain(unit);
-      expect(projectionGroup.toLowerCase(), unit).not.toContain(unit);
+      expect(aboveClock.toLowerCase(), unit).not.toContain(unit);
     }
+  });
+
+  it('AC-002-17: AC-001-99 keeps its invariant while the years numeral relocates', () => {
+    // The authorized rewrite (`docs/TESTING.md §Tests That Encode a Defect`): the slice the old
+    // assertion used located the numeral in the projection block above the rail, which is the
+    // structure spec 002 reverts. The invariant — no sub-annual unit on the years quantity — is
+    // re-pointed, not relaxed.
+    const source = readFileSync('tests/acceptance/countdown.test.ts', 'utf8');
+    const body = source.slice(
+      source.indexOf("it('AC-001-99: both integers are printed beside the number"),
+      source.indexOf("\n  });", source.indexOf("it('AC-001-99: both integers are printed beside the number")),
+    );
+    expect(body).not.toContain("projectionGroup.indexOf('class=\"countdown__value\"')");
+    expect(body).toContain("html.indexOf('class=\"countdown__value\"')");
+
+    // And it still holds on the rendered block: neither the numeral nor the prose above the clock
+    // has acquired an annual-or-shorter unit.
+    const html = renderCountdown(value);
+    const numeralAt = html.indexOf('class="countdown__value"');
+    expect(html.slice(numeralAt, html.indexOf('</p>', numeralAt))).toContain('16');
+    for (const unit of ['día', 'dias', 'días', 'mes', 'meses', 'hora', 'horas', 'minuto', 'minutos', 'segundo']) {
+      expect(html.slice(numeralAt, html.indexOf('</p>', numeralAt)).toLowerCase(), unit).not.toContain(unit);
+    }
+    expect(body).toContain('AC-001-99');
   });
 
   it('AC-001-99: no icon, no ticking element and no live region', () => {

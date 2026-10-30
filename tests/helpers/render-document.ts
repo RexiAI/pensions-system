@@ -22,3 +22,17 @@ export function documentLang(html: string): string | null {
   const match = /<html[^>]*\slang="([^"]*)"/.exec(html);
   return match?.[1] ?? null;
 }
+
+/**
+ * Server markup with React's text escapes undone: `l'année` reaches the HTML as `l&#x27;année`,
+ * and a copy assertion is about the sentence the reader sees, not about the escaping.
+ */
+export function decodeText(html: string): string {
+  return html
+    .replaceAll('&#x27;', "'")
+    .replaceAll('&#39;', "'")
+    .replaceAll('&quot;', '"')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&amp;', '&');
+}

@@ -34,30 +34,120 @@ function valueText(content: CountryLocaleContent, subject: FigureSubject, value:
   return formatValue(value, subject.unit, content.locale, content.t('table.notDefined'));
 }
 
-/** Where the number comes from, what it covers, and which definition produced it (T1). */
-function SubjectFacts({ content, subject }: { content: CountryLocaleContent; subject: FigureSubject }) {
-  const keys = subjectKeys(subject);
+/** The single-country scope mark: one published country renders as plain text, not a list. */
+function defaultScope(content: CountryLocaleContent): readonly ScopeEntry[] {
+  return [{ geo: content.country.code, name: content.country.name, href: '#' }];
+}
+
+/** One hero action. The hierarchy between the two is CSS's; which leads is the caller's. */
+interface HeroAction {
+  /** The in-page fragment the action goes to. */
+  href: string;
+  /** The action's visible text, already resolved from the content model. */
+  label: string;
+}
+
+/**
+ * The lead block both tiers share: the statement, the scope mark, the sub and the two actions.
+ *
+ * Extracted because the tiers differ only in *which* action leads — a difference the props carry —
+ * while the `<h1>`, its `id` and the `aria-labelledby` that points at it must not drift apart
+ * between them. One reason to change, one place to change it.
+ */
+function HeroLead({
+  content,
+  countries,
+  primary,
+  secondary,
+}: {
+  content: CountryLocaleContent;
+  countries?: readonly ScopeEntry[];
+  primary: HeroAction;
+  secondary: HeroAction;
+}) {
+  return (
+    <div className="hero__lead">
+      <h1 className="hero__title" id="hero-title">
+        {content.t('hero.statement')}
+      </h1>
+      <ScopeMark content={content} countries={countries ?? defaultScope(content)} />
+      <p className="hero__sub">{content.t('hero.sub')}</p>
+      <div className="hero__actions">
+        <a className="hero__cta" href={primary.href}>
+          {primary.label}
+        </a>
+        <a className="hero__cta-secondary" href={secondary.href}>
+          {secondary.label}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+/** The four facts beside the number, in the order the panel reads them (T1). */
+function subjectFactRows(
+  content: CountryLocaleContent,
+  subject: FigureSubject,
+): { label: string; value: string }[] {
   const publishers = [...new Set(subject.sourceUrl.map(publisherForUrl))].join(', ');
   const datasets = [...new Set(subject.sourceUrl.map(datasetForUrl))].join(' · ');
+  return [
+    { label: content.t('hero.definitionLabel'), value: content.t(subjectKeys(subject).definition) },
+    { label: content.t('hero.periodLabel'), value: subject.period },
+    { label: content.t('provenance.source'), value: publishers },
+    { label: content.t('provenance.dataset'), value: datasets },
+  ];
+}
+
+/** Where the number comes from, what it covers, and which definition produced it (T1). */
+function SubjectFacts({ content, subject }: { content: CountryLocaleContent; subject: FigureSubject }) {
   return (
     <dl className="hero__subject">
-      <div className="hero__subject-field">
-        <dt>{content.t('hero.definitionLabel')}</dt>
-        <dd>{content.t(keys.definition)}</dd>
-      </div>
-      <div className="hero__subject-field">
-        <dt>{content.t('hero.periodLabel')}</dt>
-        <dd>{subject.period}</dd>
-      </div>
-      <div className="hero__subject-field">
-        <dt>{content.t('provenance.source')}</dt>
-        <dd>{publishers}</dd>
-      </div>
-      <div className="hero__subject-field">
-        <dt>{content.t('provenance.dataset')}</dt>
-        <dd>{datasets}</dd>
-      </div>
+      {subjectFactRows(content, subject).map((fact) => (
+        <div className="hero__subject-field" key={fact.label}>
+          <dt>{fact.label}</dt>
+          <dd>{fact.value}</dd>
+        </div>
+      ))}
     </dl>
+  );
+}
+
+/**
+ * The reading beside the panel: the figure's own label and headline value, the two comparisons
+ * the figure publishes, the facts behind it and the snapshot stamp.
+ */
+function ReadingsPanel({
+  content,
+  subject,
+  demoted,
+}: {
+  content: CountryLocaleContent;
+  subject: FigureSubject;
+  /** `true` when the countdown holds the panel's headline type, so the value steps down. */
+  demoted: boolean;
+}) {
+  const keys = subjectKeys(subject);
+  return (
+    <div className="hero__panel-readings">
+      <p className="hero__panel-label">{content.t(keys.title)}</p>
+      <p className={demoted ? 'hero__value hero__value--demoted' : 'hero__value'}>
+        {valueText(content, subject, subject.headline)}
+      </p>
+      <dl className="hero__comparisons">
+        {subject.comparisons.map((comparison) => (
+          <div className="hero__comparison" key={comparison.label}>
+            <dt>{comparison.label}</dt>
+            <dd>{valueText(content, subject, comparison.value)}</dd>
+          </div>
+        ))}
+      </dl>
+      <SubjectFacts content={content} subject={subject} />
+      <p className="site-header__stamp">
+        {content.t('hero.snapshotLabel')}{' '}
+        <time dateTime={subject.snapshotIso}>{subject.snapshotIso.slice(0, 10)}</time>
+      </p>
+    </div>
   );
 }
 
@@ -80,23 +170,14 @@ function NumericHero({
   countries?: readonly ScopeEntry[];
   nowMs: number;
 }) {
-  const keys = subjectKeys(subject);
-  const demoted = countdown?.state === 'computed';
   return (
     <section className="hero hero--numeric" aria-labelledby="hero-title">
-      <div className="hero__lead">
-        <h1 className="hero__title" id="hero-title">
-          {content.t('hero.statement')}
-        </h1>
-        <ScopeMark content={content} countries={countries ?? [{ geo: content.country.code, name: content.country.name, href: '#' }]} />
-        <p className="hero__sub">{content.t('hero.sub')}</p>
-        <div className="hero__actions">
-          <a className="hero__cta" href="#figuras">
-            {content.t('hero.ctaPrimary')}
-          </a>
-          <a href="#metodo">{content.t('hero.ctaSecondary')}</a>
-        </div>
-      </div>
+      <HeroLead
+        content={content}
+        countries={countries}
+        primary={{ href: '#figuras', label: content.t('hero.ctaPrimary') }}
+        secondary={{ href: '#metodo', label: content.t('hero.ctaSecondary') }}
+      />
       <div className="hero__panel">
         {countdown === undefined ? null : (
           /*
@@ -112,24 +193,7 @@ function NumericHero({
             <hr className="hero__panel-rule" />
           </div>
         )}
-        <div className="hero__panel-readings">
-          <p className="hero__panel-label">{content.t(keys.title)}</p>
-          <p className={demoted ? 'hero__value hero__value--demoted' : 'hero__value'}>
-            {valueText(content, subject, subject.headline)}
-          </p>
-          <dl className="hero__comparisons">
-            {subject.comparisons.map((comparison) => (
-              <div className="hero__comparison" key={comparison.label}>
-                <dt>{comparison.label}</dt>
-                <dd>{valueText(content, subject, comparison.value)}</dd>
-              </div>
-            ))}
-          </dl>
-          <SubjectFacts content={content} subject={subject} />
-          <p className="site-header__stamp">
-            {content.t('hero.snapshotLabel')} <time dateTime={subject.snapshotIso}>{subject.snapshotIso.slice(0, 10)}</time>
-          </p>
-        </div>
+        <ReadingsPanel content={content} subject={subject} demoted={countdown?.state === 'computed'} />
       </div>
     </section>
   );
@@ -148,39 +212,51 @@ function StatusRow({ content, figure }: { content: CountryLocaleContent; figure:
   );
 }
 
-/** Tier 3: no eligible figure, so the largest type on the page is the proposition. */
-function PropositionHero({ content, figures, countdown, countries, nowMs }: HeroProps & { nowMs: number }) {
+/**
+ * The proposition tier's subject: the countdown slot, one row per figure, and how many of them
+ * computed. The wrapper has no box at the desktop breakpoint and is lifted above the headline on
+ * a phone, for the same reason as the numeric tier's countdown slot.
+ */
+function StatusPanel({
+  content,
+  figures,
+  countdown,
+  nowMs,
+}: {
+  content: CountryLocaleContent;
+  figures: readonly DerivedFigure[];
+  countdown?: CountdownValue;
+  nowMs: number;
+}) {
   const computed = figures.filter((figure) => viewStateFor({ figure, content }) === 'computed').length;
   return (
+    <div className="hero__status">
+      <div className="hero__panel-countdown">
+        {countdown === undefined ? null : <CountdownBlock content={content} countdown={countdown} nowMs={nowMs} />}
+      </div>
+      <ul className="hero__status-list" aria-label={content.t('figure.statusLabel')}>
+        {figures.map((figure) => (
+          <StatusRow content={content} figure={figure} key={figure.figureId} />
+        ))}
+      </ul>
+      <p className="hero__status-count">
+        {content.t('figure.statusSummary', { total: figures.length, computed })}
+      </p>
+    </div>
+  );
+}
+
+/** Tier 3: no eligible figure, so the largest type on the page is the proposition. */
+function PropositionHero({ content, figures, countdown, countries, nowMs }: HeroProps & { nowMs: number }) {
+  return (
     <section className="hero hero--proposition" aria-labelledby="hero-title">
-      <div className="hero__lead">
-        <h1 className="hero__title" id="hero-title">
-          {content.t('hero.statement')}
-        </h1>
-        <ScopeMark content={content} countries={countries ?? [{ geo: content.country.code, name: content.country.name, href: '#' }]} />
-        <p className="hero__sub">{content.t('hero.sub')}</p>
-        <div className="hero__actions">
-          <a className="hero__cta" href="#metodo">
-            {content.t('hero.ctaMethod')}
-          </a>
-          <a href="#figuras">{content.t('hero.ctaFigures')}</a>
-        </div>
-      </div>
-      <div className="hero__status">
-        {/* One wrapper, no box at the desktop breakpoint: the mobile query lifts it above the
-            headline for the same reason as the numeric tier's countdown block. */}
-        <div className="hero__panel-countdown">
-          {countdown === undefined ? null : <CountdownBlock content={content} countdown={countdown} nowMs={nowMs} />}
-        </div>
-        <ul className="hero__status-list" aria-label={content.t('figure.statusLabel')}>
-          {figures.map((figure) => (
-            <StatusRow content={content} figure={figure} key={figure.figureId} />
-          ))}
-        </ul>
-        <p className="hero__status-count">
-          {content.t('figure.statusSummary', { total: figures.length, computed })}
-        </p>
-      </div>
+      <HeroLead
+        content={content}
+        countries={countries}
+        primary={{ href: '#metodo', label: content.t('hero.ctaMethod') }}
+        secondary={{ href: '#figuras', label: content.t('hero.ctaFigures') }}
+      />
+      <StatusPanel content={content} figures={figures} countdown={countdown} nowMs={nowMs} />
     </section>
   );
 }

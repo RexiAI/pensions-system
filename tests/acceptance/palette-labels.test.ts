@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { chroma, contrast, hue, lab } from '../helpers/colour';
 import { listSourceFiles, readSource, stripComments } from '../helpers/source-scan';
 
 /**
@@ -41,23 +42,6 @@ function channels(value: string): number[] {
   return [1, 3, 5].map((offset) => Number.parseInt(value.slice(offset, offset + 2), 16));
 }
 
-function linear(component: number): number {
-  const c = component / 255;
-  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-}
-
-function luminance(value: string): number {
-  const [r, g, b] = channels(value).map(linear);
-  return 0.2126 * (r as number) + 0.7152 * (g as number) + 0.0722 * (b as number);
-}
-
-/** WCAG 2.1 relative-luminance contrast ratio, 1:1 to 21:1. */
-function contrast(foreground: string, ground: string): number {
-  const [a, b] = [luminance(foreground), luminance(ground)];
-  const [hi, lo] = a > b ? [a, b] : [b, a];
-  return (hi + 0.05) / (lo + 0.05);
-}
-
 /** `color-mix(in srgb, a weight%, b)`, for opaque colours: a weighted sRGB average. */
 function mix(a: string, b: string, weight: number): string {
   const front = channels(a);
@@ -66,25 +50,6 @@ function mix(a: string, b: string, weight: number): string {
     .map((value, index) => Math.round(value * weight + (back[index] as number) * (1 - weight)))
     .map((value) => value.toString(16).padStart(2, '0'))
     .join('')}`;
-}
-
-function lab(value: string): [number, number, number] {
-  const [r, g, b] = channels(value).map(linear) as [number, number, number];
-  const x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047;
-  const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  const z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883;
-  const f = (t: number): number => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
-  return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
-}
-
-function chroma(value: string): number {
-  const [, a, b] = lab(value);
-  return Math.hypot(a, b);
-}
-
-function hue(value: string): number {
-  const [, a, b] = lab(value);
-  return ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360;
 }
 
 /** The public palette's tokens: everything a reader's page can paint. */
@@ -290,7 +255,7 @@ describe('AC-001-117: the palette meets its contrast minimums', () => {
 
   it('AC-001-117: the ground steps widen to the Revision 3 lightness spread', () => {
     const steps = (theme: Theme): number[] => {
-      const [one, two, three] = ['surface-1', 'surface-2', 'surface-3'].map((name) => lab(hex(theme, name))[0]);
+      const [one, two, three] = ['surface-1', 'surface-2', 'surface-3'].map((name) => lab(hex(theme, name)).lightness);
       return [Math.abs((one as number) - (two as number)), Math.abs((two as number) - (three as number))];
     };
     const [firstLight, secondLight] = steps('light');
@@ -326,9 +291,9 @@ describe('AC-001-117: the palette meets its contrast minimums', () => {
       );
     }
     // Light: laid on warm paper, a shade deeper than the page (the sheet sits below the ground).
-    expect(lab(hex('light', 'surface-hero'))[0]).toBeLessThan(lab(hex('light', 'surface-1'))[0]);
+    expect(lab(hex('light', 'surface-hero')).lightness).toBeLessThan(lab(hex('light', 'surface-1')).lightness);
     // Dark: a dark theme's sheet reads as laid *over*, so it sits above the ground.
-    expect(lab(hex('dark', 'surface-hero'))[0]).toBeGreaterThan(lab(hex('dark', 'surface-1'))[0]);
+    expect(lab(hex('dark', 'surface-hero')).lightness).toBeGreaterThan(lab(hex('dark', 'surface-1')).lightness);
   });
 
   it('AC-001-117: no component or series module carries a literal colour', () => {

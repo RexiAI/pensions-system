@@ -42,12 +42,37 @@
      size, 65% of the desktop panel (428.67px) and 95% of the phone one (295px). A physical measure
      rather than a `ch` one on purpose: the face sets the same sentences at `--text-small` and at
      `--text-micro`, and one `ch` value would give those two sizes two different line lengths.
-     280px is the narrowest measure at which the whole clock rail stays inside the first viewport,
-     at the same 54.9px clearance, in all five locales at 390x844 (AC-001-107): at 276px German
-     drops to 16.0px of clearance, at 272px to −8.3px, and at 288px the measure buys nothing. The
-     phone is the binding constraint — the panel is 295px there, so the block's margin is 7.5px
-     rather than the 74px it gets on a desktop. Measured in Chromium against the built app,
-     2026-10-28 — see the table in `tests/acceptance/first-viewport.test.ts`. */
+
+     **Re-measured for spec 002 §T3.** The merge moved the years numeral into the clock's own
+     container, so the clock box now starts one numeral line box higher and lost the 1px separator
+     plus the `--space-3` padding that cleared it. Measured in Chromium 155 against the built app
+     (`npm run build`, `next start`), `getBoundingClientRect()` of `.clock`, at 390x844, one
+     decimal of a CSS pixel, 2026-10-29 — whole-box clearance from the 844px fold, per locale:
+
+       locale   clock (y)      fields row (y)   clearance
+       es       424.91-768.08  471.30-602.30    75.92
+       en       424.91-768.08  471.30-602.30    75.92
+       fr       444.34-787.52  490.73-621.73    56.48
+       de       424.91-768.08  471.30-602.30    75.92
+       it       424.91-768.08  471.30-602.30    75.92
+
+     Every locale clears the 50px margin this file's fold guarantee keeps, so the measure stays at
+     280px: it is not the binding constraint. The binding case is French, and what costs it 19.43px
+     — one `--text-micro` line at `--leading-body` — is a line in the projection block *above* the
+     clock, not a line of the clock's own prose. Widening to 288px would fold that line back and
+     equalise all five locales at 75.92px; that is not done here because 288px is outside this
+     task's authorization (the measure is pinned at 280px by AC-001-111's centring contract), and
+     the clearance requirement is met without it. At 360x640 the box runs 424.91-792.38 and at
+     1366x768 480.91-925.59: both below the fold, desktop and the 640px phone out of scope,
+     recorded rather than asserted — see the table in `tests/acceptance/first-viewport.test.ts`.
+
+     Revision 4's note that "288px buys nothing" was measured against the pre-merge layout, where
+     the measure did not change any locale's clock top. After the merge it does change French's,
+     which is why the figure above supersedes it rather than repeating it.
+
+     The phone is the binding viewport — the panel is 295px there, so the block's margin is 7.5px
+     a side rather than the 74px it gets on a desktop. Measured in Chromium against the built app,
+     2026-10-29 — see the table in `tests/acceptance/first-viewport.test.ts`. */
   --measure-face: 17.5rem;
 
   --space-1: 4px;
@@ -88,7 +113,7 @@
   --ink-3: #645341;
   --rule-1: #d6c8b7;
   --rule-2: #b9a892;
-  --accent: #425425;
+  --accent: #3b5512;   /* spec 002 §T2: same olive hue (H 122.1, drift −0.2°), chroma 29.6 → 40.0 */
   --on-accent: #fdf2e1;
   --data-deficit: #96472a;   /* byte-identical to Revision 2: its warmth is load-bearing */
 
@@ -142,7 +167,7 @@
   --ink-3: #a09180;
   --rule-1: #312a22;
   --rule-2: #473e34;
-  --accent: #9cc17f;
+  --accent: #91c46d;   /* spec 002 §T2: same olive hue (H 130.0, drift +0.4°), chroma 38.0 → 50.0 */
   --on-accent: #17110b;
   --data-deficit: #d08a63;   /* unchanged: byte-identical to Revision 2 */
   --chart-series-2: #aba192;

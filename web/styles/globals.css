@@ -368,11 +368,30 @@ svg {
   margin-top: var(--space-5);
 }
 
+/* Spec 002 §T7: one dominant primary action, one clearly subordinate secondary. Before this the
+   two hero actions were both `a { color: var(--accent) }`, so raising the accent's chroma made the
+   secondary louder as well as the primary — a hierarchy that inverted the more the accent worked.
+   The accent now does exactly one job above the fold: it is the primary's material.
+   Every value here is a token: no literal colour, size, spacing or radius (AC-001-117). */
 .hero__cta {
   background: var(--accent);
   color: var(--on-accent);
+  font-size: var(--text-body);
   padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius);
   text-decoration: none;
+}
+
+/* The subordinate step: a text link, not a second button. It opts out of the global accent ink,
+   keeps a visible underline so the affordance never rests on colour alone, and sets at the
+   primary's own size — a step larger would invert the hierarchy this rule exists to fix.
+   `text-decoration-line` rather than the `text-decoration` shorthand on purpose: the shorthand
+   resets `text-decoration-thickness` to `auto`, and the 1px hairline the reader sees is the shared
+   `a` rule's own declaration. No literal is declared here. */
+.hero__cta-secondary {
+  color: var(--ink-2);
+  font-size: var(--text-body);
+  text-decoration-line: underline;
 }
 
 .hero__panel {
@@ -1506,16 +1525,19 @@ svg {
 
 /* ---------- Revision 3: the anchored clock (§P2) ---------- */
 
-/* The clock is the bottom rail of the countdown block, behind one 1px rule. No ground of its
-   own, no border, no chip, no icon. That rule is also what keeps the years numeral above it and
-   the day count below it out of one typographic group (AC-001-119).
-   Revision 4 §C2: the rail centres its own text, so it reads as one face with the projection
-   block above it even where it is mounted on its own; `justify-self: stretch` keeps the hairline
-   spanning the panel while the fields and the lines below are centred. */
+/* The clock is the countdown block's one centred group: the years numeral, then the four-field
+   band, then the anchor line and the lines below it. No ground of its own, no border, no chip, no
+   icon, and — since spec 002 §T3 — no separator above it either: the 1px rule that used to keep
+   the years numeral out of this group has been removed, and the risk it mitigated is recorded as
+   accepted in `CountdownBlock.tsx`. What replaces it is rhythm, not a line: `margin-top:
+   var(--space-4)` keeps the group clear of the back-cast sentence above, while the numeral and
+   the fields are separated by the tight `--space-2` the rest of the face already uses. The
+   `padding-top` went with the rule — it existed only to clear it.
+   Revision 4 §C2: the rail centres its own text, so it reads as one face with the block above it
+   even where it is mounted on its own; `justify-self: stretch` keeps the group spanning the panel
+   while its contents are centred. */
 .clock {
   margin-top: var(--space-4);
-  border-top: var(--border-hair);
-  padding-top: var(--space-3);
   justify-self: stretch;
   text-align: center;
 }
