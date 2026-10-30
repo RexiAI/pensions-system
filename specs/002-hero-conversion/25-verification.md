@@ -387,3 +387,47 @@ The DRY-gate SIGPIPE (exit 141), the `.next/`/`.standards/` whole-tree noise, an
 to the Architect as review hints — none is a code defect and none is a blocking FAIL.
 
 **VERDICT: PASS**
+
+---
+
+## Evidence: phase-2 CI round 1
+
+command: gh pr checks 9 --json name,state,bucket,workflow,link
+exit: 0
+at: 2026-10-29T22:14:16Z
+
+Head SHA checks ran against: 7160df18020dd8e7ccf580b60e754a44075f0ec6
+(`spec/002-hero-conversion`, PR #9, draft; SPEC_PHASE2_RETRIES=0)
+
+Per-check outcome (bucket is the PASS/FAIL parse rule):
+
+| check | state | bucket | verdict | workflow |
+|---|---|---|---|---|
+| frontend-ci / Lint & Format | SUCCESS | pass | PASS | CI |
+| frontend-ci / Unit Tests | SUCCESS | pass | PASS | CI |
+| frontend-ci / Build | SUCCESS | pass | PASS | CI |
+| frontend-ci / Docker Build & Push | SKIPPED | skipping | PASS (skipped, not a failure) | CI |
+| Vercel Preview Comments | SUCCESS | pass | PASS | — |
+| Vercel | SUCCESS | pass | PASS | — |
+
+No check is `fail`. No failing check IDs captured; no job logs read.
+
+Notes:
+
+- `frontend-ci / Build` was `QUEUED`/`IN_PROGRESS` on first query and reached
+  terminal `SUCCESS` (`pass`) after a bounded poll (2 re-queries, ~15s apart).
+- `frontend-ci / Docker Build & Push` is `SKIPPED` (bucket `skipping`). A skipped
+  check is neither a pass nor a fail and carries no finding here; it is a draft-PR /
+  push-condition skip, not a code failure.
+- The Vercel preview and its comments check are both `pass` — the deploy lane
+  (phase 3) is green at the PR-head level; no phase-2 code failure and no
+  phase-3 lane failure to route.
+- Known non-failing items confirmed absent from this run's failure set: the DRY
+  sub-pipeline SIGPIPE (exit 141, warn-only) and the `CountdownClock.tsx` 60.53%
+  mutation score are not surfaced by CI, and the `first-viewport.test.ts:161`
+  two-statements-on-one-line cosmetic defect does not fail ESLint/tsc (consistent
+  with prior phase-1 finding — recorded, not a CI failure).
+
+Routing: none required — zero failing checks.
+
+**PHASE-2 ROUND 1: PASS**
