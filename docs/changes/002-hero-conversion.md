@@ -962,6 +962,48 @@ Routing: none required — zero failing checks.
 
 **PHASE-2 ROUND 1: PASS**
 
+## Evidence: phase-2 CI round 2
+
+command: gh pr checks 9 --json name,state,bucket,workflow,link
+exit: 0
+at: 2026-10-30T08:37:27Z
+
+Head SHA checks ran against: c1e8ac6830ffa250185ef2cfcc9bce5a1f221c34
+(`spec/002-hero-conversion`, PR #9, draft; SPEC_PHASE2_RETRIES=1)
+
+Per-check outcome (bucket is the PASS/FAIL parse rule):
+
+| check | state | bucket | verdict | workflow |
+|---|---|---|---|---|
+| frontend-ci / Lint & Format | SUCCESS | pass | PASS | CI |
+| frontend-ci / Unit Tests | SUCCESS | pass | PASS | CI |
+| frontend-ci / Build | SUCCESS | pass | PASS | CI |
+| frontend-ci / Docker Build & Push | SKIPPED | skipping | PASS (skipped, not a failure) | CI |
+| Vercel Preview Comments | SUCCESS | pass | PASS | — |
+| Vercel | SUCCESS | pass | PASS | — |
+
+No check is `fail`. No failing check IDs captured; no job logs read.
+
+Head-SHA confirmation (not the stale round-1 head `7160df1`): the CI run
+41027354819 reports `headSha: c1e8ac6830ffa250185ef2cfcc9bce5a1f221c34`
+(`gh run view` and `gh api repos/RexiAI/pensions-system/commits/<sha>/check-runs`
+both return that SHA; all five check-runs carry the same `head_sha`). PR #9
+`headRefOid` is the same SHA. No check ran against the old head.
+
+Archiving check (watched per the round-2 brief): `.standards/scripts/check-specs-archived.sh`
+exits 0 ("All finished specs archived."). `specs/002-hero-conversion/` is gone
+(0 files tracked under `specs/`), `docs/changes/002-hero-conversion.md` is
+tracked. T1 correction in effect: `runs.jsonl` is tracked (`git ls-files
+runs.jsonl`), `.gitignore` carries `reports/` (line 31) and no `runs.jsonl`
+entry. No CI job failed because the spec folder is absent — the child `ci.yml`
+calls the pinned `ci-nextjs.yml` reusable workflow (Lint & Format / Unit Tests /
+Build / Docker Build & Push), which does not read `specs/` at all.
+
+Routing: none required — zero failing checks.
+
+**PHASE-2 ROUND 2: PASS**
+
+
 ## Quality gates
 
 # Report — 002-hero-conversion
