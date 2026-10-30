@@ -158,7 +158,8 @@ const MEASURED_CLOCK_BY_LOCALE = {
 /** The clearance the guarantee keeps from the fold, in CSS pixels: the margin AC-001-107 asserts. */
 const CLEARANCE = 50;
 
-const MOBILE_START = CSS.indexOf('@media (max-width: 900px)');const MOBILE = CSS.slice(MOBILE_START, CSS.indexOf('\n}', MOBILE_START));
+const MOBILE_START = CSS.indexOf('@media (max-width: 900px)');
+const MOBILE = CSS.slice(MOBILE_START, CSS.indexOf('\n}', MOBILE_START));
 const WIDE = CSS.slice(0, MOBILE_START);
 
 describe('AC-001-107: the clock is inside the first viewport on a phone', () => {
