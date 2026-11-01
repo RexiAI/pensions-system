@@ -15,6 +15,13 @@ export interface ProvenanceStripProps {
   content: CountryLocaleContent;
   /** Where the derived file lives: `data/derived` for a figure, `data/derived/series` for a series. */
   derivedPath?: string;
+  /**
+   * `true` renders the whole strip inside the `Cómo se calcula` disclosure instead of beside it
+   * (D1, AC-003-51): the manifest, the digest and the reproduce path stay published and
+   * reproducible, but a figure whose provenance is not the point above the fold does not spend
+   * three rows of the first viewport on them.
+   */
+  collapsed?: boolean;
 }
 
 function unique(values: readonly string[]): string[] {
@@ -58,7 +65,31 @@ function derivedFile(derivedPath: string, figureId: string): string {
   return `${derivedPath}/${figureId}.json`;
 }
 
-function Disclosure({
+/** The four public fields: publisher, dataset, observation date and scope. Never a raw URL. */
+function ProvenanceFields({ manifest, content }: { manifest: Manifest; content: CountryLocaleContent }) {
+  const { t, locale } = content;
+  return (
+    <dl className="provenance__fields">
+      <Field label={t('provenance.source')} values={unique(manifest.sourceUrl.map(publisherForUrl))} />
+      <Field label={t('provenance.dataset')} values={unique(manifest.sourceUrl.map(datasetForUrl))} />
+      <Field label={t('provenance.observedAt')} values={[formatDate(manifest.fetchedAt, locale)]} />
+      <Field label={t('provenance.scope')} values={[content.country.name]} />
+    </dl>
+  );
+}
+
+/** The link out to the publisher, beside the fields. */
+function OriginalLink({ manifest, content }: { manifest: Manifest; content: CountryLocaleContent }) {
+  return (
+    <a className="provenance__original" href={manifest.sourceUrl[0]} rel="noopener noreferrer">
+      {content.t('provenance.original')}
+      <Icon name="external" size={16} />
+    </a>
+  );
+}
+
+/** The complete manifest behind a computed figure, as the disclosure's own detail list. */
+function ManifestDetail({
   manifest,
   figureId,
   freshnessWindowDays,
@@ -67,8 +98,7 @@ function Disclosure({
 }: ProvenanceStripProps) {
   const { t, locale } = content;
   return (
-    <details className="provenance__methods" data-operator="true">
-      <summary>{t('figure.methodLink')}</summary>
+    <>
       <dl className="provenance__detail">
         <dt>{t('provenance.disclosure.formula')}</dt>
         <dd>
@@ -104,6 +134,38 @@ function Disclosure({
       <p className="provenance__observed">
         <time dateTime={manifest.fetchedAt}>{formatDate(manifest.fetchedAt, locale)}</time>
       </p>
+    </>
+  );
+}
+
+/** The affordances beside the four fields: the original source, the extra sources, the disclosure. */
+function Actions(props: ProvenanceStripProps & { withDisclosure?: boolean }) {
+  return (
+    <div className="provenance__actions">
+      <OriginalLink manifest={props.manifest} content={props.content} />
+      <SourceList manifest={props.manifest} content={props.content} />
+      {props.withDisclosure === false ? null : <Disclosure {...props} />}
+    </div>
+  );
+}
+
+/**
+ * The `Cómo se calcula` disclosure, in either of its two shapes: the manifest alone (the form
+ * every computed figure renders beside its fields), or — `collapsed` — the whole strip inside it,
+ * fields and affordances included (D1, AC-003-51). One summary, one manifest; the collapsed form
+ * is not a second provenance.
+ */
+function Disclosure(props: ProvenanceStripProps) {
+  return (
+    <details className="provenance__methods" data-operator="true">
+      <summary>{props.content.t('figure.methodLink')}</summary>
+      {props.collapsed === true ? (
+        <>
+          <ProvenanceFields manifest={props.manifest} content={props.content} />
+          <Actions {...props} withDisclosure={false} />
+        </>
+      ) : null}
+      <ManifestDetail {...props} />
     </details>
   );
 }
@@ -116,39 +178,12 @@ function Disclosure({
  * URLs and the reproduce path live in the `Cómo se calcula` disclosure, which is marked
  * `data-operator` so the public-vocabulary gate does not treat them as public prose.
  */
-export function ProvenanceStrip({
-  manifest,
-  figureId,
-  freshnessWindowDays,
-  content,
-  derivedPath,
-}: ProvenanceStripProps) {
-  const { t, locale } = content;
+export function ProvenanceStrip(props: ProvenanceStripProps) {
+  if (props.collapsed === true) return <Disclosure {...props} />;
   return (
     <div className="provenance">
-      <dl className="provenance__fields">
-        <Field label={t('provenance.source')} values={unique(manifest.sourceUrl.map(publisherForUrl))} />
-        <Field label={t('provenance.dataset')} values={unique(manifest.sourceUrl.map(datasetForUrl))} />
-        <Field
-          label={t('provenance.observedAt')}
-          values={[formatDate(manifest.fetchedAt, locale)]}
-        />
-        <Field label={t('provenance.scope')} values={[content.country.name]} />
-      </dl>
-      <div className="provenance__actions">
-        <a className="provenance__original" href={manifest.sourceUrl[0]} rel="noopener noreferrer">
-          {t('provenance.original')}
-          <Icon name="external" size={16} />
-        </a>
-        <SourceList manifest={manifest} content={content} />
-        <Disclosure
-          manifest={manifest}
-          figureId={figureId}
-          freshnessWindowDays={freshnessWindowDays}
-          content={content}
-          derivedPath={derivedPath}
-        />
-      </div>
+      <ProvenanceFields manifest={props.manifest} content={props.content} />
+      <Actions {...props} />
     </div>
   );
 }

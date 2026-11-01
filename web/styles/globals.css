@@ -404,6 +404,19 @@ svg {
   padding: var(--space-5);
 }
 
+/* While the band leads the page, the band carries the lead block, so this section holds the
+   readings panel alone (spec 003 layout fix). It keeps 002's column — the panel's width and its
+   right-hand placement — and the column the lead used to fill stays empty: the section is a block
+   below the band, not a second lead. */
+.hero--band {
+  grid-template-columns: 7fr 5fr;
+}
+
+.hero--band > .hero__panel,
+.hero--band > .hero__status {
+  grid-column: 2;
+}
+
 /* The countdown block and the readings are wrapped so the mobile query can lift one above the
    headline (see the `max-width: 900px` block below). At every wider width the wrappers have no
    box at all, so the panel's flow — countdown, rule, label, value, … — is byte-for-byte the
@@ -1174,6 +1187,14 @@ svg {
     grid-template-columns: 1fr;
   }
 
+  /* The band's lead is above the clock at every width, so this section is one column everywhere:
+     the readings panel takes the whole column rather than being pushed into a second one that
+     does not exist (an explicit column 2 on a one-column grid would widen the page). */
+  .hero--band > .hero__panel,
+  .hero--band > .hero__status {
+    grid-column: auto;
+  }
+
   /* The clock is the page's hook (Revision 3 §P2), and on a phone it must not sit behind a
      headline, a scope mark and two call-to-action links. The countdown block is lifted above the
      headline block; the readings stay below it; the panel becomes transparent and its ground
@@ -1228,7 +1249,9 @@ svg {
   /* 320 floor: gutters shrink to keep the measured budget of 298px inside 320. */
   :root {
     --gutter: 16px;
+    --band-pad-block: var(--space-4);
   }
+
 }
 
 /* ---------- Revision 2: the countdown (R2, R5) ---------- */
@@ -1659,4 +1682,308 @@ svg {
   font-size: var(--text-micro);
   color: var(--ink-3);
   margin: calc(-1 * var(--space-2)) 0 var(--space-3);
+}
+
+/* ---------- Spec 003: the countdown band (T1), the fuse (T2), sharing (T3), pending (T5) ---------- */
+
+/* The band leads the page at the content width: no rail, no column beside it, not sticky, not
+   floating. It is the hero panel's own material (`--surface-hero`) and centres its contents on
+   one axis, as the countdown face already does. */
+.band {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  margin-top: var(--space-2);
+  padding: var(--band-pad-block) var(--space-5);
+  text-align: center;
+  background: var(--surface-hero);
+}
+
+/* The band's reading order is the page's identity, then the clock, then the fuse, then the way to
+   share it (D1, AC-003-48). The fuse cannot sit inside the countdown block — that block's markup
+   carries no `<svg>` (AC-001-99) — so the block's own box is dissolved here and its children take
+   their place in the band's grid by `order`. The clock is dissolved the same way, by `order`
+   only: its group keeps the whole subtree (the numerals, the fields and the three disclosures,
+   AC-001-113), and the three disclosures are ordered *after* the share row because they are what
+   stands between the fields and the fold. Chromium keeps the `role="group"` node — and its label —
+   in the accessibility tree through `display: contents` (verified over CDP against this build).
+   None of the reordered nodes holds a focusable element, so the keyboard order still follows the
+   band's reading order. */
+.band > .countdown {
+  display: contents;
+}
+
+.band .clock {
+  display: contents;
+}
+
+/* The lead block — the `<h1>`, the scope mark, the sub and the two actions — leads the band. Its
+   spacing is re-set here because it was sized as a column beside the readings panel: the h1's
+   bottom margin, the actions' top margin and the scope mark's margins are the hero grid's, and
+   inside the band they are the difference between the fuse clearing the fold and missing it. */
+.band > .hero__lead {
+  order: 1;
+  /* The lead spans the band's content box rather than shrinking to fit on the centre axis: the h1's
+     line boxes and the sub then wrap against the band's own width, so the copy's height is a
+     property of the viewport and not of the longest word. */
+  justify-self: stretch;
+}
+
+.band .hero__title {
+  margin-bottom: var(--space-2);
+}
+
+.band .hero__sub {
+  margin: 0;
+}
+
+.band .hero__actions {
+  justify-content: center;
+  margin-top: var(--space-3);
+}
+
+.band .scope {
+  margin: 0;
+}
+
+.band .countdown__eyebrow {
+  order: 2;
+}
+
+.band .countdown__value {
+  order: 3;
+}
+
+.band .clock__fields {
+  order: 4;
+  justify-self: stretch;
+}
+
+.band > .fuse-group {
+  order: 5;
+  justify-self: stretch;
+}
+
+/* Directly under the fuse: the band's one spreading mechanism does not wait for six paragraphs
+   of projection prose (D1, AC-003-50). */
+.band > .share {
+  order: 6;
+}
+
+.band .countdown__rule,
+.band .countdown__year-line,
+.band .countdown__definition,
+.band .countdown__range,
+.band .countdown__source,
+.band .countdown__backcast {
+  order: 7;
+}
+
+.band .clock__anchor,
+.band .clock__definition,
+.band .clock__arithmetic {
+  order: 8;
+}
+
+/* Desktop: the copy shares a line with the statement's own row rather than stacking under it. At
+   64px the h1 is one line in Spanish and Italian and two in English, French and German; stacked,
+   that second line alone is more than the difference between the share row's fold target and the
+   fold. The `<h1>` keeps its own row (flex-basis 100%) and the scope mark, the sub and the two
+   actions share the next one — the 002 internal order, unchanged, on a band that is centred as a
+   whole. */
+@media (min-width: 900px) {
+  .band .hero__lead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    column-gap: var(--space-4);
+    row-gap: var(--space-1);
+  }
+
+  .band .hero__title {
+    flex-basis: 100%;
+    margin-bottom: 0;
+  }
+
+  .band .hero__actions {
+    margin-top: 0;
+  }
+}
+
+/* A phone is where the fold budget is tightest: the lead, the eyebrow, the clock and the fuse all
+   have to clear 844px at 390 wide. The band's own edges pay for it — its inner margin becomes the
+   page's gutter, its block padding and its top margin shrink — and the h1's bottom margin and the
+   actions' top margin come down with them. No type size, measure or line height moves: every
+   content height above the fold on a phone is unchanged (AC-003-06, AC-003-48). */
+@media (max-width: 767px) {
+  .band {
+    margin-top: 0;
+    padding-block: var(--space-3);
+    padding-inline: var(--space-3);
+  }
+
+  .band .hero__title {
+    margin-bottom: var(--space-1);
+  }
+
+  .band .hero__actions {
+    margin-top: var(--space-2);
+  }
+}
+
+/* The band is the page's full content width, so its prose wraps to the page's reading measure
+   rather than the 280px measure of the old side panel. */
+.band .countdown__definition,
+.band .countdown__range,
+.band .countdown__source,
+.band .countdown__backcast,
+.band .clock__anchor,
+.band .clock__definition,
+.band .clock__arithmetic {
+  max-inline-size: var(--measure);
+}
+
+/* OQ-2: the day numeral on the numeral ladder's top step; the sub-day fields at display size and
+   full ink; the years numeral demoted so the day count is the page's largest numeral. Sizes only:
+   nothing here touches `display`, so reduced motion still hides the sub-day fields. */
+.band .clock__value--days {
+  font-size: var(--text-clock-days);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+}
+
+.band .clock__value--sub {
+  font-size: var(--text-clock-sub);
+  line-height: var(--leading-tight);
+  color: var(--ink-1);
+}
+
+.band .countdown__numeral {
+  font-size: var(--text-band-years);
+}
+
+/* AC-003-05: the two-reference sentence is visible at every width inside the band. */
+.band .clock__arithmetic {
+  display: block;
+}
+
+.fuse-group {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+}
+
+.fuse {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  justify-self: stretch;
+  margin: 0;
+}
+
+.fuse__line {
+  display: block;
+  justify-self: stretch;
+  inline-size: 100%;
+  block-size: var(--fuse-burnt-h);
+}
+
+.fuse__cord {
+  fill: var(--ink-3);
+}
+
+.fuse__burnt {
+  fill: var(--accent);
+}
+
+.fuse__label {
+  font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-1);
+}
+
+.fuse__definition {
+  max-inline-size: var(--measure);
+  margin: 0;
+  font-size: var(--text-meta);
+  color: var(--ink-3);
+}
+
+.fuse__reproduce {
+  font-size: var(--text-meta);
+  color: var(--ink-2);
+}
+
+.share {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--share-gap);
+}
+
+/* Six identical controls, none of them the page's action: no fill, no accent, no brand colour. */
+.share__control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-block-size: var(--tap-min);
+  min-inline-size: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-strong);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--text-small);
+  color: var(--ink-1);
+  text-decoration: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.share__control:hover {
+  border-color: var(--ink-2);
+}
+
+.share__icon {
+  inline-size: var(--share-icon);
+  block-size: var(--share-icon);
+}
+
+.share__field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--ink-2);
+}
+
+.share__url {
+  min-block-size: var(--tap-min);
+  padding: var(--space-2);
+  border: var(--border-strong);
+  border-radius: var(--radius);
+  font-size: var(--text-meta);
+  color: var(--ink-1);
+  background: var(--surface-1);
+}
+
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.pending {
+  padding: var(--space-5);
+  border: var(--border-hair);
+  background: var(--surface-2);
+}
+
+.pending__heading {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-h3);
 }

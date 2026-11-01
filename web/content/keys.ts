@@ -255,6 +255,28 @@ export const REQUIRED_KEYS = [
   'reproduce.count.series',
   'reproduce.count.serie',
   'reproduce.omitted',
+  'series.fuse.title',
+  'fuse.label',
+  'fuse.definition',
+  'fuse.reproduce',
+  'share.label',
+  'share.text',
+  'share.textNoJs',
+  'share.native',
+  'share.whatsapp',
+  'share.telegram',
+  'share.x',
+  'share.linkedin',
+  'share.copy',
+  'share.copied',
+  'share.linkLabel',
+  'share.newWindow',
+  'meta.title',
+  'meta.description',
+  'card.eyebrow',
+  'card.sentence',
+  'pending.heading.one',
+  'pending.heading.other',
 ] as const;
 
 export type LocaleKey = (typeof REQUIRED_KEYS)[number];
@@ -374,4 +396,5 @@ export const FIGURE_ID_KEYS: Readonly<Record<string, FigureKeys>> = {
 export const SERIES_TITLE_KEYS: Readonly<Record<string, LocaleKey>> = {
   pyramid: 'series.pyramid.title',
   countdown: 'series.countdown.title',
+  fuse: 'series.fuse.title',
 };

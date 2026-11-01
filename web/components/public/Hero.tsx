@@ -5,11 +5,11 @@ import type { DerivedFigure } from '../../ingest/types';
 import { datasetForUrl, publisherForUrl } from '../../sources/labels';
 import { chipKey } from '../metrics/figure-state';
 import { viewStateFor } from '../metrics/views';
+import { HeroLead, leadActions } from './HeroLead';
 import { selectHeroSubject, heroFigureNumber } from './hero-subject';
 import type { HeroSubject } from './hero-subject';
 import { CountdownBlock } from '../series/CountdownBlock';
 import type { CountdownValue } from '../../series/countdown';
-import { ScopeMark } from './ScopeMark';
 import type { ScopeEntry } from './ScopeMark';
 
 export interface HeroProps {
@@ -21,6 +21,11 @@ export interface HeroProps {
   countries?: readonly ScopeEntry[];
   /** The render instant the clock's server value is computed from. */
   nowMs?: number;
+  /**
+   * `true` while the countdown band leads the page (spec 003 T1): the day count is then the
+   * largest numeral, so the hero figure takes its demoted style (AC-003-03).
+   */
+  bandShown?: boolean;
 }
 
 type FigureSubject = Extract<HeroSubject, { kind: 'figure' }>;
@@ -32,56 +37,6 @@ function subjectKeys(subject: FigureSubject) {
 
 function valueText(content: CountryLocaleContent, subject: FigureSubject, value: number): string {
   return formatValue(value, subject.unit, content.locale, content.t('table.notDefined'));
-}
-
-/** The single-country scope mark: one published country renders as plain text, not a list. */
-function defaultScope(content: CountryLocaleContent): readonly ScopeEntry[] {
-  return [{ geo: content.country.code, name: content.country.name, href: '#' }];
-}
-
-/** One hero action. The hierarchy between the two is CSS's; which leads is the caller's. */
-interface HeroAction {
-  /** The in-page fragment the action goes to. */
-  href: string;
-  /** The action's visible text, already resolved from the content model. */
-  label: string;
-}
-
-/**
- * The lead block both tiers share: the statement, the scope mark, the sub and the two actions.
- *
- * Extracted because the tiers differ only in *which* action leads — a difference the props carry —
- * while the `<h1>`, its `id` and the `aria-labelledby` that points at it must not drift apart
- * between them. One reason to change, one place to change it.
- */
-function HeroLead({
-  content,
-  countries,
-  primary,
-  secondary,
-}: {
-  content: CountryLocaleContent;
-  countries?: readonly ScopeEntry[];
-  primary: HeroAction;
-  secondary: HeroAction;
-}) {
-  return (
-    <div className="hero__lead">
-      <h1 className="hero__title" id="hero-title">
-        {content.t('hero.statement')}
-      </h1>
-      <ScopeMark content={content} countries={countries ?? defaultScope(content)} />
-      <p className="hero__sub">{content.t('hero.sub')}</p>
-      <div className="hero__actions">
-        <a className="hero__cta" href={primary.href}>
-          {primary.label}
-        </a>
-        <a className="hero__cta-secondary" href={secondary.href}>
-          {secondary.label}
-        </a>
-      </div>
-    </div>
-  );
 }
 
 /** The four facts beside the number, in the order the panel reads them (T1). */
@@ -152,6 +107,17 @@ function ReadingsPanel({
 }
 
 /**
+ * The hero section's own class list. While the band leads the page the section carries the
+ * `hero--band` marker the desktop sheet keys off — the section then holds the readings panel
+ * alone, because the lead moved into the band (D1). One function, so the two tiers cannot
+ * disagree about the marker.
+ */
+function heroClass(tier: 'numeric' | 'proposition', bandShown: boolean): string {
+  const base = `hero hero--${tier}`;
+  return bandShown ? `${base} hero--band` : base;
+}
+
+/**
  * Tier 1 and tier 2: the same numeric hero, labelled by whichever figure is eligible, with
  * the three things a reader needs to judge the number beside it. Which figure lands on
  * which tier is decided by the ladder in `hero-subject.ts`; the label, the definition and
@@ -163,21 +129,29 @@ function NumericHero({
   countdown,
   countries,
   nowMs,
+  bandShown = false,
 }: {
   content: CountryLocaleContent;
   subject: FigureSubject;
   countdown?: CountdownValue;
   countries?: readonly ScopeEntry[];
   nowMs: number;
+  bandShown?: boolean;
 }) {
+  const actions = leadActions(content, 'figure');
   return (
-    <section className="hero hero--numeric" aria-labelledby="hero-title">
-      <HeroLead
-        content={content}
-        countries={countries}
-        primary={{ href: '#figuras', label: content.t('hero.ctaPrimary') }}
-        secondary={{ href: '#metodo', label: content.t('hero.ctaSecondary') }}
-      />
+    <section
+      className={heroClass('numeric', bandShown)}
+      aria-labelledby="hero-title"
+    >
+      {bandShown ? null : (
+        <HeroLead
+          content={content}
+          countries={countries}
+          primary={actions.primary}
+          secondary={actions.secondary}
+        />
+      )}
       <div className="hero__panel">
         {countdown === undefined ? null : (
           /*
@@ -193,7 +167,7 @@ function NumericHero({
             <hr className="hero__panel-rule" />
           </div>
         )}
-        <ReadingsPanel content={content} subject={subject} demoted={countdown?.state === 'computed'} />
+        <ReadingsPanel content={content} subject={subject} demoted={bandShown || countdown?.state === 'computed'} />
       </div>
     </section>
   );
@@ -247,15 +221,28 @@ function StatusPanel({
 }
 
 /** Tier 3: no eligible figure, so the largest type on the page is the proposition. */
-function PropositionHero({ content, figures, countdown, countries, nowMs }: HeroProps & { nowMs: number }) {
+function PropositionHero({
+  content,
+  figures,
+  countdown,
+  countries,
+  nowMs,
+  bandShown = false,
+}: HeroProps & { nowMs: number }) {
+  const actions = leadActions(content, 'proposition');
   return (
-    <section className="hero hero--proposition" aria-labelledby="hero-title">
-      <HeroLead
-        content={content}
-        countries={countries}
-        primary={{ href: '#metodo', label: content.t('hero.ctaMethod') }}
-        secondary={{ href: '#figuras', label: content.t('hero.ctaFigures') }}
-      />
+    <section
+      className={heroClass('proposition', bandShown)}
+      aria-labelledby="hero-title"
+    >
+      {bandShown ? null : (
+        <HeroLead
+          content={content}
+          countries={countries}
+          primary={actions.primary}
+          secondary={actions.secondary}
+        />
+      )}
       <StatusPanel content={content} figures={figures} countdown={countdown} nowMs={nowMs} />
     </section>
   );
@@ -266,7 +253,7 @@ function PropositionHero({ content, figures, countdown, countries, nowMs }: Hero
  * that either figure exists: the largest type on the page is never spent announcing an
  * absence.
  */
-export function Hero({ content, figures, countdown, countries, nowMs = Date.now() }: HeroProps) {
+export function Hero({ content, figures, countdown, countries, nowMs = Date.now(), bandShown }: HeroProps) {
   const subject = selectHeroSubject(figures);
   if (subject.kind === 'proposition') {
     return (
@@ -276,10 +263,18 @@ export function Hero({ content, figures, countdown, countries, nowMs = Date.now(
         countdown={countdown}
         countries={countries}
         nowMs={nowMs}
+        bandShown={bandShown}
       />
     );
   }
   return (
-    <NumericHero content={content} subject={subject} countdown={countdown} countries={countries} nowMs={nowMs} />
+    <NumericHero
+      content={content}
+      subject={subject}
+      countdown={countdown}
+      countries={countries}
+      nowMs={nowMs}
+      bandShown={bandShown}
+    />
   );
 }

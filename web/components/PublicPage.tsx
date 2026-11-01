@@ -14,12 +14,15 @@ import { ThesisSection } from './registers/ThesisSection';
 import { AssumptionsLedger } from './public/AssumptionsLedger';
 import { FigureLedgerNote } from './FigureLedgerNote';
 import { Hero } from './public/Hero';
+import { HeroLeadBlock } from './public/HeroLeadBlock';
 import { RegisterKey } from './public/RegisterKey';
 import { ReproduceBlock } from './public/ReproduceBlock';
 import { SiteFooter } from './public/SiteFooter';
 import { SiteHeader } from './public/SiteHeader';
 import { SourceStrip } from './public/SourceStrip';
 import { PyramidPlate } from './series/PyramidPlate';
+import { CountdownBand, bandCountdown } from './series/CountdownBand';
+import { PendingBlock, pendingFigures } from './PendingBlock';
 import { findSeries } from '../derived/series-store';
 
 export interface PublicPageProps {
@@ -68,6 +71,82 @@ function snapshotIsoOf(figures: readonly DerivedFigure[]): string {
   return first ? first.manifest.fetchedAt : '';
 }
 
+interface FiguresSectionProps {
+  content: CountryLocaleContent;
+  figures: readonly DerivedFigure[];
+  freshnessWindowDays: number;
+}
+
+/**
+ * The figures in strict order, except that every figure without a computed value is collected
+ * into one "en preparación" block at the first such figure's slot (spec 003 T5). The ledger note
+ * still precedes the first ledger state, whichever form it takes.
+ */
+function FiguresSection({ content, figures, freshnessWindowDays }: FiguresSectionProps) {
+  const pending = pendingFigures(figures);
+  const firstPending = pending[0]?.figureId;
+  const firstLedger = figures.find((figure) => isLedgerState(viewStateFor({ figure, content })))?.figureId;
+  return (
+    <div id="figuras">
+      {figures.map((figure) => {
+        const isPending = figure.availability !== 'computed';
+        if (isPending && figure.figureId !== firstPending) return null;
+        return (
+          <div className="figure-slot" key={figure.figureId}>
+            {figure.figureId === firstLedger ? <FigureLedgerNote content={content} /> : null}
+            {isPending ? (
+              <PendingBlock content={content} figures={pending} />
+            ) : (
+              <MetricPlate
+                figureNumber={figureNumberOf(figure)}
+                figure={figure}
+                content={content}
+                freshnessWindowDays={freshnessWindowDays}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+interface PageLeadProps {
+  content: CountryLocaleContent;
+  figures: readonly DerivedFigure[];
+  series: readonly DerivedSeries[];
+  countries: readonly ScopeEntry[];
+  nowMs: number;
+  freshnessWindowDays: number;
+}
+
+/**
+ * The top of the page (spec 003 T1, re-composed by the layout fix): the countdown band when a
+ * threshold year exists, then the hero. The band carries the lead block — the `<h1>` and its
+ * actions — above the clock, so the page says what it is before it spends two screens on the
+ * numerals; the hero then holds the figure's readings alone. Without a band, the hero is the
+ * whole lead exactly as before, and keeps the countdown's own not-crossed sentence.
+ */
+function PageLead({ content, figures, series, countries, nowMs, freshnessWindowDays }: PageLeadProps) {
+  const countdown = countdownOf(series);
+  const band = bandCountdown(countdown);
+  const hero = { content, figures, countries, nowMs };
+  if (band === undefined) return <Hero {...hero} countdown={countdown} />;
+  return (
+    <>
+      <CountdownBand
+        content={content}
+        countdown={band}
+        lead={<HeroLeadBlock content={content} figures={figures} countries={countries} />}
+        fuse={findSeries(series, 'fuse')}
+        nowMs={nowMs}
+        freshnessWindowDays={freshnessWindowDays}
+      />
+      <Hero {...hero} bandShown />
+    </>
+  );
+}
+
 /**
  * The public document: instrument plates and unresolved rows in strict figure order, then the
  * three registers, then the audit trail. It is composed from data and content only, so it
@@ -85,11 +164,9 @@ export function PublicPage({
 }: PublicPageProps) {
   const ordered = orderedFigures(figures);
   const pyramid = findSeries(series, 'pyramid');
-  const countdown = countdownOf(series);
   const scopes = countries ?? [{ geo: content.country.code, name: content.country.name, href: '#' }];
   const snapshotIso = snapshotIsoOf(ordered);
   const sources = ordered.flatMap((figure) => figure.manifest.sourceUrl);
-  const firstLedger = ordered.find((figure) => isLedgerState(viewStateFor({ figure, content })));
   return (
     <div className="page">
       <a className="skip-link" href="#main">
@@ -98,27 +175,20 @@ export function PublicPage({
       {stale ? <p className="banner">{content.t('banner.stale')}</p> : null}
       <SiteHeader content={content} snapshotIso={snapshotIso} />
       <main id="main">
-        <Hero content={content} figures={ordered} countdown={countdown} countries={scopes} nowMs={now.getTime()} />
+        <PageLead
+          content={content}
+          figures={ordered}
+          series={series}
+          countries={scopes}
+          nowMs={now.getTime()}
+          freshnessWindowDays={freshnessWindowDays}
+        />
         <SourceStrip content={content} sources={sources} />
         {pyramid === undefined ? null : (
           <PyramidPlate content={content} series={pyramid} freshnessWindowDays={freshnessWindowDays} />
         )}
         <RegisterKey content={content} />
-        <div id="figuras">
-          {ordered.map((figure) => (
-            <div className="figure-slot" key={figure.figureId}>
-              {firstLedger && figure.figureId === firstLedger.figureId ? (
-                <FigureLedgerNote content={content} />
-              ) : null}
-              <MetricPlate
-                figureNumber={figureNumberOf(figure)}
-                figure={figure}
-                content={content}
-                freshnessWindowDays={freshnessWindowDays}
-              />
-            </div>
-          ))}
-        </div>
+        <FiguresSection content={content} figures={ordered} freshnessWindowDays={freshnessWindowDays} />
         <div id="debate">
           <AgreementSection content={content} citations={citations} />
           <DisputeSection content={content} citations={citations} />

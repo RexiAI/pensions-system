@@ -3,8 +3,12 @@
  *
  * Scope is deliberately narrow. The product's claims are numeric (ratios, shares, IRR, implicit
  * debt, required base growth) and provenance-bound (manifest validation, hashing, definition
- * registry, source ingest). React components and Next.js routes are excluded: mutating JSX and
- * generated markup proves nothing about whether a published number is right, and it costs hours.
+ * registry, source ingest). Next.js routes are excluded: mutating generated markup proves nothing
+ * about whether a published number is right. The React components are in scope from spec 003
+ * onwards, because the components that shipped with it are not decoration — the countdown band's
+ * guards, the fuse's absent-state, and the share row's availability, clipboard and retarget
+ * branches are the behaviour its acceptance scenarios state, and a mutation there is observable
+ * in the rendered document (see §Spec 003 below).
  *
  * `scripts/*.ts` are excluded for a mechanical reason, not a convenience one: each is a CLI
  * entry point that runs its side effect (`process.exit(main())`) at import time and is only ever
@@ -36,6 +40,22 @@ export default {
     // guards the invocation with `import.meta.url` and exports its predicates, so a mutant in it
     // is reachable and killable from the test suite.
     'scripts/check-scenario-traceability-3digit.ts',
+    // Spec 003's own claim surface: the share links, the copy rules and the derived threshold year.
+    // Added when those modules shipped, for the same reason the revision-2/3 entries above were:
+    // they carry claims the spec states, so an aggregate that omitted them would describe a tree
+    // that no longer exists.
+    'web/share/**/*.ts',
+    'web/content/share-copy.ts',
+    'web/seo/threshold-year.ts',
+    'web/seo/metadata.ts',
+    // Spec 003's components, and the component tree generally. This entry was blocked until
+    // 2026-11-01: three tests asserted `ShareRow.tsx`'s and `CopyLink.tsx`'s own source text, and
+    // Stryker's instrumented reprint (which renames locals) removes the literals they looked for,
+    // so the dry run failed before a mutant was generated and both files had to be excluded. Those
+    // assertions are now behavioural — `tests/acceptance/share-controls.test.ts` mounts the row in
+    // a DOM and asserts the controls, the clipboard payload, the announcement and the click-time
+    // href — so the whole `.tsx` tree is instrumentable. Verified with a dry run over all 42 files.
+    'web/components/**/*.tsx',
   ],
   // Sandbox copy exclusions. `stryker.config.mjs` itself lives outside the mutate globs, and
   // none of these directories is needed to run the suite: `.opencode` and `.standards` in

@@ -1,5 +1,5 @@
 /**
- * The two derived series (T17, T18): what each one needs as input and what it computes. Each
+ * The derived series (T17, T18, spec 003 T2): what each one needs as input and what it computes. Each
  * carries its own closed `formulaId`/`definitionId` and the sources its manifest must cite.
  */
 import { seriesDefinitionFor } from '../manifest/definitions';
@@ -7,6 +7,8 @@ import { BASELINE_PROJECTION_LABEL, computeCountdown } from '../series/countdown
 import type { CountdownValue } from '../series/countdown';
 import { PYRAMID_PROJECTED_YEAR, computePyramid } from '../series/age-structure';
 import type { PyramidValue } from '../series/age-structure';
+import { computeFuse } from '../series/fuse';
+import type { FuseValue } from '../series/fuse';
 import type { SourceSnapshot } from '../sources/types';
 import type { SeriesDefinition } from './series-types';
 
@@ -50,7 +52,7 @@ function countdownAssumptions(value: CountdownValue): Readonly<Record<string, st
   };
 }
 
-export const SERIES: readonly SeriesDefinition[] = [
+const BASE_SERIES: readonly SeriesDefinition[] = [
   {
     seriesId: 'pyramid',
     definitionId: 'age-structure',
@@ -79,6 +81,34 @@ export const SERIES: readonly SeriesDefinition[] = [
     },
   },
 ];
+
+function fuseAssumptions(value: FuseValue): Readonly<Record<string, string | number | null>> {
+  return {
+    threshold: value.threshold,
+    denominator: '15-64',
+    observedYear: value.observedYear,
+    observedRatio: value.observedRatio,
+    consumedPercent: value.consumedPercent,
+  };
+}
+
+/**
+ * The fuse (spec 003 T2) cites `demo_pjan` only: its manifest, its digest and its inputs never
+ * include the projection, so altering `proj_23np` cannot move it (AC-003-20).
+ */
+const FUSE_SERIES: SeriesDefinition = {
+  seriesId: 'fuse',
+  definitionId: 'old-age-dependency-observed-share',
+  formulaId: seriesDefinitionFor('old-age-dependency-observed-share').formulaId,
+  requirementSources: [DEMO_PJAN_SOURCE],
+  compute(inputs) {
+    const value = computeFuse({ observed: payloadOf(inputs, DEMO_PJAN_SOURCE) });
+    if (value === null) throw new Error(`${DEMO_PJAN_SOURCE} has no year with both age classes`);
+    return { value, assumptions: fuseAssumptions(value) };
+  },
+};
+
+export const SERIES: readonly SeriesDefinition[] = [...BASE_SERIES, FUSE_SERIES];
 
 export function seriesById(seriesId: string): SeriesDefinition | undefined {
   return SERIES.find((series) => series.seriesId === seriesId);

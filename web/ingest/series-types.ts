@@ -12,9 +12,9 @@ import type { SourceSnapshot } from '../sources/types';
  * They are written to `data/derived/series/`, never to `data/derived/`, so the flat figure
  * loader cannot cast one to the closed `FigureId` union (AC-001-96).
  */
-export type SeriesId = 'pyramid' | 'countdown';
+export type SeriesId = 'pyramid' | 'countdown' | 'fuse';
 
-export const SERIES_IDS: readonly SeriesId[] = ['pyramid', 'countdown'];
+export const SERIES_IDS: readonly SeriesId[] = ['pyramid', 'countdown', 'fuse'];
 
 export function isSeriesId(value: unknown): value is SeriesId {
   return typeof value === 'string' && (SERIES_IDS as readonly string[]).includes(value);

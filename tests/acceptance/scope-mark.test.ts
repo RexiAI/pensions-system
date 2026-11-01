@@ -10,6 +10,7 @@ import type { LocaleDocument } from '../../web/content/types';
 import { pageMetadata } from '../../web/seo/metadata';
 import { shareCard } from '../../web/seo/share-card';
 import { PLATE_FIXTURES, content, renderComponent, renderPlate } from '../fixtures/figures';
+import { countdownValue } from '../fixtures/series';
 import { listSourceFiles, readSource } from '../helpers/source-scan';
 
 const ES = content('es');
@@ -78,11 +79,14 @@ describe('AC-001-102: the scope mark renders from the country record in every lo
       const meta = pageMetadata(locale);
       expect(meta.title, locale).toContain(page.country.name);
       expect(meta.ogTitle, locale).toContain(page.country.name);
-      expect(meta.title).not.toMatch(/\d/);
+      // Re-pointed by spec 003 T4 (D7 amended): the only digits the title may carry are the
+      // derived threshold year's; the scope suffix stays last.
+      expect(meta.title.replaceAll('2042', '').replace(/50|65|100/g, '')).not.toMatch(/\d/);
+      expect(meta.title.endsWith(page.country.name), locale).toBe(true);
     }
   });
 
-  it('AC-001-102: the share card carries the scope line and no metric, number or date', () => {
+  it('AC-001-102: the share card carries the scope line and no metric, no day/time value and no date other than the derived threshold year', () => {
     for (const locale of LOCALES) {
       const card = shareCard(locale);
       expect(card, locale).not.toBeNull();
@@ -91,9 +95,13 @@ describe('AC-001-102: the scope mark renders from the country record in every lo
       expect(card.alt, locale).toContain(page.country.name);
       const html = renderToStaticMarkup(card.element);
       expect(html, locale).toContain(page.country.name);
-      // The card's *text* carries no digit: no metric, no number, no date (D7).
+      // Re-pointed by spec 003 T4: the card's *text* carries no digit except the derived
+      // threshold year and the ratio the sentence states (50 per 100 aged 65+) — no metric, no
+      // day count, no date.
       const text = html.replace(/<[^>]+>/g, ' ').replace(/&#?\w+;/g, ' ');
-      expect(text, locale).not.toMatch(/\d/);
+      const year = String(countdownValue().thresholdYear);
+      expect(text, locale).toContain(year);
+      expect(text.replaceAll(year, '').replace(/\b(50|65|100)\b/g, ''), locale).not.toMatch(/\d/);
     }
   });
 

@@ -10,6 +10,12 @@ export interface FigureStatusRowProps {
   definition?: string;
   /** The specific reason this figure has no value; defaults to the state's own sentence. */
   reason?: string;
+  /**
+   * Inside the collapsed "en preparación" block (spec 003 T5): the title steps down one heading
+   * level under the block's own heading, and the state chip is not repeated — the block states it
+   * once for every row.
+   */
+  nested?: boolean;
 }
 
 const CHIP_KEYS: Readonly<Record<'unavailable' | 'withheld', LocaleKey>> = {
@@ -27,9 +33,10 @@ const REASON_KEYS: Readonly<Record<'unavailable' | 'withheld', LocaleKey>> = {
  * link to its own anchor, a two-word state chip, its definition, the specific reason it has
  * no value, one method link. No plate, no chart frame, no numeral at any scale.
  */
-export function FigureStatusRow({ figureNumber, content, state, definition, reason }: FigureStatusRowProps) {
+export function FigureStatusRow({ figureNumber, content, state, definition, reason, nested = false }: FigureStatusRowProps) {
   const anchor = `fig-0${figureNumber}`;
   const reasonText = reason ?? content.t(REASON_KEYS[state]);
+  const Title = nested ? 'h3' : 'h2';
   return (
     <section
       className="figure-row"
@@ -38,10 +45,10 @@ export function FigureStatusRow({ figureNumber, content, state, definition, reas
       data-state={state}
     >
       <div className="figure-row__head">
-        <h2 className="figure-row__title" id={`${anchor}-title`}>
+        <Title className="figure-row__title" id={`${anchor}-title`}>
           <a href={`#${anchor}`}>{content.t(FIGURE_KEYS[figureNumber].title)}</a>
-        </h2>
-        <span className="figure-row__chip">{content.t(CHIP_KEYS[state])}</span>
+        </Title>
+        {nested ? null : <span className="figure-row__chip">{content.t(CHIP_KEYS[state])}</span>}
       </div>
       {definition ? (
         <p className="figure-row__definition">

@@ -25,7 +25,11 @@ export type MetricDefinitionId = (typeof DEFINITION_IDS)[number];
  * has no national/international counterpart and no place in the metric edge-case contract, so
  * it carries its own id from a closed set rather than being numbered as a figure.
  */
-export const SERIES_DEFINITION_IDS = ['age-structure', 'old-age-dependency-ratio'] as const;
+export const SERIES_DEFINITION_IDS = [
+  'age-structure',
+  'old-age-dependency-ratio',
+  'old-age-dependency-observed-share',
+] as const;
 
 export type SeriesDefinitionId = (typeof SERIES_DEFINITION_IDS)[number];
 
@@ -159,6 +163,12 @@ const SERIES_DEFINITIONS: Readonly<Record<SeriesDefinitionId, PublishedSeriesDef
     definition:
       'Counts the population aged 65 and over divided by the population aged 15 to 64, per year, from the baseline projection. Excludes the other published projection variants from the series and reports them only as a range.',
     formulaId: 'old-age-dependency-threshold.v1',
+  },
+  'old-age-dependency-observed-share': {
+    definitionId: 'old-age-dependency-observed-share',
+    definition:
+      'Counts the population aged 65 and over divided by the population aged 15 to 64, Spain, for the latest year the observed population dataset publishes, as a share of the dependency threshold the countdown uses. Excludes every projected value.',
+    formulaId: 'observed-dependency-share.v1',
   },
 };
 

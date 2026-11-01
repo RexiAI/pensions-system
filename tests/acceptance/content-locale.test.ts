@@ -181,7 +181,9 @@ describe('T8: the hero statement is bounded as content-model validation', () => 
     }
     expect(title).toContain('var(--text-display)');
     // The statement is rendered whole, never cut: no `slice`/`substring` on the headline line.
-    const hero = readSource('web/components/public/Hero.tsx');
+    // Re-pointed by D1: the `<h1>` now renders in `HeroLead.tsx`, the node the band takes as its
+    // lead slot, so the scan follows the element rather than the file it used to sit in.
+    const hero = readSource('web/components/public/HeroLead.tsx');
     const statementLines = hero.split('\n').filter((line) => line.includes('hero.statement'));
     expect(statementLines.length).toBeGreaterThan(0);
     for (const line of statementLines) {

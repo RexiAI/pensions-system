@@ -7,6 +7,7 @@ import { HERO_STATEMENT_BUDGETS } from './budgets';
 import { missingKeys, unknownKeys } from './keys';
 import type { LocaleKey } from './keys';
 import { headingCountProblem } from './registers';
+import { shareCopyProblems } from './share-copy';
 import { interpolate, isLocale } from './types';
 import type { CountryLocaleContent, Locale, LocaleDocument } from './types';
 
@@ -25,7 +26,8 @@ export type DocumentProblemCode =
   | 'heading-count'
   | 'country-record'
   | 'scope-statement'
-  | 'statement-budget';
+  | 'statement-budget'
+  | 'share-copy';
 
 export interface DocumentProblem {
   country: string;
@@ -107,6 +109,17 @@ function headingCountProblems(doc: LocaleDocument, base: Base): DocumentProblem[
   ];
 }
 
+/** Spec 003 T3: every `share.*` string obeys its own copy-rule set (AC-003-47). */
+function shareCopyRuleProblems(doc: LocaleDocument, base: Base): DocumentProblem[] {
+  if (!isLocale(doc.locale)) return [];
+  const locale = doc.locale;
+  return Object.entries(doc.strings)
+    .filter(([key]) => key.startsWith('share.'))
+    .flatMap(([key, value]) =>
+      shareCopyProblems(value, locale).map((term) => ({ ...base, code: 'share-copy' as const, detail: `${key}: "${term}"` })),
+    );
+}
+
 export function validateDocument(doc: LocaleDocument): DocumentProblem[] {
   const base: Base = { country: doc.country, locale: doc.locale };
   return [
@@ -116,6 +129,7 @@ export function validateDocument(doc: LocaleDocument): DocumentProblem[] {
     ...scopeStatementProblems(doc, base),
     ...statementBudgetProblems(doc, base),
     ...headingCountProblems(doc, base),
+    ...shareCopyRuleProblems(doc, base),
   ];
 }
 

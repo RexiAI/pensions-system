@@ -11,6 +11,7 @@ export const FORMULA_IDS = [
   'required-base-growth.v1',
   'age-structure.v1',
   'old-age-dependency-threshold.v1',
+  'observed-dependency-share.v1',
 ] as const;
 
 export type FormulaId = (typeof FORMULA_IDS)[number];
@@ -29,4 +30,5 @@ export const FORMULA_ANCHORS: Readonly<Record<FormulaId, string>> = {
   'required-base-growth.v1': '#formula-required-base-growth',
   'age-structure.v1': '#formula-age-structure',
   'old-age-dependency-threshold.v1': '#formula-old-age-dependency-threshold',
+  'observed-dependency-share.v1': '#formula-observed-dependency-share',
 };
