@@ -27,7 +27,7 @@ function heroRule(): string {
   return blocks.join('\n');
 }
 
-describe('AC-001-107: the hero does not fill the viewport and the demography heading is at the fold', () => {
+describe('AC-001-107: the hero does not fill the viewport (the demography-at-fold clause is retired, D2)', () => {
   it('AC-001-107: the hero height is a 560px minimum, not the viewport height', () => {
     expect(TOKENS).toMatch(/--hero-min-h:\s*560px/);
     expect(heroRule()).toMatch(/min-height:\s*var\(--hero-min-h\)/);
@@ -41,7 +41,11 @@ describe('AC-001-107: the hero does not fill the viewport and the demography hea
     expect(desktop).toMatch(/\.hero\s*\{[^}]*min-height:\s*var\(--hero-min-h\)/s);
   });
 
-  it('AC-001-107: the demography block follows the source strip and leads with its heading and sentence', () => {
+  it('AC-001-107: the demography block still follows the source strip, heading and sentence first', () => {
+    // D2 (2026-11-01) retired this scenario's *fold* clause at every width — the heading is no
+    // longer asserted to be at the fold, because a band-first page cannot put it there. What
+    // survives is the reading order the clause was paired with: the block follows the source
+    // strip, and its heading and finding sentence precede the first panel.
     const html = page();
     const source = html.indexOf('class="source-strip"');
     const demography = html.indexOf('id="demografia"');
@@ -50,14 +54,22 @@ describe('AC-001-107: the hero does not fill the viewport and the demography hea
     expect(demography).toBeGreaterThan(source);
     expect(registerKey).toBeGreaterThan(demography);
 
-    // Heading and finding sentence come before the first panel: what peeks at the fold is a
-    // sentence about the data, never the empty apex of a chart.
     const heading = html.indexOf('id="demography-heading"');
     const finding = html.indexOf('demography__finding');
     const panels = html.indexOf('demography__panels');
     expect(heading).toBeGreaterThan(demography);
     expect(finding).toBeGreaterThan(heading);
     expect(panels).toBeGreaterThan(finding);
+  });
+
+  it('AC-001-107: no fold assertion for the demography heading remains at any width', () => {
+    // The override, read from the file itself: no measured demography row and no assertion on its
+    // position. A later edit that reintroduces the retired clause fails here.
+    const own = readFileSync('tests/acceptance/first-viewport.test.ts', 'utf8');
+    expect(own).toContain('the demography-at-fold clause is retired, D2');
+    expect(own).not.toMatch(/demography[a-zA-Z_]*\.(top|bottom)/i);
+    expect(own).not.toMatch(/heading(?:Top|Bottom)/);
+    expect(MEASURED_CLOCK).not.toHaveProperty('demography');
   });
 
   it('AC-001-107: the same composition holds at the mobile viewport, with no viewport-height hero', () => {
@@ -67,13 +79,22 @@ describe('AC-001-107: the hero does not fill the viewport and the demography hea
     expect(CSS).not.toMatch(/\.hero\s*\{[^}]*100dvh/s);
   });
 
-  it('AC-001-107: the countdown lives inside the hero panel, above the figure strip', () => {
+  it('AC-001-107: the countdown leads the page in its band, above the hero and the figure strip', () => {
+    // Re-pointed by spec 003 T1 (001 Revision 3 refusal (9) superseded for "full-width" only) and
+    // again by D2: the countdown left the hero panel for the full-width band that precedes the
+    // hero, and the h1 now precedes the clock *inside* that band (D1, AC-003-48). What the
+    // original assertion protected is unchanged — the countdown precedes the figure, and the
+    // figure's value is demoted while the countdown carries the large type.
     const html = page();
-    const panel = html.indexOf('class="hero__panel"');
+    const band = html.indexOf('class="band"');
+    const h1 = html.indexOf('<h1');
     const countdown = html.indexOf('class="countdown"');
+    const hero = html.indexOf('class="hero hero--');
     const figure = html.indexOf('hero__panel-label');
-    expect(panel).toBeGreaterThan(-1);
-    expect(countdown).toBeGreaterThan(panel);
+    expect(band).toBeGreaterThan(-1);
+    expect(h1).toBeGreaterThan(band);
+    expect(countdown).toBeGreaterThan(h1);
+    expect(hero).toBeGreaterThan(countdown);
     expect(figure).toBeGreaterThan(countdown);
     expect(html).toContain('hero__value hero__value--demoted');
   });
@@ -125,34 +146,57 @@ describe('AC-001-107: the hero does not fill the viewport and the demography hea
  *   360x640     424.91-792.38  471.30-602.30    below the fold: out of scope, recorded only
  *   1366x768    480.91-925.59  562.50-693.50    below the fold: desktop, out of scope, recorded
  *
- * What that yields, and what is asserted: the rail starts inside the first viewport at every
- * size, and its four-field row is fully inside it at every size. The whole box fits at 390x844.
- * It cannot fit at 360x640 — the projection block above the rail plus the rail is taller than
- * 640px, and neither fix may shrink the clock or hide the disclosure — and it cannot fit at
- * 1366x768 either, where desktop is out of scope. Those two are recorded rather than asserted, so
- * the numbers stay honest.
+ * **Re-measured after spec 003 T1 (AC-003-10).** The countdown moved out of the hero panel into the
+ * full-width band that leads the page, so the clock box now starts directly under the band's
+ * eyebrow. Chromium (google-chrome headless, driven over CDP) against the built app, 2026-10-31,
+ * `getBoundingClientRect()` of `.clock` and `.clock__fields`:
  *
- * The per-locale rows at 390x844 are recorded separately below: French's projection block carries
- * one more `--text-micro` line (19.43px) than the other four, which is a property of the copy, not
- * of the clock.
+ *   viewport    clock (y)      fields row (y)
+ *   390x844     135.44-536.30  171.83-304.20   (es; per-locale rows below)
+ *   360x640     135.44-560.59  171.83-304.20
+ *   1366x768    167.44-512.69  203.83-372.92   now inside the first viewport on a desktop too
+ *
+ * **Re-measured again after D1 (2026-11-01).** D1 put the hero copy above the clock inside the band
+ * and ordered the clock's three disclosures after the share row, so the rail measured here is the
+ * clock's *reading* — the years numeral and the four fields — not the `<div class="clock">` box:
+ * `.clock` is `display: contents` inside the band so that its group can be ordered as a whole while
+ * the disclosures that follow it are ordered after the fuse. The group, its label and its subtree
+ * are unchanged (AC-001-113; the group node is present in Chromium's accessibility tree), and the
+ * `role="group"` element no longer has a box of its own — which is why the rows below measure the
+ * numerals' own boxes. Chromium, built app, 2026-11-01:
+ *
+ *   viewport    rail (years top – fields bottom)   fields row
+ *   390x844     436.52-613.28                       480.91-613.28   (es; per-locale rows below)
+ *   360x640     436.52-613.28                       480.91-613.28
+ *   1366x768    295.00-508.48                       339.39-508.48
+ *
+ * The rows above the 2026-10-29 table are the history; the constants below are the current ones.
+ * No clearance margin, budget or viewport size was changed (AC-002-21, AC-003-10).
+ *
+ * What that yields, and what is asserted: the rail starts inside the first viewport at every
+ * size, and its four-field row is fully inside it at every size. The whole rail now fits at
+ * 390x844 *and* at 360x640. The per-locale rows at 390x844 are recorded separately below: French's
+ * projection block carries one more `--text-micro` line (19.43px) than the other four, which is a
+ * property of the copy, not of the clock.
  */
 const MEASURED_CLOCK = {
-  '390x844': { viewport: 844, clock: [424.91, 768.08], fields: [471.3, 602.3] },
-  '360x640': { viewport: 640, clock: [424.91, 792.38], fields: [471.3, 602.3] },
-  '1366x768': { viewport: 768, clock: [480.91, 925.59], fields: [562.5, 693.5] },
+  '390x844': { viewport: 844, clock: [436.52, 613.28], fields: [480.91, 613.28] },
+  '360x640': { viewport: 640, clock: [436.52, 613.28], fields: [480.91, 613.28] },
+  '1366x768': { viewport: 768, clock: [295.0, 508.48], fields: [339.39, 508.48] },
 } as const;
 
 /**
  * The same measurement, per locale, at 390x844 — the phone is the binding viewport, so "the
  * guarantee holds in every locale" is checked against every locale rather than against Spanish
- * alone. Measured 2026-10-29 in Chromium 155 against the built app.
+ * alone. Measured 2026-11-01 in Chromium against the built app; the English row is the one that
+ * moved (its h1 wraps to three lines, so its rail starts 21px higher than Spanish's).
  */
 const MEASURED_CLOCK_BY_LOCALE = {
-  es: { clock: [424.91, 768.08], fields: [471.3, 602.3] },
-  en: { clock: [424.91, 768.08], fields: [471.3, 602.3] },
-  fr: { clock: [444.34, 787.52], fields: [490.73, 621.73] },
-  de: { clock: [424.91, 768.08], fields: [471.3, 602.3] },
-  it: { clock: [424.91, 768.08], fields: [471.3, 602.3] },
+  es: { clock: [436.52, 613.28], fields: [480.91, 613.28] },
+  en: { clock: [415.47, 592.23], fields: [459.86, 592.23] },
+  fr: { clock: [436.52, 613.28], fields: [480.91, 613.28] },
+  de: { clock: [436.52, 613.28], fields: [480.91, 613.28] },
+  it: { clock: [436.52, 613.28], fields: [480.91, 613.28] },
 } as const;
 
 /** The clearance the guarantee keeps from the fold, in CSS pixels: the margin AC-001-107 asserts. */
@@ -177,10 +221,11 @@ describe('AC-001-107: the clock is inside the first viewport on a phone', () => 
     const measured = MEASURED_CLOCK['390x844'];
     expect(measured.clock[1]).toBeLessThanOrEqual(measured.viewport);
     // The fix works by reordering, not by shrinking. The rail's height is pinned so a later edit
-    // that grows the face is caught here rather than discovered on a phone: 343.17px is the
-    // spec 002 §T3 face — the merged years numeral inside the clock's own container, with the
-    // separator's 1px border and 12px clearing padding gone (Revision 4: 310px).
-    expect(measured.clock[1] - measured.clock[0]).toBeCloseTo(343.17, 1);
+    // that grows the face is caught here rather than discovered on a phone. 176.76px is the
+    // 2026-11-01 face: the years numeral (32px) and the four fields (44px days over 32px sub-day
+    // fields), with the three disclosures no longer inside the box (D1) — the reading itself did
+    // not shrink, and the 2026-10-29 measurement of the same reading plus its prose was 400.86px.
+    expect(measured.clock[1] - measured.clock[0]).toBeCloseTo(176.76, 1);
     expect(measured.clock[1]).toBeLessThanOrEqual(measured.viewport - 50);
   });
 
@@ -238,13 +283,15 @@ describe('AC-001-107: the clock is inside the first viewport on a phone', () => 
   });
 
   it('AC-001-107: the wrappers are transparent on a desktop, so the panel box is unchanged', () => {
+    // Re-pointed by spec 003 T1: while the band shows, the panel carries no countdown wrapper —
+    // the countdown is in the band — so the panel holds the readings alone. The one-panel,
+    // one-clock invariant below is the original assertion, unchanged.
     const html = page();
     const panel = html.indexOf('class="hero__panel"');
-    const countdownBlock = html.indexOf('class="hero__panel-countdown"');
     const readings = html.indexOf('class="hero__panel-readings"');
     expect(panel).toBeGreaterThan(-1);
-    expect(countdownBlock).toBeGreaterThan(panel);
-    expect(readings).toBeGreaterThan(countdownBlock);
+    expect(html).not.toContain('class="hero__panel-countdown"');
+    expect(readings).toBeGreaterThan(panel);
     // One panel, one clock: the reorder moves the block, it does not duplicate it.
     expect(html.split('class="hero__panel"').length - 1).toBe(1);
     expect(html.split('class="clock"').length - 1).toBe(1);
@@ -281,17 +328,18 @@ describe('AC-002-18: the fold tokens are recalibrated from real Chromium measure
 
   it('AC-002-18: the `--measure-face` comment records the clearance table and its date', () => {
     const comment = TOKENS.slice(TOKENS.indexOf('--clock-sub-col'), TOKENS.indexOf('--measure-face:'));
-    expect(comment).toMatch(/2026-10-29/);
+    expect(comment).toMatch(/2026-10-31/);
     // The per-locale figures, not one averaged number: which locale binds is the whole question.
-    expect(comment).toContain('75.92');
-    expect(comment).toContain('56.48');
+    // Re-measured for spec 003 T1 (AC-003-10): the numbers move, the 50px margin does not.
+    expect(comment).toContain('307.70');
+    expect(comment).toContain('332.00');
   });
 });
 
 describe('AC-002-19: the measurement table is updated', () => {
   it('AC-002-19: the table carries the re-measured 390x844 ranges', () => {
-    expect(MEASURED_CLOCK['390x844'].clock).toEqual([424.91, 768.08]);
-    expect(MEASURED_CLOCK['390x844'].fields).toEqual([471.3, 602.3]);
+    expect(MEASURED_CLOCK['390x844'].clock).toEqual([436.52, 613.28]);
+    expect(MEASURED_CLOCK['390x844'].fields).toEqual([480.91, 613.28]);
   });
 
   it('AC-002-19: the 360x640 and 1366x768 rows are re-recorded, not deleted', () => {

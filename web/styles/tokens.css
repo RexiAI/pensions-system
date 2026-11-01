@@ -66,6 +66,20 @@
      1366x768 480.91-925.59: both below the fold, desktop and the 640px phone out of scope,
      recorded rather than asserted — see the table in `tests/acceptance/first-viewport.test.ts`.
 
+     **Re-measured for spec 003 T1 (AC-003-10).** The countdown now leads the page in its own
+     full-width band, so the clock box sits directly under the band's eyebrow and its prose wraps
+     to `--measure` inside the band. Chromium (google-chrome headless over CDP) against the built
+     app, 390x844, `getBoundingClientRect()` of `.clock`, 2026-10-31 — clearance from the fold:
+
+       locale   clock (y)      fields row (y)   clearance
+       es       135.44-536.30  171.83-304.20    307.70
+       en       135.44-512.00  171.83-304.20    332.00
+       fr       135.44-512.00  171.83-304.20    332.00
+       de       135.44-536.30  171.83-304.20    307.70
+       it       135.44-516.86  171.83-304.20    327.14
+
+     The 50px margin is unchanged; every locale clears it. `--measure-face` is unchanged.
+
      Revision 4's note that "288px buys nothing" was measured against the pre-merge layout, where
      the measure did not change any locale's clock top. After the merge it does change French's,
      which is why the figure above supersedes it rather than repeating it.
@@ -74,6 +88,25 @@
      a side rather than the 74px it gets on a desktop. Measured in Chromium against the built app,
      2026-10-29 — see the table in `tests/acceptance/first-viewport.test.ts`. */
   --measure-face: 17.5rem;
+
+  /* Spec 003 T1 (OQ-2): the countdown band. Aliases onto the numeral ladder, never new sizes: the
+     day numeral takes the ladder's top step (`--text-num-xl`, 80px desktop, 44px at 390) so it is
+     strictly larger than the 4rem-capped `h1` at every width; the sub-day fields and the demoted
+     `16 años` numeral take `--text-num-l` (32px). The display cap is unchanged. */
+  --text-clock-days: var(--text-num-xl);
+  --text-clock-sub: var(--text-num-l);
+  --text-band-years: var(--text-num-l);
+  /* D1 put the page's identity above the clock and the share row under the fuse, so the band's own
+     block padding is now part of the fold budget (AC-003-06, AC-003-50): `--space-6` from 768 up
+     (was `--space-7`) and `--space-4` below it. The breathing comes out of the sheet's edges, not
+     out of any content: no type size, measure or margin in the band moved to buy these pixels. */
+  --band-pad-block: var(--space-6);
+  /* Spec 003 T2: the fuse's burnt segment; the cord is 1px, drawn in the SVG's own units. */
+  --fuse-burnt-h: 6px;
+  /* Spec 003 T3: share controls (WCAG 2.5.5 target size), their gap and their glyph. */
+  --tap-min: 44px;
+  --share-gap: var(--space-2);
+  --share-icon: 1.125rem;
 
   --space-1: 4px;
   --space-2: 8px;
