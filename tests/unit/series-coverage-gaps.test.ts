@@ -369,7 +369,9 @@ describe('the dependency series is read off the pinned variant, the total row an
 
 describe('the series ids and the published assumptions', () => {
   it('closes the series id set and the availability set', () => {
-    expect(SERIES_IDS).toEqual(['pyramid', 'countdown']);
+    // Spec 003 T2 adds the fuse to the closed set.
+    expect(SERIES_IDS).toEqual(['pyramid', 'countdown', 'fuse']);
+    expect(isSeriesId('fuse')).toBe(true);
     expect(SERIES_AVAILABILITY).toEqual(['computed', 'unavailable']);
     expect(isSeriesId('pyramid')).toBe(true);
     expect(isSeriesId('countdown')).toBe(true);

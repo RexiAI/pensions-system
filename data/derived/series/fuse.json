@@ -1,0 +1,32 @@
+{
+  "assumptions": {
+    "consumedPercent": 62.44,
+    "denominator": "15-64",
+    "observedRatio": 31.22,
+    "observedYear": 2025,
+    "threshold": 50
+  },
+  "availability": "computed",
+  "definition": "Counts the population aged 65 and over divided by the population aged 15 to 64, Spain, for the latest year the observed population dataset publishes, as a share of the dependency threshold the countdown uses. Excludes every projected value.",
+  "definitionId": "old-age-dependency-observed-share",
+  "formulaId": "observed-dependency-share.v1",
+  "manifest": {
+    "definitionId": "old-age-dependency-observed-share",
+    "fetchedAt": "2026-10-26T12:35:57Z",
+    "formulaId": "observed-dependency-share.v1",
+    "inputHash": "349e3be6838779a11ff031592d4658069684a39ed9d006000715a40c6f794425",
+    "reproducePath": "scripts/compute.ts",
+    "snapshotYear": 2026,
+    "sourceUrl": [
+      "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_pjan?format=JSON&lang=EN&geo=ES&time=1995&time=2025"
+    ]
+  },
+  "seriesId": "fuse",
+  "unresolvedSources": [],
+  "value": {
+    "consumedPercent": 62.44,
+    "observedRatio": 31.22,
+    "observedYear": 2025,
+    "threshold": 50
+  }
+}

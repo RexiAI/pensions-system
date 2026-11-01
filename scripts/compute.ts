@@ -113,7 +113,10 @@ function writePendingRevision(figures: readonly DerivedFigure[]): void {
 
 function printSeries(series: readonly DerivedSeries[]): void {
   for (const entry of series) {
-    console.log(`${entry.seriesId} ${entry.definitionId} ${entry.availability}${entry.unresolvedReason ? ` (${entry.unresolvedReason})` : ''}`);
+    const reason = entry.unresolvedReason ? ` (${entry.unresolvedReason})` : '';
+    // The digest and the assumptions are printed so a reproduce run can be compared with the
+    // published manifest and value by eye (spec 003 AC-003-16), not only by diffing the file.
+    console.log(`${entry.seriesId} ${entry.definitionId} ${entry.availability}${reason} ${entry.manifest.inputHash} ${JSON.stringify(entry.assumptions)}`);
   }
 }
 

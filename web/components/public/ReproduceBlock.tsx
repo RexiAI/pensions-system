@@ -52,7 +52,8 @@ function countdownNote(content: CountryLocaleContent, entry: DerivedSeries): str
  */
 export function ReproduceBlock({ content, figures, series = [] }: ReproduceBlockProps) {
   const computedFigures = figures.filter((figure) => figure.availability === 'computed');
-  const computedSeries = series.filter((entry) => entry.availability === 'computed');
+  // A series flagged `computed` with no value publishes nothing, so it advertises nothing.
+  const computedSeries = series.filter((entry) => entry.availability === 'computed' && entry.value !== null);
   const unavailable = figures.length - computedFigures.length;
   const figureRows: Row[] = computedFigures.map((figure) => ({
     id: figure.figureId,

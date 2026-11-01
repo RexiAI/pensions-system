@@ -33,7 +33,8 @@ describe('AC-001-105: only computed figures and series are advertised as reprodu
   it('AC-001-105: the count line matches reality, from the data', () => {
     const html = render(FIGURES);
     expect(html).toContain(ES.t('reproduce.count.figures', { count: 2 }));
-    expect(html).toContain(ES.t('reproduce.count.series', { count: 2 }));
+    // Spec 003 T2 publishes a third series, the fuse (AC-003-16): the count follows the data.
+    expect(html).toContain(ES.t('reproduce.count.series', { count: 3 }));
   });
 
   it('AC-001-105: no digest and no command is rendered for an unavailable figure', () => {

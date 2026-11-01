@@ -126,11 +126,19 @@ export function formatDate(iso: string, locale: Locale, timeZone = 'UTC'): strin
 }
 
 /**
- * A calendar year: digits only, never grouped. `Intl`'s default grouping turns 2042 into
- * `2,042` in `en`, which reads as a quantity rather than a year.
+ * A calendar year: digits only, never grouped. `Intl`'s default grouping turns 2040 into
+ * `2,040` in `en`, which reads as a quantity rather than a year.
  */
 export function formatYear(value: number, locale: Locale): string {
   return new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 0 }).format(value);
+}
+
+/**
+ * A whole percent already expressed in points (`62` → `62 %`), with the site's pinned percent
+ * typography. The caller has done the rounding: this never scales and never rounds (spec 003 T2).
+ */
+export function formatWholePercent(value: number, locale: Locale): string {
+  return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value)}${PERCENT_SUFFIX[locale]}`;
 }
 
 /** Counts (row counts, source counts) need no fractional digits. */

@@ -40,7 +40,9 @@ const REWRITTEN = [
   'hero.ctaFigures',
 ] as const;
 
-const EXPECTED_KEY_COUNT = 248;
+// Spec 003 adds 22 keys in all five locales (fuse.*, share.*, meta.*, card.*, pending.*,
+// series.fuse.title): the count moves, the parity it protects does not.
+const EXPECTED_KEY_COUNT = 270;
 
 /** A stable digest of a subset of the content model: `JSON.stringify` is key-order stable here. */
 function digest(value: unknown): string {
@@ -76,7 +78,7 @@ describe('AC-002-23: every statement fits its locale budget', () => {
 });
 
 describe('AC-002-24: key parity is preserved across all five locales', () => {
-  it('AC-002-24: each locale still has exactly 248 keys', () => {
+  it('AC-002-24: each locale still has exactly 270 keys', () => {
     for (const locale of LOCALES) {
       expect(Object.keys(stringsFor(locale)).length, locale).toBe(EXPECTED_KEY_COUNT);
     }
