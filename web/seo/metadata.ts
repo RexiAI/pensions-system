@@ -1,14 +1,18 @@
 import type { Metadata } from 'next';
 import { BRAND } from '../brand/generated';
 import { contentRegistry } from '../content/registry';
+import { formatYear } from '../content/format';
 import { SITE_URL, canonicalUrl } from '../content/site';
 import { alternateLinks, publicPathFor } from './routes';
+import { committedThresholdYear } from './threshold-year';
 
 /**
  * Page metadata for one locale (T19, R4 level 3). The `<title>` and `og:title` take a scope
  * suffix from the country record, so a shared link says which country the figures cover. No
- * metric, no number and no date reaches either string: a social card is cached for weeks, and a
- * number there becomes a false claim the first time the figure changes (D7).
+ * metric, no day count and no date reaches either string: a social card is cached for weeks, and
+ * a number there becomes a false claim the first time the figure changes (D7). Spec 003 T4
+ * amends D7 for one value only: the derived threshold year, which stays true until the projection
+ * is revised. Without a threshold year the strings are year-free, with no substitute.
  */
 export interface PageMetadata {
   title: string;
@@ -16,12 +20,19 @@ export interface PageMetadata {
   description: string;
 }
 
-export function pageMetadata(locale: string): PageMetadata {
+function scopedTitle(countryName: string): string {
+  return countryName === '' ? BRAND.wordmark : `${BRAND.wordmark} · ${countryName}`;
+}
+
+export function pageMetadata(locale: string, thresholdYear: number | null = committedThresholdYear()): PageMetadata {
   const entry = contentRegistry.get('ES', locale);
-  const countryName = entry.ok ? entry.content.country.name : '';
-  const title = countryName === '' ? BRAND.wordmark : `${BRAND.wordmark} · ${countryName}`;
-  const description = entry.ok ? entry.content.t('hero.sub') : '';
-  return { title, ogTitle: title, description };
+  if (!entry.ok) return { title: BRAND.wordmark, ogTitle: BRAND.wordmark, description: '' };
+  const scoped = scopedTitle(entry.content.country.name);
+  if (thresholdYear === null) return { title: scoped, ogTitle: scoped, description: entry.content.t('hero.sub') };
+  // Spec 003 T4: the derived threshold year leads the preview; the scope suffix stays last.
+  const year = formatYear(thresholdYear, entry.content.locale);
+  const title = `${entry.content.t('meta.title', { year })} · ${scoped}`;
+  return { title, ogTitle: title, description: entry.content.t('meta.description', { year }) };
 }
 
 /**

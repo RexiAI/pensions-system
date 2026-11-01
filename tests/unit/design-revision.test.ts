@@ -180,7 +180,17 @@ describe('Revision 1 D1: the unresolved figure as a first-class state', () => {
     );
 
     expect(anchors.every((position) => position > -1)).toBe(true);
-    expect([...anchors].sort((a, b) => a - b)).toEqual(anchors);
+    // Re-pointed by spec 003 T5 (AC-001-81/84/87): every unavailable figure now renders in one
+    // "en preparación" block at the first such figure's slot, so the unavailable anchors keep
+    // their order inside the block and the computed plates keep theirs around it.
+    const pending = ['fig-01', 'fig-03', 'fig-04', 'fig-05', 'fig-06', 'fig-07'].map((anchor) =>
+      html.indexOf(`id="${anchor}"`),
+    );
+    expect([...pending].sort((a, b) => a - b)).toEqual(pending);
+    const block = html.indexOf('class="pending"');
+    expect(block).toBeGreaterThan(-1);
+    expect(pending.every((position) => position > block)).toBe(true);
+    expect(html.indexOf('id="fig-02"')).toBeGreaterThan(pending[pending.length - 1] ?? -1);
   });
 });
 
@@ -545,13 +555,20 @@ describe('Revision 1 D7: mark, favicon and share card', () => {
   });
 
   it('never puts a number or a date on the share card', () => {
+    // Re-pointed by spec 003 T4 (D7 amended): with no threshold year the card is the year-free
+    // card and carries no digit at all — the original assertion, on the year-free form. With a
+    // year, that year is the only quantity (the sentence's 50/65/100 aside): no day count, no date.
     for (const locale of LOCALES) {
+      const yearFree = shareCard(locale, null);
+      if (!yearFree) throw new Error(`no share card for ${locale}`);
+      const element = yearFree.element as unknown as { props: { children: unknown } };
+      expect(textOf(element.props.children), locale).not.toMatch(/\d/);
+      expect(yearFree.alt).toContain(BRAND.wordmark);
+      expect(yearFree.alt).not.toMatch(/\d/);
       const card = shareCard(locale);
       if (!card) throw new Error(`no share card for ${locale}`);
-      const element = card.element as unknown as { props: { children: unknown } };
-      expect(textOf(element.props.children), locale).not.toMatch(/\d/);
       expect(card.alt).toContain(BRAND.wordmark);
-      expect(card.alt).not.toMatch(/\d/);
+      expect(card.alt.replaceAll('2042', '').replace(/\b(50|65|100)\b/g, '')).not.toMatch(/\d/);
     }
   });
 });
