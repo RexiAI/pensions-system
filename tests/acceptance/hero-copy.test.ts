@@ -157,16 +157,19 @@ describe('AC-002-26: the copy introduces no factual claim that requires a citati
     }
   });
 
-  it('AC-002-26: the editorial object is unchanged in every locale', () => {
-    // Pinned digests: the three editorial blocks are citation-bearing prose this task must not
-    // touch. Each is `sha256(JSON.stringify(editorial)).slice(0, 16)`; recompute only when the
-    // editorial copy is deliberately revised, together with its citations.
+  it('AC-005-37: the editorial digest is recomputed for spec 005’s additions', () => {
+    // Re-based by spec 005 T8: `editorial` gained the two mechanism claims (the facts register's
+    // pay-as-you-go sentence and the fig-01 beneficiaries-per-employed-person sentence) and the
+    // intergenerational reading appended to `thesis.paragraphs`. The `AC-002-26` rule this digest
+    // protected — no `hero.*` string introduces a citation-bearing factual claim — is unchanged
+    // and is asserted in its own test below. Each value is `sha256(JSON.stringify(editorial))
+    // .slice(0, 16)`; recompute only when the editorial copy is deliberately revised.
     const EXPECTED: Record<Locale, string> = {
-      es: 'd1ae896b8dcee63d',
-      en: '4ca5724135a62166',
-      fr: '3a2eb8114c81961c',
-      de: '0dbd6df5c9af3de3',
-      it: '8dd9ab6498b62ded',
+      es: 'e444201d608f1539',
+      en: '08ca574fa516a27d',
+      fr: '37f96841d03cdb3d',
+      de: '7df8faa459891110',
+      it: '8d509a4e5333856d',
     };
     for (const document of COUNTRY_DOCUMENTS) {
       expect(digest(document.editorial), `${document.locale} editorial`).toBe(

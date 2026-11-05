@@ -22,8 +22,8 @@
     "theme.system": "Sistema",
     "theme.light": "Claro",
     "theme.dark": "Oscuro",
-    "hero.statement": "La pensión que te espera en España",
-    "hero.sub": "Cuánto, cuándo y con qué fórmula. Compruébalo tú.",
+    "hero.statement": "Los días de tu España que envejece",
+    "hero.sub": "Cuándo llega y qué cambia. Compruébalo tú.",
     "hero.ctaPrimary": "Ver cuánto te queda",
     "hero.ctaSecondary": "Cómo se calcula",
     "hero.comparisonFirst": "1996",
@@ -32,7 +32,7 @@
     "hero.snapshotLabel": "Datos:",
     "hero.panelFooter": "Fuente: Seguridad Social e INE",
     "steps.number.label": "El número",
-    "steps.number.sentence": "Faltan estos días para el {date}, el día en que la población mayor alcanza la proporción que explica el paso siguiente.",
+    "steps.number.sentence": "Faltan estos días para el {date}: ese día la población de 65 y más años llega a {threshold} por cada {base} personas de 15 a 64 años.",
     "steps.breakage.label": "Qué se rompe",
     "steps.breakage.sentence": "La proporción de personas de 65 y más años llega a {threshold} por cada {base} personas de 15 a 64 años, y el sistema que las mantiene se queda sin margen.",
     "steps.why.label": "Por qué",
@@ -290,6 +290,14 @@
       {
         "text": "La población de 16 a 64 años proyectada por el INE se reduce entre 2026 y 2070.",
         "citationId": "ine-proyecciones-36643"
+      },
+      {
+        "text": "Las pensiones contributivas de hoy se pagan con las cotizaciones.",
+        "citationId": "ss-estadisticas-pensiones"
+      },
+      {
+        "text": "Cada persona ocupada sostiene hoy más beneficiarios de pensión que al inicio de la serie: la cifra pasó de {first} a {latest}.",
+        "citationId": "eurostat-emp-pens"
       }
     ],
     "disputes": [
@@ -317,7 +325,8 @@
       "statement": "Si el retorno prometido supera el crecimiento de la base, la diferencia solo se paga con más cotización, menos pensión o deuda.",
       "paragraphs": [
         "Leído en frío, el esquema se parece a una pirámide: lo que entra hoy paga lo prometido ayer, y la promesa solo se sostiene mientras la base crece.",
-        "No es una acusación ni una predicción. Es la consecuencia aritmética de comparar dos números que esta misma página calcula y publica."
+        "No es una acusación ni una predicción. Es la consecuencia aritmética de comparar dos números que esta misma página calcula y publica.",
+        "La carga de sostener el sistema recae hoy sobre quienes trabajan y mañana sobre quienes vienen; el reparto entre ambos es la decisión que esta página pone sobre la mesa."
       ],
       "signatureName": "Redacción",
       "signatureRole": "Equipo editorial",

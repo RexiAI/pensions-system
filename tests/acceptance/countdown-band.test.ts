@@ -4,11 +4,9 @@ import { NumberStep } from '../../web/components/public/NumberStep';
 import { MethodRegion } from '../../web/components/public/MethodRegion';
 import { PublicPage } from '../../web/components/PublicPage';
 import { citationRegistry } from '../../web/content/citations';
-import { formatDate } from '../../web/content/format';
 import { LOCALES } from '../../web/content/types';
 import type { Locale } from '../../web/content/types';
 import type { DerivedSeries } from '../../web/ingest/series-types';
-import { CLOCK_TIME_ZONE } from '../../web/series/clock';
 import { TOP_STEPS } from '../../web/components/public/top-steps';
 import { content, dependencyFigure, renderComponent, shareFigure } from '../fixtures/figures';
 import {
@@ -19,6 +17,7 @@ import {
   seriesFixtures,
   unavailableSeries,
 } from '../fixtures/series';
+import { numberSentence } from '../helpers/story';
 import { decodeText } from '../helpers/render-document';
 
 const CSS = readFileSync('web/styles/globals.css', 'utf8');
@@ -52,10 +51,6 @@ function methodOf(html: string): string {
   const start = html.indexOf('id="metodo"');
   const end = html.indexOf('id="debate"');
   return start === -1 || end === -1 ? '' : html.slice(start, end);
-}
-
-function anchorDate(locale: Locale): string {
-  return formatDate(countdownValue().anchor as string, locale, CLOCK_TIME_ZONE);
 }
 
 describe('AC-003-02: the day numeral is larger than the h1 on the numeral ladder', () => {
@@ -172,7 +167,7 @@ describe('the number group’s own copy', () => {
   it('names the target date once, in step 1’s sentence', () => {
     for (const locale of LOCALES) {
       const step = decodeText(numberStepOf(page(seriesFixtures(), locale)));
-      expect(step, locale).toContain(content(locale).t('steps.number.sentence', { date: anchorDate(locale) }));
+      expect(step, locale).toContain(numberSentence(locale));
     }
   });
 

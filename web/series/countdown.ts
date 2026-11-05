@@ -13,6 +13,8 @@ import { IngestError, categoryLabels, jsonStatPoints, resolveCategoryCode } from
 import { readAgeCounts } from './age-structure';
 
 export const COUNTDOWN_THRESHOLD = 50;
+/** The denominator the published ratio is stated per: `50 per 100`, one definition for both steps. */
+export const COUNTDOWN_BASE = 100;
 export const COUNTDOWN_DECIMALS = 2;
 export const BASELINE_PROJECTION_LABEL = 'Baseline projections';
 export const DEPENDENCY_NUMERATOR_LABEL = '65 years or over';

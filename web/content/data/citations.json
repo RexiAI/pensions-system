@@ -47,6 +47,14 @@
       "reference": "escenario central de largo plazo",
       "date": "2026-10-25",
       "url": "https://www.airef.es/"
+    },
+    {
+      "id": "eurostat-emp-pens",
+      "publisher": "Eurostat",
+      "document": "Pension beneficiaries and employment",
+      "reference": "spr_pns_ben, spdepm=TOTAL; lfsi_emp_a, indic_em=EMP_LFS",
+      "date": "2026-10-25",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?format=JSON&lang=EN&geo=ES&indic_em=EMP_LFS&sex=T&unit=THS_PER"
     }
   ]
 }

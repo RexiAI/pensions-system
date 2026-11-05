@@ -22,8 +22,8 @@
     "theme.system": "System",
     "theme.light": "Hell",
     "theme.dark": "Dunkel",
-    "hero.statement": "Die Rente, die dich in Spanien erwartet",
-    "hero.sub": "Wie viel, wann und mit welcher Formel. Prüf es selbst.",
+    "hero.statement": "Der Countdown für ein alterndes Spanien",
+    "hero.sub": "Wann er kommt und was sich ändert. Prüf es selbst.",
     "hero.ctaPrimary": "Deinen Betrag sehen",
     "hero.ctaSecondary": "Wie gerechnet wird",
     "hero.comparisonFirst": "1996",
@@ -32,7 +32,7 @@
     "hero.snapshotLabel": "Daten:",
     "hero.panelFooter": "Quelle: Sozialversicherung und INE",
     "steps.number.label": "Die Zahl",
-    "steps.number.sentence": "Es bleiben diese Tage bis zum {date}, dem Tag, an dem die ältere Bevölkerung den Anteil erreicht, den der nächste Schritt erklärt.",
+    "steps.number.sentence": "Es bleiben diese Tage bis zum {date}: an diesem Tag erreicht die Bevölkerung ab 65 Jahren {threshold} je {base} Personen im Alter von 15 bis 64 Jahren.",
     "steps.breakage.label": "Was bricht",
     "steps.breakage.sentence": "Der Anteil der Menschen ab 65 Jahren erreicht {threshold} auf {base} Menschen von 15 bis 64 Jahren, und dem System, das sie trägt, geht der Spielraum aus.",
     "steps.why.label": "Warum",
@@ -290,6 +290,14 @@
       {
         "text": "Die vom INE projizierte Bevölkerung zwischen 16 und 64 Jahren sinkt zwischen 2026 und 2070.",
         "citationId": "ine-proyecciones-36643"
+      },
+      {
+        "text": "Beitragsrenten werden heute aus Beiträgen gezahlt.",
+        "citationId": "ss-estadisticas-pensiones"
+      },
+      {
+        "text": "Jede erwerbstätige Person trägt heute mehr Rentenempfänger als zu Beginn der Reihe: Der Wert stieg von {first} auf {latest}.",
+        "citationId": "eurostat-emp-pens"
       }
     ],
     "disputes": [
@@ -317,7 +325,8 @@
       "statement": "Übersteigt die versprochene Rendite das Wachstum der Basis, lässt sich die Differenz nur mit höheren Beiträgen, niedrigeren Renten oder Schulden zahlen.",
       "paragraphs": [
         "Kühl gelesen ähnelt das System einer Pyramide: was heute hereinkommt, zahlt, was gestern versprochen wurde, und das Versprechen hält nur, solange die Basis wächst.",
-        "Das ist weder Anklage noch Prognose. Es ist die arithmetische Folge des Vergleichs zweier Zahlen, die diese Seite selbst berechnet und veröffentlicht."
+        "Das ist weder Anklage noch Prognose. Es ist die arithmetische Folge des Vergleichs zweier Zahlen, die diese Seite selbst berechnet und veröffentlicht.",
+        "Die Last, das System zu tragen, liegt heute bei denen, die arbeiten, und morgen bei denen, die kommen; wie sie zwischen beiden verteilt wird, ist die Entscheidung, die diese Seite auf den Tisch legt."
       ],
       "signatureName": "Redaktion",
       "signatureRole": "Redaktionsteam",

@@ -355,7 +355,7 @@ svg {
    text sits exactly on the axis every later step uses. */
 .step--number {
   background: var(--surface-hero);
-  padding-block: var(--space-6);
+  padding-block: var(--space-8);
 }
 
 /* The instrument's label treatment, unchanged, for the surfaces that still carry labels: the
@@ -412,7 +412,7 @@ svg {
   font-size: var(--text-body-lg);
   line-height: var(--leading-body);
   color: var(--ink-2);
-  margin: var(--space-4) 0 0;
+  margin: var(--space-5) 0 0;
   max-inline-size: var(--measure);
 }
 
@@ -456,7 +456,7 @@ svg {
   font-size: var(--text-display);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-6);
   overflow-wrap: break-word;
 }
 

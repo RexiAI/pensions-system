@@ -2,19 +2,16 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { displayPercent, drawnFraction } from '../../web/series/fuse';
 import { COUNTDOWN_THRESHOLD } from '../../web/series/countdown';
-import { CLOCK_TIME_ZONE, readClock } from '../../web/series/clock';
-import { formatDate, formatWholePercent } from '../../web/content/format';
+import { readClock } from '../../web/series/clock';
+import { formatWholePercent } from '../../web/content/format';
 import { LOCALES } from '../../web/content/types';
 import { content } from '../fixtures/figures';
 import { countdownAt, countdownSeries, countdownValue, pyramidSeries, seriesFixtures } from '../fixtures/series';
-import { classesOf, stepOf, storyPage, textOf } from '../helpers/story';
+import { classesOf, anchorDate, numberSentence, stepOf, storyPage, textOf } from '../helpers/story';
 import { decodeText } from '../helpers/render-document';
 
 const FUSE_SERIES = seriesFixtures().find((entry) => entry.seriesId === 'fuse');
 if (FUSE_SERIES === undefined) throw new Error('no fuse series');
-
-const ANCHOR_DATE = (locale: (typeof LOCALES)[number]): string =>
-  formatDate(countdownValue().anchor as string, locale, CLOCK_TIME_ZONE);
 
 /** The story's text nodes with the operator subtrees removed: what a reader sees. */
 function storyText(html: string): string {
@@ -52,7 +49,7 @@ describe('AC-004-07: step 1 carries the number and one plain sentence, nothing e
       expect(classes, locale).toContain('clock__value--days');
       expect(classes, locale).toContain('clock__value--sub');
       const text = storyText(step);
-      expect(text, locale).toContain(local.t('steps.number.sentence', { date: ANCHOR_DATE(locale) }));
+      expect(text, locale).toContain(numberSentence(locale));
       expect(text, locale).toContain(local.t('steps.number.label'));
       expect(text, locale).toContain(local.t('countdown.unit'));
     }
@@ -124,14 +121,14 @@ describe('AC-004-10: one sentence, bound to the shared parameter', () => {
   });
 });
 
-describe('AC-004-11: the threshold statement is stated once at the top', () => {
-  it('AC-004-11: one step carries both the threshold and the base, and it is step 2', () => {
+describe('AC-005-10: the proportion is stated in step 1 and step 2, and nowhere else', () => {
+  it('AC-005-10: the threshold-and-base carrier set is number and breakage', () => {
     const html = storyPage('es');
     const carriers = ['number', 'breakage', 'why', 'distance', 'meaning'].filter((id) => {
       const text = storyText(stepOf(html, id));
       return new RegExp(`(?<![\\d.,])${COUNTDOWN_THRESHOLD}(?![\\d.,])`).test(text) && /(?<![\d.,])100(?![\d.,])/.test(text);
     });
-    expect(carriers).toEqual(['breakage']);
+    expect(carriers).toEqual(['number', 'breakage']);
   });
 });
 
@@ -275,9 +272,9 @@ describe('AC-004-29: the target date is named once at the top', () => {
       const story = textOf(
         ['number', 'breakage', 'why', 'distance', 'meaning'].map((id) => stepOf(html, id)).join(''),
       );
-      const occurrences = story.split(ANCHOR_DATE(locale)).length - 1;
+      const occurrences = story.split(anchorDate(locale)).length - 1;
       expect(occurrences, locale).toBe(1);
-      expect(textOf(stepOf(html, 'number')), locale).toContain(ANCHOR_DATE(locale));
+      expect(textOf(stepOf(html, 'number')), locale).toContain(anchorDate(locale));
     }
   });
 });
@@ -289,8 +286,8 @@ describe('AC-004-30: the three paraphrases are gone from the top', () => {
       const story = textOf(['number', 'breakage', 'why', 'distance', 'meaning'].map((id) => stepOf(html, id)).join(''));
       const local = content(locale);
       for (const text of [
-        local.t('countdown.clock.definition', { date: ANCHOR_DATE(locale) }),
-        local.t('countdown.clock.arithmetic', { years: '16', thresholdYear: '2042', snapshotYear: '2026', date: ANCHOR_DATE(locale) }),
+        local.t('countdown.clock.definition', { date: anchorDate(locale) }),
+        local.t('countdown.clock.arithmetic', { years: '16', thresholdYear: '2042', snapshotYear: '2026', date: anchorDate(locale) }),
         local.t('countdown.definition'),
       ]) {
         expect(story, `${locale}: ${text.slice(0, 24)}`).not.toContain(text);
@@ -308,7 +305,7 @@ describe('AC-004-31: the clock’s accessible name is plain', () => {
       const step = stepOf(storyPage(locale), 'number');
       const label = /<div class="clock" role="group" aria-label="([^"]*)"/.exec(step)?.[1] ?? '';
       expect(label.length, locale).toBeGreaterThan(0);
-      expect(label, locale).toContain(ANCHOR_DATE(locale));
+      expect(label, locale).toContain(anchorDate(locale));
       for (const phrase of [...CONVENTIONAL, ...THRESHOLD]) {
         expect(label.toLowerCase(), `${locale}: ${phrase}`).not.toContain(phrase);
       }
@@ -317,7 +314,7 @@ describe('AC-004-31: the clock’s accessible name is plain', () => {
 
   it('AC-004-31: the copy is the content model’s, and it is non-empty in all five locales', () => {
     for (const locale of LOCALES) {
-      const verdict = content(locale).t('countdown.clock.a11y', { date: ANCHOR_DATE(locale) });
+      const verdict = content(locale).t('countdown.clock.a11y', { date: anchorDate(locale) });
       expect(verdict.trim().length, locale).toBeGreaterThan(0);
     }
   });
@@ -330,9 +327,9 @@ describe('AC-004-32: the date and the arithmetic survive below the fold', () => 
       const method = html.slice(html.indexOf('id="metodo"'), html.indexOf('id="debate"'));
       const outside = method.replace(/<details[\s\S]*?<\/details>/g, '');
       const local = content(locale);
-      expect(decodeText(outside), locale).toContain(local.t('countdown.clock.definition', { date: ANCHOR_DATE(locale) }));
+      expect(decodeText(outside), locale).toContain(local.t('countdown.clock.definition', { date: anchorDate(locale) }));
       expect(decodeText(outside), locale).toContain(
-        local.t('countdown.clock.arithmetic', { years: '16', thresholdYear: '2042', snapshotYear: '2026', date: ANCHOR_DATE(locale) }),
+        local.t('countdown.clock.arithmetic', { years: '16', thresholdYear: '2042', snapshotYear: '2026', date: anchorDate(locale) }),
       );
     }
   });

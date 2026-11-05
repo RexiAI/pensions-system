@@ -22,8 +22,8 @@
     "theme.system": "Sistema",
     "theme.light": "Chiaro",
     "theme.dark": "Scuro",
-    "hero.statement": "La pensione che ti aspetta in Spagna",
-    "hero.sub": "Quanto, quando e con quale formula. Verificalo tu.",
+    "hero.statement": "Conto alla rovescia della Spagna anziana",
+    "hero.sub": "Quando arriva e cosa cambia. Verificalo tu.",
     "hero.ctaPrimary": "Vedere quanto ti resta",
     "hero.ctaSecondary": "Come si calcola",
     "hero.comparisonFirst": "1996",
@@ -32,7 +32,7 @@
     "hero.snapshotLabel": "Dati:",
     "hero.panelFooter": "Fonte: Previdenza sociale e INE",
     "steps.number.label": "Il numero",
-    "steps.number.sentence": "Restano questi giorni fino al {date}, il giorno in cui la popolazione anziana raggiunge la quota che il passo successivo spiega.",
+    "steps.number.sentence": "Restano questi giorni fino al {date}: quel giorno la popolazione di 65 anni e più raggiunge {threshold} per ogni {base} persone tra i 15 e i 64 anni.",
     "steps.breakage.label": "Che cosa si rompe",
     "steps.breakage.sentence": "La quota di persone di 65 anni e più arriva a {threshold} ogni {base} persone da 15 a 64 anni, e il sistema che le sostiene resta senza margine.",
     "steps.why.label": "Perché",
@@ -290,6 +290,14 @@
       {
         "text": "La popolazione tra 16 e 64 anni proiettata dall'INE diminuisce tra il 2026 e il 2070.",
         "citationId": "ine-proyecciones-36643"
+      },
+      {
+        "text": "Le pensioni contributive sono pagate oggi con i contributi.",
+        "citationId": "ss-estadisticas-pensiones"
+      },
+      {
+        "text": "Ogni persona occupata sostiene oggi più beneficiari di pensione rispetto all'inizio della serie: il valore è passato da {first} a {latest}.",
+        "citationId": "eurostat-emp-pens"
       }
     ],
     "disputes": [
@@ -317,7 +325,8 @@
       "statement": "Se il rendimento promesso supera la crescita della base, la differenza si paga solo con più contributi, pensioni più basse o debito.",
       "paragraphs": [
         "Letto a freddo, lo schema assomiglia a una piramide: ciò che entra oggi paga ciò che è stato promesso ieri, e la promessa regge solo finché la base cresce.",
-        "Non è un'accusa né una previsione. È la conseguenza aritmetica del confronto tra due numeri che questa pagina calcola e pubblica."
+        "Non è un'accusa né una previsione. È la conseguenza aritmetica del confronto tra due numeri che questa pagina calcola e pubblica.",
+        "Il peso di sostenere il sistema ricade oggi su chi lavora e domani su chi verrà; come ripartirlo tra i due è la scelta che questa pagina mette sul tavolo."
       ],
       "signatureName": "Redazione",
       "signatureRole": "Redazione",

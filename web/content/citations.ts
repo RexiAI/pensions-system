@@ -1,4 +1,8 @@
+import { interpolate } from './types';
 import type { AgreementClaim, Citation, DisputedClaim, DisputePosition } from './types';
+
+/** Variables a claim's text may interpolate (the mechanism claim's published numerals). */
+export type ClaimVariables = Readonly<Record<string, string>>;
 
 /**
  * Citation resolution (T9). A claim, quote or position is renderable only if its
@@ -28,15 +32,20 @@ export interface ResolvedDispute {
   positions: Array<{ position: DisputePosition; citation: Citation }>;
 }
 
-/** Drops any claim whose citation does not resolve. */
+/**
+ * Drops any claim whose citation does not resolve. `vars` fills the claim's own placeholders:
+ * the figs register's mechanism claim derives its two numerals from the committed figure rather
+ * than carrying them as copy. An absent variable stays a visible `{name}`, never an empty string.
+ */
 export function resolveClaims(
   claims: readonly AgreementClaim[],
   registry: CitationRegistry,
+  vars: ClaimVariables = {},
 ): ResolvedClaim[] {
   const resolved: ResolvedClaim[] = [];
   for (const claim of claims) {
     const citation = registry.find(claim.citationId);
-    if (citation) resolved.push({ text: claim.text, citation });
+    if (citation) resolved.push({ text: interpolate(claim.text, vars), citation });
   }
   return resolved;
 }

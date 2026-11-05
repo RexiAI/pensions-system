@@ -22,8 +22,8 @@
     "theme.system": "Système",
     "theme.light": "Clair",
     "theme.dark": "Sombre",
-    "hero.statement": "La retraite qui vous attend en Espagne",
-    "hero.sub": "Combien, quand et par quelle formule. Vérifiez-le vous-même.",
+    "hero.statement": "Le compte à rebours de la population âgée en Espagne",
+    "hero.sub": "Quand elle arrive et ce qui change. Vérifiez-le vous-même.",
     "hero.ctaPrimary": "Voir votre montant",
     "hero.ctaSecondary": "Comment on calcule",
     "hero.comparisonFirst": "1996",
@@ -32,7 +32,7 @@
     "hero.snapshotLabel": "Données :",
     "hero.panelFooter": "Source : Sécurité sociale et INE",
     "steps.number.label": "Le chiffre",
-    "steps.number.sentence": "Il reste ces jours jusqu'au {date}, le jour où la population âgée atteint la part que l'étape suivante explique.",
+    "steps.number.sentence": "Il reste ces jours jusqu'au {date} : ce jour-là, la population de 65 ans et plus atteint {threshold} pour {base} personnes de 15 à 64 ans.",
     "steps.breakage.label": "Ce qui casse",
     "steps.breakage.sentence": "La part des personnes de 65 ans et plus atteint {threshold} pour {base} personnes de 15 à 64 ans, et le système qui les fait vivre n'a plus de marge.",
     "steps.why.label": "Pourquoi",
@@ -290,6 +290,14 @@
       {
         "text": "La population de 16 à 64 ans projetée par l'INE diminue entre 2026 et 2070.",
         "citationId": "ine-proyecciones-36643"
+      },
+      {
+        "text": "Les retraites contributives sont payées aujourd'hui par les cotisations.",
+        "citationId": "ss-estadisticas-pensiones"
+      },
+      {
+        "text": "Chaque personne occupée soutient aujourd'hui plus de bénéficiaires de retraite qu'au début de la série : la valeur est passée de {first} à {latest}.",
+        "citationId": "eurostat-emp-pens"
       }
     ],
     "disputes": [
@@ -317,7 +325,8 @@
       "statement": "Si le rendement promis dépasse la croissance de la base, l'écart ne peut se payer que par plus de cotisations, moins de retraite ou de la dette.",
       "paragraphs": [
         "Lu froidement, le schéma ressemble à une pyramide : ce qui entre aujourd'hui paie ce qui a été promis hier, et la promesse ne tient que tant que la base grandit.",
-        "Ce n'est ni une accusation ni une prévision. C'est la conséquence arithmétique de comparer deux nombres que cette page calcule et publie."
+        "Ce n'est ni une accusation ni une prévision. C'est la conséquence arithmétique de comparer deux nombres que cette page calcule et publie.",
+        "Le poids de soutenir le système repose aujourd'hui sur celles et ceux qui travaillent et demain sur celles et ceux qui viennent ; la répartition entre les deux est le choix que cette page met sur la table."
       ],
       "signatureName": "Rédaction",
       "signatureRole": "Équipe éditoriale",

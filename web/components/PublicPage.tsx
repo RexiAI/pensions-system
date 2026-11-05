@@ -1,7 +1,9 @@
 import type { DerivedSeries } from '../ingest/series-types';
 import type { CountdownValue } from '../series/countdown';
-import type { CitationRegistry } from '../content/citations';
+import type { CitationRegistry, ClaimVariables } from '../content/citations';
 import type { CountryLocaleContent } from '../content/types';
+import { formatValue } from '../content/format';
+import type { DependencyRatioSeriesValue } from '../metrics/dependency-ratio';
 import type { DerivedFigure } from '../ingest/types';
 import type { ScopeEntry } from './public/ScopeMark';
 import { AssumptionsLedger } from './public/AssumptionsLedger';
@@ -59,6 +61,23 @@ function snapshotIsoOf(figures: readonly DerivedFigure[]): string {
 }
 
 /**
+ * The mechanism claim states fig-01's first and latest ratio; both numerals are formatted from
+ * the committed value here, so the sentence cannot drift from the plate it describes. A figure
+ * that is absent or publishes no value yields no variables: the claim then keeps its
+ * placeholders visible rather than printing an empty string in their place.
+ */
+function claimVariables(figures: readonly DerivedFigure[], locale: CountryLocaleContent['locale']): ClaimVariables {
+  const figure = figures.find((entry) => entry.figureId === 'fig-01');
+  if (figure === undefined || figure.value === null) return {};
+  const { first, latest } = figure.value as DependencyRatioSeriesValue;
+  if (first === null || latest === null) return {};
+  return {
+    first: formatValue(first.ratio, 'ratio', locale, ''),
+    latest: formatValue(latest.ratio, 'ratio', locale, ''),
+  };
+}
+
+/**
  * The public document (re-composed by spec 004): the five-step story, the way to the method and
  * to share it, the computed figure plates, the method region that holds everything the story
  * dropped, the three registers, the reproduce panel and the assumptions ledger.
@@ -112,7 +131,11 @@ export function PublicPage({
           countries={scopes}
         />
         <div id="debate">
-          <AgreementSection content={content} citations={citations} />
+          <AgreementSection
+            content={content}
+            citations={citations}
+            vars={claimVariables(figures, content.locale)}
+          />
           <DisputeSection content={content} citations={citations} />
         </div>
         <div id="lectura">

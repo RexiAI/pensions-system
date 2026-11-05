@@ -1,10 +1,13 @@
 import { PublicPage } from '../../web/components/PublicPage';
 import { citationRegistry } from '../../web/content/citations';
+import { formatDate } from '../../web/content/format';
 import type { CountryLocaleContent, Locale } from '../../web/content/types';
 import type { DerivedFigure } from '../../web/ingest/types';
 import type { DerivedSeries } from '../../web/ingest/series-types';
+import { CLOCK_TIME_ZONE } from '../../web/series/clock';
+import { COUNTDOWN_BASE, COUNTDOWN_THRESHOLD } from '../../web/series/countdown';
 import { content, dependencyFigure, renderComponent, shareFigure } from '../fixtures/figures';
-import { seriesFixtures } from '../fixtures/series';
+import { countdownValue, seriesFixtures } from '../fixtures/series';
 
 /** The instant every helper in this file renders at: three days out, the instant the clock tests pin. */
 const STORY_NOW = Date.parse('2026-10-31T10:00:00Z');
@@ -69,6 +72,43 @@ export function methodOf(html: string): string {
   const at = html.indexOf('<section class="method"');
   const end = html.indexOf('id="debate"', at === -1 ? 0 : at);
   return at === -1 || end === -1 ? '' : html.slice(at, end);
+}
+
+export interface SectionRange {
+  start: number;
+  end: number;
+}
+
+/**
+ * Where the `<section>` carrying `marker` sits in a rendered document: from its opening tag to its
+ * closing one. One definition, so two suites cannot disagree about which section a marker names.
+ */
+export function sectionRangeOf(html: string, marker: string): SectionRange {
+  const start = html.lastIndexOf('<section', html.indexOf(marker));
+  return { start, end: html.indexOf('</section>', start) };
+}
+
+/** The section carrying `marker`, as the substring from its opening tag to its close. */
+export function sectionOf(html: string, marker: string): string {
+  const { start, end } = sectionRangeOf(html, marker);
+  return html.slice(start, end);
+}
+
+/** The committed anchor date as the page states it, for the sentences that name it. */
+export function anchorDate(locale: Locale): string {
+  return formatDate(countdownValue().anchor as string, locale, CLOCK_TIME_ZONE);
+}
+
+/**
+ * Step 1's one sentence with its variables filled from the committed values — built here from the
+ * constants, never from the component, so the assertion stays independent of the code it checks.
+ */
+export function numberSentence(locale: Locale): string {
+  return content(locale).t('steps.number.sentence', {
+    date: anchorDate(locale),
+    threshold: String(COUNTDOWN_THRESHOLD),
+    base: String(COUNTDOWN_BASE),
+  });
 }
 
 /** Visible text of a markup fragment: tags removed, entities decoded, whitespace collapsed. */

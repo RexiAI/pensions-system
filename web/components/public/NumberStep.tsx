@@ -4,6 +4,7 @@ import { CLOCK_TIME_ZONE } from '../../series/clock';
 import type { CountdownValue } from '../../series/countdown';
 import { CountdownClock } from '../series/CountdownClock';
 import { TopStepSection } from './TopStepSection';
+import { thresholdNumerals } from './step-numerals';
 import type { StepProps } from './top-steps';
 
 export interface NumberStepProps extends StepProps {
@@ -47,6 +48,21 @@ function measured(countdown: CountdownValue): CountdownValue | undefined {
   return countdown.state === 'computed' && countdown.anchor !== null ? countdown : undefined;
 }
 
+/**
+ * Step 1's one sentence: the target date, then the two numerals the story states as one fact.
+ * The date is stated here and nowhere else in the story.
+ */
+function NumberSentence({ content, countdown }: { content: CountryLocaleContent; countdown: CountdownValue }) {
+  return (
+    <p className="step__sentence">
+      {content.t('steps.number.sentence', {
+        date: anchorDate(countdown, content),
+        ...thresholdNumerals(content.locale),
+      })}
+    </p>
+  );
+}
+
 /** The step's body: the measurement and one sentence, or the projection's own fallback. */
 function NumberBody({ content, countdown, nowMs }: { content: CountryLocaleContent; countdown?: CountdownValue; nowMs: number }) {
   if (countdown?.state === 'not-crossed') {
@@ -58,7 +74,7 @@ function NumberBody({ content, countdown, nowMs }: { content: CountryLocaleConte
   return (
     <>
       <NumberGroup content={content} countdown={value} nowMs={nowMs} />
-      <p className="step__sentence">{content.t('steps.number.sentence', { date: anchorDate(value, content) })}</p>
+      <NumberSentence content={content} countdown={value} />
     </>
   );
 }

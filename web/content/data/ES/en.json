@@ -22,8 +22,8 @@
     "theme.system": "System",
     "theme.light": "Light",
     "theme.dark": "Dark",
-    "hero.statement": "The pension that waits for you in Spain",
-    "hero.sub": "How much, when and by which formula. Check it yourself.",
+    "hero.statement": "Countdown for Spain as its population ages",
+    "hero.sub": "When it arrives and what changes. Check it for yourself.",
     "hero.ctaPrimary": "See your figure",
     "hero.ctaSecondary": "How it is calculated",
     "hero.comparisonFirst": "1996",
@@ -32,7 +32,7 @@
     "hero.snapshotLabel": "Data:",
     "hero.panelFooter": "Source: Social Security and INE",
     "steps.number.label": "The number",
-    "steps.number.sentence": "These days remain until {date}, the day the older population reaches the share the next step explains.",
+    "steps.number.sentence": "These days remain until {date}: on that day the population aged 65 and over reaches {threshold} for every {base} people aged 15 to 64.",
     "steps.breakage.label": "What breaks",
     "steps.breakage.sentence": "The share of people aged 65 and over reaches {threshold} for every {base} people aged 15 to 64, and the system that supports them runs out of room.",
     "steps.why.label": "Why",
@@ -290,6 +290,14 @@
       {
         "text": "The population aged 16 to 64 that INE projects shrinks between 2026 and 2070.",
         "citationId": "ine-proyecciones-36643"
+      },
+      {
+        "text": "Contributory pensions today are paid out of contributions.",
+        "citationId": "ss-estadisticas-pensiones"
+      },
+      {
+        "text": "Each employed person today supports more pension beneficiaries than at the start of the series: the figure rose from {first} to {latest}.",
+        "citationId": "eurostat-emp-pens"
       }
     ],
     "disputes": [
@@ -317,7 +325,8 @@
       "statement": "If the promised return exceeds the growth of the base, the difference can only be paid with more contributions, lower pensions or debt.",
       "paragraphs": [
         "Read coldly, the scheme resembles a pyramid: what comes in today pays what was promised yesterday, and the promise holds only while the base grows.",
-        "This is neither an accusation nor a forecast. It is the arithmetic consequence of comparing two numbers this page computes and publishes."
+        "This is neither an accusation nor a forecast. It is the arithmetic consequence of comparing two numbers this page computes and publishes.",
+        "The weight of sustaining the system falls today on those who work and tomorrow on those who come after; how it is shared between them is the choice this page puts on the table."
       ],
       "signatureName": "Editorial desk",
       "signatureRole": "Editorial team",

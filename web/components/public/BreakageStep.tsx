@@ -1,10 +1,6 @@
-import { formatValue } from '../../content/format';
-import { COUNTDOWN_THRESHOLD } from '../../series/countdown';
 import { TopStepSection } from './TopStepSection';
+import { thresholdNumerals } from './step-numerals';
 import type { StepProps } from './top-steps';
-
-/** The base the published ratio is expressed per: `50 per 100`, never a second literal. */
-const BASE = 100;
 
 /**
  * Step 2 — what breaks, in one plain line (spec 004 T3).
@@ -18,10 +14,7 @@ export function BreakageStep({ step, content }: StepProps) {
   return (
     <TopStepSection step={step} content={content}>
       <p className="step__statement">
-        {content.t('steps.breakage.sentence', {
-          threshold: formatValue(COUNTDOWN_THRESHOLD, 'integer', content.locale, ''),
-          base: formatValue(BASE, 'integer', content.locale, ''),
-        })}
+        {content.t('steps.breakage.sentence', thresholdNumerals(content.locale))}
       </p>
     </TopStepSection>
   );
