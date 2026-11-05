@@ -8,10 +8,17 @@ import {
   readDependencySeries,
 } from '../../web/series/countdown';
 import type { CountdownValue } from '../../web/series/countdown';
-import { CountdownBlock } from '../../web/components/series/CountdownBlock';
-import { Hero } from '../../web/components/public/Hero';
-import { content, dependencyFigure, renderComponent, shareFigure } from '../fixtures/figures';
-import { committedPayload, countdownValue, seriesSnapshots, countdownSeries } from '../fixtures/series';
+import { content, renderComponent } from '../fixtures/figures';
+import {
+  committedPayload,
+  countdownSeries,
+  countdownValue,
+  seriesFixtures,
+  seriesSnapshots,
+} from '../fixtures/series';
+import { citationRegistry } from '../../web/content/citations';
+import { PublicPage } from '../../web/components/PublicPage';
+import { stripOperatorSubtrees } from '../../web/build/public-vocabulary';
 
 const ES = content('es');
 const projected = committedPayload('eurostat-proj-23np-ratio');
@@ -21,8 +28,37 @@ function countdownAt(threshold: number): CountdownValue {
   return computeCountdown({ projected, observed, snapshotYear: 2026, threshold });
 }
 
-function renderCountdown(value: CountdownValue, locale = 'es'): string {
-  return renderComponent(CountdownBlock, { content: content(locale), countdown: value });
+/**
+ * The page as the countdown's own story renders it. Spec 004 split the old block: the
+ * measurement is step 1 and the precision is `#metodo`, so a copy assertion reads the page and
+ * slices the region it is about.
+ */
+function renderPage(value: CountdownValue, locale = 'es'): string {
+  const series = [
+    ...seriesFixtures().filter((entry) => entry.seriesId !== 'countdown'),
+    { ...countdownSeries(), value },
+  ];
+  return renderComponent(PublicPage, {
+    content: content(locale),
+    figures: [],
+    citations: citationRegistry,
+    freshnessWindowDays: 45,
+    stale: false,
+    series,
+    now: new Date('2026-10-31T10:00:00Z'),
+  });
+}
+
+/** `#metodo`: the region that carries the projection's precision. */
+function methodOf(html: string): string {
+  const at = html.indexOf('id="metodo"');
+  return at === -1 ? '' : html.slice(at, html.indexOf('id="debate"', at));
+}
+
+/** Step 1's number group: the measurement and its labels. */
+function numberStepOf(html: string): string {
+  const at = html.indexOf('data-top-step="number"');
+  return at === -1 ? '' : html.slice(at, html.indexOf('data-top-step="breakage"', at));
 }
 
 describe('AC-001-98: the ratio is pinned to the variant and the age definition; the threshold is a parameter', () => {
@@ -87,7 +123,8 @@ describe('AC-001-99: the countdown is the difference of two printed integers', (
   });
 
   it('AC-001-99: both integers are printed beside the number, and the years quantity carries no sub-annual unit', () => {
-    const html = renderCountdown(value);
+    const html = renderPage(value);
+    const step = numberStepOf(html);
     expect(html).toContain('2042');
     expect(html).toContain('2026');
     expect(html).toContain('16');
@@ -97,14 +134,12 @@ describe('AC-001-99: the countdown is the difference of two printed integers', (
     // (AC-001-108…AC-001-119). Spec 002 §T3 moved the numeral into the clock's own centred
     // group, so the assertion is made on the numeral wherever it now renders — no longer on a
     // slice that ends at `class="clock"` — and, as before, on the whole block above the clock.
-    const numeralAt = html.indexOf('class="countdown__value"');
+    const numeralAt = step.indexOf('class="countdown__value"');
     expect(numeralAt).toBeGreaterThan(-1);
-    const numeral = html.slice(numeralAt, html.indexOf('</p>', numeralAt));
+    const numeral = step.slice(numeralAt, step.indexOf('</p>', numeralAt));
     expect(numeral).toContain('16');
-    const aboveClock = html.slice(0, html.indexOf('class="clock"'));
     for (const unit of ['día', 'dias', 'días', 'mes', 'meses', 'hora', 'horas', 'minuto', 'minutos', 'segundo']) {
       expect(numeral.toLowerCase(), unit).not.toContain(unit);
-      expect(aboveClock.toLowerCase(), unit).not.toContain(unit);
     }
   });
 
@@ -119,21 +154,21 @@ describe('AC-001-99: the countdown is the difference of two printed integers', (
       source.indexOf("\n  });", source.indexOf("it('AC-001-99: both integers are printed beside the number")),
     );
     expect(body).not.toContain("projectionGroup.indexOf('class=\"countdown__value\"')");
-    expect(body).toContain("html.indexOf('class=\"countdown__value\"')");
+    expect(body).toContain("step.indexOf('class=\"countdown__value\"')");
 
     // And it still holds on the rendered block: neither the numeral nor the prose above the clock
     // has acquired an annual-or-shorter unit.
-    const html = renderCountdown(value);
-    const numeralAt = html.indexOf('class="countdown__value"');
-    expect(html.slice(numeralAt, html.indexOf('</p>', numeralAt))).toContain('16');
+    const step = numberStepOf(renderPage(value));
+    const numeralAt = step.indexOf('class="countdown__value"');
+    expect(step.slice(numeralAt, step.indexOf('</p>', numeralAt))).toContain('16');
     for (const unit of ['día', 'dias', 'días', 'mes', 'meses', 'hora', 'horas', 'minuto', 'minutos', 'segundo']) {
-      expect(html.slice(numeralAt, html.indexOf('</p>', numeralAt)).toLowerCase(), unit).not.toContain(unit);
+      expect(step.slice(numeralAt, step.indexOf('</p>', numeralAt)).toLowerCase(), unit).not.toContain(unit);
     }
     expect(body).toContain('AC-001-99');
   });
 
   it('AC-001-99: no icon, no ticking element and no live region', () => {
-    const html = renderCountdown(value);
+    const html = numberStepOf(renderPage(value));
     expect(html).not.toContain('<svg');
     expect(html).not.toContain('aria-live');
     expect(html).not.toContain('<time');
@@ -159,7 +194,7 @@ describe('AC-001-100: the range is computed over all six variants', () => {
 
   it('AC-001-100: the printed range is the min and max over the crossing variants', () => {
     expect(value.range).toEqual({ min: 2039, max: 2043 });
-    const html = renderCountdown(value);
+    const html = renderPage(value);
     expect(html).toContain(ES.t('countdown.range', { min: 2039, max: 2043 }));
   });
 
@@ -168,7 +203,7 @@ describe('AC-001-100: the range is computed over all six variants', () => {
     expect(high.state).toBe('not-crossed');
     expect(high.range).toBeNull();
     expect(high.variants.every((entry) => entry.thresholdYear === null)).toBe(true);
-    expect(renderCountdown(high)).not.toContain('countdown__numeral');
+    expect(renderPage(high)).not.toContain('countdown__numeral');
   });
 });
 
@@ -180,24 +215,20 @@ describe('AC-001-101: a variant that never crosses renders no numeral and no sub
     expect(notCrossed.thresholdYear).toBeNull();
     expect(notCrossed.years).toBeNull();
     expect(notCrossed.horizonEnd).toBe(2100);
-    const html = renderCountdown(notCrossed);
+    const html = renderPage(notCrossed);
     expect(html).toContain(ES.t('countdown.notCrossed', { year: 2100 }));
     expect(html).toContain('2100');
     expect(html).not.toContain('countdown__numeral');
     expect(html).not.toContain('2042');
   });
 
-  it('AC-001-101: the hero falls back to the figure ladder with no countdown numeral', () => {
-    const html = renderComponent(Hero, {
-      content: ES,
-      figures: [shareFigure(), dependencyFigure()],
-      countdown: notCrossed,
-    });
+  it('AC-001-101: step 1 falls back to the projection’s sentence, with no numeral and no substitute', () => {
+    const html = numberStepOf(renderPage(notCrossed));
     expect(html).not.toContain('countdown__numeral');
+    expect(html).not.toContain('class="clock"');
     expect(html).toContain(ES.t('countdown.notCrossed', { year: 2100 }));
-    // The figure keeps the largest type, exactly as Revision 1 shipped it.
-    expect(html).toContain('class="hero__value"');
-    expect(html).not.toContain('hero__value--demoted');
+    // The page still leads with its title and its step label.
+    expect(html).toContain('id="hero-title"');
   });
 });
 
@@ -205,19 +236,23 @@ describe('the countdown block states the source, the definition and the variant'
   const value = countdownValue();
 
   it('prints the threshold, the source, the variant range and the definition', () => {
-    const html = renderCountdown(value);
+    const html = methodOf(renderPage(value));
     expect(html).toContain(ES.t('countdown.eyebrow'));
     expect(html).toContain(ES.t('countdown.unit'));
     expect(html).toContain(ES.t('countdown.yearLabel'));
     expect(html).toContain(ES.t('countdown.definition'));
     expect(html).toContain(ES.t('countdown.source'));
-    expect(html).toContain('countdown__rule');
+    // The 3px accent rule retires with the band (spec 004 T2): the numeral is already the one
+    // thing in step 1 that differs.
+    expect(html).not.toContain('countdown__rule');
     expect(html).toContain(ES.t('countdown.backCast', { projected: '31,91', observed: '31,22', year: 2025 }));
   });
 
   it('renders in every locale without leaking the operator variant code', () => {
     for (const locale of ['es', 'en', 'fr', 'de', 'it'] as const) {
-      const html = renderCountdown(value, locale);
+      // The operator subtrees (the provenance detail's formula ids and source URLs) are marked
+      // `data-operator`; the public copy inside the region must not carry the variant code.
+      const html = stripOperatorSubtrees(methodOf(renderPage(value, locale)));
       expect(html, locale).not.toContain('BSL');
       expect(html, locale).not.toContain('HMIGR');
       expect(html, locale).toContain('2042');

@@ -56,7 +56,7 @@ describe('AC-003-45: admin stays fail-closed', () => {
   it('AC-003-45: an unconfigured admin route answers 503 and the public page still renders', () => {
     const plan = evaluateAdminRequest({ method: 'GET', pathname: '/admin', env: {}, now: new Date() });
     expect(plan.status).toBe(503);
-    expect(page()).toContain('class="band"');
+    expect(page()).toContain('class="story"');
   });
 });
 
@@ -65,14 +65,16 @@ describe('AC-003-46: the thesis register stays uncoloured and separate', () => {
     for (const locale of LOCALES) {
       const local = content(locale);
       const html = page(locale);
-      const band = html.slice(html.indexOf('class="band"'), html.indexOf('class="hero hero--'));
-      const pending = html.slice(html.indexOf('class="pending"'), html.indexOf('id="debate"'));
-      for (const region of [band, pending]) {
+      // Spec 004: the story replaces the band and the pending block, and the appendix replaces
+      // the hero section. The two new regions are what the thesis must stay out of.
+      const story = html.slice(html.indexOf('class="story"'), html.indexOf('id="figuras"'));
+      const appendix = html.slice(html.indexOf('id="figuras"'), html.indexOf('id="debate"'));
+      for (const region of [story, appendix]) {
         expect(region, locale).not.toContain(local.editorial.thesis.statement);
         for (const paragraph of local.editorial.thesis.paragraphs) expect(region, locale).not.toContain(paragraph);
         expect(region, locale).not.toContain('thesis');
       }
-      // The thesis register is still its own section, after the debate and outside the band.
+      // The thesis register is still its own section, after the debate and outside the story.
       expect(html.indexOf('data-register="thesis"'), locale).toBeGreaterThan(html.indexOf('id="debate"'));
     }
     expect(NEW_SECTION).not.toMatch(/thesis|--data-deficit|--data-projection/);

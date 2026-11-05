@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { BRAND } from '../../web/brand/generated';
 import { decodeText } from '../helpers/render-document';
-import { PendingBlock, pendingFigures } from '../../web/components/PendingBlock';
-import { CountdownBand, bandCountdown } from '../../web/components/series/CountdownBand';
-import { Fuse } from '../../web/components/series/Fuse';
+import { MethodRegion } from '../../web/components/public/MethodRegion';
+import { StoryStrip } from '../../web/components/public/StoryStrip';
+import { FuseLine } from '../../web/components/series/Fuse';
 import { canonicalUrl } from '../../web/content/site';
 import type { CountryLocaleContent } from '../../web/content/types';
-import { readDerivedFigures } from '../../web/ingest/write-derived';
 import { DEMO_PJAN_SOURCE, SERIES } from '../../web/ingest/series';
 import type { SeriesDefinition } from '../../web/ingest/series-types';
 import type { DerivedSeries } from '../../web/ingest/series-types';
@@ -19,11 +18,9 @@ import { content, renderComponent } from '../fixtures/figures';
 import { committedPayload, countdownValue, seriesFixtures, seriesSnapshots } from '../fixtures/series';
 
 /**
- * Mutation-killing tests for spec 003 (stage 5a). Each block names the surviving mutant it
- * kills; `specs/003-countdown-hero/30-report.md` carries the survivor-by-survivor verdicts.
- * They live in one file because the survivors share two themes: a fallback path that the
- * shipped data never takes (so no behaviour test covers it) and a published string that no
- * assertion read.
+ * Mutation-killing tests for spec 003 (stage 5a), re-pointed at spec 004's composition wherever
+ * the element they named moved (`CountdownBand` → `StoryStrip`, `Fuse` → `FuseLine` plus the
+ * method region, `PendingBlock` → retired). Each block names the surviving mutant it kills.
  */
 
 const ES = content('es');
@@ -126,7 +123,7 @@ describe('AC-003-38: an unknown locale publishes the bare wordmark, never a scop
   });
 });
 
-describe('AC-003-33: the band resolves every share string from the content model', () => {
+describe('AC-003-33: the strip resolves every share string from the content model', () => {
   it('AC-003-33: it asks for the click-time template with {days} left in it and for the label keys', () => {
     const calls: Array<[string, Record<string, string | number> | undefined]> = [];
     const spied: CountryLocaleContent = {
@@ -136,15 +133,7 @@ describe('AC-003-33: the band resolves every share string from the content model
         return ES.t(key, vars);
       },
     };
-    const countdown = bandCountdown(countdownValue());
-    if (!countdown) throw new Error('no band countdown');
-    renderComponent(CountdownBand, {
-      content: spied,
-      countdown,
-      fuse: fuseFixture(),
-      nowMs: NOW,
-      freshnessWindowDays: 45,
-    });
+    renderComponent(StoryStrip, { content: spied, countdown: countdownValue() });
     const url = canonicalUrl(publicPathFor('es'));
     const year = String(countdownValue().thresholdYear);
     // The message the click rebuilds: the year and the URL filled, the day count left as a token.
@@ -161,26 +150,23 @@ describe('AC-003-33: the band resolves every share string from the content model
 
 describe('AC-003-13 and AC-003-21: the drawn line is the stored fraction', () => {
   it('AC-003-13: the cord is inset and the burnt segment is the remainder of the viewBox', () => {
-    const html = decodeText(renderComponent(Fuse, { content: ES, series: fuseFixture(), freshnessWindowDays: 45 }));
+    const html = decodeText(renderComponent(FuseLine, { consumedPercent: 62.44 }));
     expect(html).toContain('<rect class="fuse__cord" x="0" y="3" width="375.6" height="1"');
     expect(html).toContain('<rect class="fuse__burnt" x="375.6" y="0" width="624.4" height="6"');
   });
 
   it('AC-003-21: the definition of the ratio and the reproduce label are the locale’s own strings', () => {
-    const html = decodeText(renderComponent(Fuse, { content: ES, series: fuseFixture(), freshnessWindowDays: 45 }));
+    const html = decodeText(
+      renderComponent(MethodRegion, {
+        content: ES,
+        sources: { countdown: countdownValue(), fuse: fuseFixture() },
+        freshnessWindowDays: 45,
+        nowMs: NOW,
+        countries: [{ geo: 'ES', name: ES.country.name, href: '#' }],
+      }),
+    );
     expect(html).toContain(`<p class="fuse__definition">${ES.t('fuse.definition')}</p>`);
     expect(html).toContain(`<a class="fuse__reproduce" href="#reproducir">${ES.t('fuse.reproduce')}</a>`);
-  });
-});
-
-describe('AC-003-39: the pending heading reads as a sentence, the chip not run into it', () => {
-  it('AC-003-39: the heading is the count, one space, then the chip', () => {
-    const figures = pendingFigures(readDerivedFigures('data/derived'));
-    expect(figures).toHaveLength(5);
-    const html = renderComponent(PendingBlock, { content: ES, figures });
-    const start = html.indexOf('<h2 class="pending__heading"');
-    const heading = decodeText(html.slice(start, html.indexOf('</h2>', start)).replace(/<[^>]+>/g, ''));
-    expect(heading).toBe(`${ES.t('pending.heading.other', { count: '5' })} ${ES.t('figure.unavailable.chip')}`);
   });
 });
 

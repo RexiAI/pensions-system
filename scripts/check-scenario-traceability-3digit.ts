@@ -75,6 +75,43 @@ export function citedScenarios(root: string): Map<string, string> {
   return cited;
 }
 
+/**
+ * Scenarios that a later spec has formally retired, so "declared but not cited" is their correct
+ * state rather than a gap.
+ *
+ * Spec 004 T17 retires the layout pins of specs 001 to 003 by a stated rule and makes it an
+ * acceptance criterion (`AC-004-74`) that no test cites them. Without this list the two checks
+ * would contradict each other: this gate would demand a citation for a scenario whose citation is
+ * itself a defect. A retired id is still *declared*, so citing it remains an error here — the
+ * exclusion only removes it from the "untested" demand.
+ */
+export const RETIRED_SCENARIOS: readonly string[] = [
+  'AC-001-107',
+  'AC-002-09',
+  'AC-002-10',
+  'AC-002-11',
+  'AC-002-12',
+  'AC-002-16',
+  'AC-002-18',
+  'AC-002-19',
+  'AC-002-20',
+  'AC-002-21',
+  'AC-002-24',
+  'AC-002-29',
+  'AC-002-30',
+  'AC-002-36',
+  'AC-003-01',
+  'AC-003-06',
+  'AC-003-10',
+  'AC-003-39',
+  'AC-003-40',
+  'AC-003-42',
+  'AC-003-48',
+  'AC-003-49',
+  'AC-003-50',
+  'AC-003-51',
+];
+
 export interface TraceabilityReport {
   /** Scenarios with no test citing them. */
   untested: string[];
@@ -87,8 +124,9 @@ export interface TraceabilityReport {
 export function checkTraceability(root: string): TraceabilityReport {
   const declared = declaredScenarios(root);
   const cited = citedScenarios(root);
+  const retired = new Set(RETIRED_SCENARIOS);
   return {
-    untested: [...declared.keys()].filter((id) => !cited.has(id)).sort(),
+    untested: [...declared.keys()].filter((id) => !cited.has(id) && !retired.has(id)).sort(),
     unknown: [...cited.keys()].filter((id) => !declared.has(id)).sort(),
     declared: declared.size,
     cited: cited.size,
