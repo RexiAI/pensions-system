@@ -195,35 +195,38 @@ describe('T8: the hero statement is bounded as content-model validation', () => 
   /**
    * The two-line check, measured rather than inferred. Chromium against the built app
    * (`npm run build`, `next start`), viewport 1280x800, on `<h1.hero__title>`:
-   * `font-size` 62.72px, `line-height` 63.97px, headline column 667px, and both
+   * `font-size` 62.72px, `line-height` 63.97px, headline column 1176px, and both
    * `rect.height / line-height` and `Range.getClientRects()` give the same count.
    *
-   * Re-measured 2026-10-29 for spec 002 §T6, which rewrote the statement in every locale into the
-   * conversion register. Same conditions as the record it replaces. Per locale: statement length
-   * in characters, the line count, and the width of each line box (px, inside the 667px column),
-   * so a longer line than the column has room for is caught as width rather than only as a count.
+   * Re-measured 2026-11-05 for spec 005 T1, which rewrote the statement in every locale so it
+   * names ageing and the countdown. Same conditions as the record it replaces, except the column:
+   * spec 004's single-axis composition makes the headline the full 1176px content width rather
+   * than spec 002's 667px hero split, so the stale column is re-recorded rather than trusted.
+   * Per locale: statement length in characters, the line count, and the width of each line box
+   * (px, inside the 1176px column), so a longer line than the column has room for is caught as
+   * width rather than only as a count.
    *
-   *   es  34 chars  2 lines  [533, 535]
-   *   en  39 chars  2 lines  [504, 642]
-   *   fr  38 chars  2 lines  [578, 565]
-   *   de  39 chars  2 lines  [635, 515]
-   *   it  36 chars  2 lines  [544, 543]
+   *   es  34 chars  1 line   [1070]
+   *   en  42 chars  2 lines  [1136, 143]
+   *   fr  52 chars  2 lines  [1116, 518]
+   *   de  39 chars  2 lines  [975, 242]
+   *   it  40 chars  2 lines  [973, 234]
    *
-   * Two lines in every locale, so every budget in `budgets.ts` is satisfied at its locale and no
-   * budget had to be widened to fit. A statement that measures three lines at 1280px is a
+   * At most two lines in every locale, so every budget in `budgets.ts` is satisfied at its locale
+   * and no budget had to be widened to fit. A statement that measures three lines at 1280px is a
    * content failure, and the fix is the copy — never the type scale, and never a truncated
    * string. A statement whose length changed invalidates the measurement, so the character count
    * is pinned to the shipped copy: re-measure before editing it.
    */
   const MEASURED = {
-    es: { lines: 2, chars: 34, lineWidths: [533, 535] },
-    en: { lines: 2, chars: 39, lineWidths: [504, 642] },
-    fr: { lines: 2, chars: 38, lineWidths: [578, 565] },
-    de: { lines: 2, chars: 39, lineWidths: [635, 515] },
-    it: { lines: 2, chars: 36, lineWidths: [544, 543] },
+    es: { lines: 1, chars: 34, lineWidths: [1070] },
+    en: { lines: 2, chars: 42, lineWidths: [1136, 143] },
+    fr: { lines: 2, chars: 52, lineWidths: [1116, 518] },
+    de: { lines: 2, chars: 39, lineWidths: [975, 242] },
+    it: { lines: 2, chars: 40, lineWidths: [973, 234] },
   } as const;
-  /** The headline column the 7/5 hero split leaves at 1280px, less the gutter. */
-  const COLUMN = 667;
+  /** The headline column at 1280px in spec 004's single-axis composition. */
+  const COLUMN = 1176;
 
   it('sets the headline in at most two lines at 1280px in every locale', () => {
     for (const locale of LOCALES) {
@@ -245,26 +248,27 @@ describe('T8: the hero statement is bounded as content-model validation', () => 
   /**
    * The statement-width record is re-measured, never the budget.
    *
-   * T6 rewrote `hero.statement` in all five locales while this file pins the statement's measured
-   * character count and per-line widths, so the record had to be re-recorded from a real
+   * Spec 005 T1 rewrote `hero.statement` in all five locales while this file pins the statement's
+   * measured character count and per-line widths, so the record had to be re-recorded from a real
    * measurement rather than left describing copy that no longer ships. What the assertions below
    * add over the two-line guard above is the *record's own accuracy*: the figures are the ones
-   * taken at 1280x800 on 2026-10-29, the prose table carries the same numbers as the constant (a
+   * taken at 1280x800 on 2026-11-05, the prose table carries the same numbers as the constant (a
    * constant re-recorded beside a stale table is two records, not one), and the re-record did not
    * buy its room by widening a budget — the copy was rewritten to fit the budget it already had.
    */
   interface WidthRecord {
+    readonly lines: number;
     readonly chars: number;
     readonly lineWidths: readonly number[];
   }
 
   /** The record, and the copy it was measured on. */
   const RECORDED: Readonly<Record<Locale, WidthRecord>> = {
-    es: { chars: 34, lineWidths: [533, 535] },
-    en: { chars: 39, lineWidths: [504, 642] },
-    fr: { chars: 38, lineWidths: [578, 565] },
-    de: { chars: 39, lineWidths: [635, 515] },
-    it: { chars: 36, lineWidths: [544, 543] },
+    es: { lines: 1, chars: 34, lineWidths: [1070] },
+    en: { lines: 2, chars: 42, lineWidths: [1136, 143] },
+    fr: { lines: 2, chars: 52, lineWidths: [1116, 518] },
+    de: { lines: 2, chars: 39, lineWidths: [975, 242] },
+    it: { lines: 2, chars: 40, lineWidths: [973, 234] },
   };
 
   const RECORD_SOURCE = readSource('tests/acceptance/content-locale.test.ts');
@@ -274,13 +278,15 @@ describe('T8: the hero statement is bounded as content-model validation', () => 
     for (const locale of LOCALES) {
       const entry = MEASURED[locale];
       expect(entry.chars, `${locale}: measured chars`).toBe(RECORDED[locale].chars);
+      expect(entry.lines, `${locale}: measured lines`).toBe(RECORDED[locale].lines);
       expect([...entry.lineWidths], `${locale}: measured line boxes`).toEqual([
         ...RECORDED[locale].lineWidths,
       ]);
-      // Exactly two lines, each inside the 667px column: the invariant the record protects. The
+      // One or two lines, each inside the measured column: the invariant the record protects. The
       // guard above keeps its own `<= 2` and `<= COLUMN`, unrelaxed.
-      expect(entry.lines, `${locale}: two lines at 1280px`).toBe(2);
-      expect(entry.lineWidths.length, `${locale}: line boxes`).toBe(2);
+      expect(entry.lines, `${locale}: at most two lines at 1280px`).toBeLessThanOrEqual(2);
+      expect(entry.lines, `${locale}: at least one line`).toBeGreaterThan(0);
+      expect(entry.lineWidths.length, `${locale}: line boxes`).toBe(entry.lines);
       for (const width of entry.lineWidths) {
         expect(width, `${locale}: a line box wider than the column`).toBeLessThanOrEqual(COLUMN);
       }
@@ -291,14 +297,14 @@ describe('T8: the hero statement is bounded as content-model validation', () => 
   function assertProseTableMatches(): void {
     for (const locale of LOCALES) {
       const row = new RegExp(
-        `^\\s*\\*\\s+${locale}\\s+(\\d+) chars\\s+2 lines\\s+\\[(\\d+), (\\d+)\\]`,
+        `^\\s*\\*\\s+${locale}\\s+(\\d+) chars\\s+(\\d+) lines?\\s+\\[([^\\]]+)\\]`,
         'm',
       ).exec(RECORD_SOURCE);
       expect(row, `${locale}: no prose row for the record`).not.toBeNull();
       expect(Number(row?.[1]), `${locale}: prose chars`).toBe(RECORDED[locale].chars);
-      expect([Number(row?.[2]), Number(row?.[3])], `${locale}: prose line boxes`).toEqual([
-        ...RECORDED[locale].lineWidths,
-      ]);
+      expect(Number(row?.[2]), `${locale}: prose lines`).toBe(RECORDED[locale].lines);
+      const widths = (row?.[3] ?? '').split(',').map((value) => Number(value.trim()));
+      expect(widths, `${locale}: prose line boxes`).toEqual([...RECORDED[locale].lineWidths]);
     }
   }
 
@@ -308,7 +314,7 @@ describe('T8: the hero statement is bounded as content-model validation', () => 
 
     // The conditions are the ones the record it replaces was taken under, so the two are
     // comparable: Chromium against the built app, 1280x800, this `<h1>` type.
-    for (const condition of ['1280x800', '62.72px', '63.97px', '667px', '2026-10-29']) {
+    for (const condition of ['1280x800', '62.72px', '63.97px', '1176px', '2026-11-05']) {
       expect(RECORD_SOURCE, `the record must name its conditions: ${condition}`).toContain(condition);
     }
 
