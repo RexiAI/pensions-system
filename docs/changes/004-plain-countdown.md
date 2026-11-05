@@ -1215,6 +1215,32 @@ verified the *property* independently (the id-set diff above shows no preserved 
 citation), so no behaviour is unverified — but the assertion is a sample wearing a universal's
 name. WARN (§W-2), not a blocker.
 
+### OOS-4 — nothing between stage 5a and the push type-checks the test files the Mutation Runner adds
+
+Found in phase-2 round 0, and this entry **corrects round 0's own attribution**. Round 0 recorded
+the gap as "phase 1 ran `npm test` only, so a type error passed phase 1 green". That is wrong about
+where the error came from: `tests/unit/spec-004-mutation-kills.test.ts` was added by `09ad3db`
+(stage 5a, the Mutation Runner), which runs *after* this Verifier's phase-1 checks. The file did not
+exist when check 2 ran, so no phase-1 check could have caught it. The `.md` evidence and the commit
+dates agree on the ordering (phase-1 re-verification precedes the stage-5a report in this document;
+`09ad3db` is dated 2026-11-05T13:52:29Z, after the phase-1 cycle closed).
+
+What is true: `package.json` exposes `"typecheck": "tsc --noEmit"`, and **nothing between stage 5a
+writing new test files and the PR Opener pushing them invokes it**. `vitest` transpiles without
+type-checking, so the suite was green at 923 tests while `next build` — which type-checks `tests/`
+— failed on the one-argument `scanTopRegion` call. The first machine to type-check the line was
+CI, one round of the phase-2 budget later.
+
+One-line fix, as requested: **check 2 must run both `npm test` and the project's type-check**,
+not `npm test` alone. Necessary but not sufficient for this instance — check 2 runs before stage
+5a. The gate that would actually have caught it is the one the PR Opener already runs before
+pushing (stage 5b), or the stage-5a report's own "final test suite" step: either must type-check,
+because stage 5a is the only stage that writes test files after the Verifier has finished.
+
+This is a defect in the pipeline's gate set in `my-engineering-standards`, not in this branch.
+Same class as OOS-1 — a gap in the gates rather than a defect in the deliverable. Routed to a
+follow-up spec; not the Coder or the Refactorer.
+
 ## WARNs for the Architect (not blockers)
 
 - **W-1** — 5 design-principles WARNs at diff scope, itemised and assessed under the
@@ -2986,3 +3012,163 @@ Phase-2 budget consumed: 0 of 3 fix-and-repush rounds (this is the initial check
 0). Two rounds remain before exhaustion escalation.
 
 Commits: 23 on the branch (22 at the phase-2 fix, plus this record commit)
+
+---
+
+# Phase 2 — round 1 result (of max 3)
+
+Phase-2 counter after this round: **1 of 3 consumed, 2 remain** (`phase2Retries=1`). Phase-1
+retries stay at 1 (`phase1Retries=1`); the counters are independent per
+`docs/SPEC_PIPELINE.md §Remediation budget`.
+
+Re-check is **scoped**: round 0's only reds were `frontend-ci / Build` and `Vercel`, and those are
+the two checks re-verified here. The round-0 greens (`Unit Tests`, `Lint & Format`, `Vercel
+Preview Comments`) were re-read as part of the same status query but not separately re-investigated.
+
+Head under test: **`a119be73a41832a5495d87221d3266f9072e4a25`**, 23 commits, run **42041011517**
+(`pull_request`, workflow `CI`, conclusion `success`). The superseded head `b216f15`'s failing run
+was `42039785097`; the check-run ids below are all new, which is what proves these results belong
+to the new head rather than a stale read.
+
+## Per-check result (round 1)
+
+| Check | Bucket | Round 0 | Verdict |
+|---|---|---|---|
+| `frontend-ci / Build` | pass | fail | **PASS — was red, now green** |
+| `Vercel` | pass | fail | **PASS — was red, now green** |
+| `frontend-ci / Unit Tests` | pass | pass | PASS |
+| `frontend-ci / Lint & Format` | pass | pass | PASS |
+| `Vercel Preview Comments` | pass | pass | PASS |
+| `frontend-ci / Docker Build & Push` | skipping | skipping | still NOT RUN — by design, see below |
+
+Headline verdict for round 1: **PASS** — every check that can run on a PR is green.
+
+## Evidence: round-1 CI check status
+
+command: gh pr checks 14 --json name,state,bucket,workflow,link
+exit: 0
+at: 2026-11-05T14:05:15Z
+
+skipping	SKIPPED	frontend-ci / Docker Build & Push	CI
+pass	SUCCESS	frontend-ci / Build	CI
+pass	SUCCESS	Vercel Preview Comments	
+pass	SUCCESS	frontend-ci / Unit Tests	CI
+pass	SUCCESS	frontend-ci / Lint & Format	CI
+pass	SUCCESS	Vercel	
+
+## Evidence: poll to terminal (nothing pending)
+
+command: for i in $(seq 1 18); do gh pr checks 14 --json name,state,bucket; pending=$(...); [ "$pending" = 0 ] && exit 0; sleep 30; done
+exit: 0
+at: 2026-11-05T14:04:05Z
+
+[14:01:55Z] iter=1 pending=2 total=4
+[14:02:27Z] iter=2 pending=1 total=4
+[14:03:00Z] iter=3 pending=1 total=5
+[14:03:32Z] iter=4 pending=1 total=5
+[14:04:05Z] iter=5 pending=0 total=6
+ALL TERMINAL
+
+The check count grows as jobs report (4 → 5 → 6); the loop only stops at `pending=0`, so no check
+was judged while unstarted.
+
+## Evidence: head and run identity
+
+command: gh run view 42041011517 --json headSha,conclusion,status,workflowName,event
+exit: 0
+at: 2026-11-05T14:05:19Z
+
+{"headSha":"a119be73a41832a5495d87221d3266f9072e4a25","conclusion":"success","status":"completed","workflowName":"CI","event":"pull_request"}
+
+## Evidence: check-run ids on the new head
+
+command: gh api repos/RexiAI/pensions-system/commits/a119be73a41832a5495d87221d3266f9072e4a25/check-runs --jq '.check_runs[]|{name,id,conclusion,status}'
+exit: 0
+at: 2026-11-05T14:05:15Z
+
+{"conclusion":"skipped","id":127292715944,"name":"frontend-ci / Docker Build & Push","status":"completed"}
+{"conclusion":"success","id":127292194696,"name":"frontend-ci / Build","status":"completed"}
+{"conclusion":"success","id":127291720093,"name":"Vercel Preview Comments","status":"completed"}
+{"conclusion":"success","id":127291499725,"name":"frontend-ci / Lint & Format","status":"completed"}
+{"conclusion":"success","id":127291499174,"name":"frontend-ci / Unit Tests","status":"completed"}
+
+`frontend-ci / Build` is now `127292194696`, not round 0's failing `127288210706` — a different
+check-run on a different commit, not a cached verdict.
+
+## Evidence: Vercel commit status on the new head
+
+command: gh api repos/RexiAI/pensions-system/commits/a119be73a41832a5495d87221d3266f9072e4a25/status --jq '{state,total:.total_count,statuses:[.statuses[]|{context,state,description}]}'
+exit: 0
+at: 2026-11-05T14:05:19Z
+
+{"state":"success","statuses":[{"context":"Vercel","description":"Deployment has completed","state":"success"}],"total":1}
+
+**This closes round 0's open inference.** Round 0 could not read the Vercel build log
+(`VERCEL_TOKEN` is absent on this machine and `config/agent.local.env` defines no such key), so it
+attributed the Vercel red to the same `npm run build` type-check failure by differential only —
+last green deployment `c1dfc5b6` on 2026-11-02, first red `02ba081` immediately after `09ad3db`.
+With the type error removed and nothing else changed in the build path, the same commit's Vercel
+deployment reports `Deployment has completed` / `success`. The differential attribution was
+correct. This remains an observation, not a log read — the log is still not readable from here.
+
+## Evidence: the fix, and the test count
+
+command: git show 7ed639a --stat --oneline; awk 'NR>=86 && NR<=93' tests/unit/spec-004-mutation-kills.test.ts
+exit: 0
+at: 2026-11-05T14:04:30Z
+
+7ed639a fix(spec-004): pass the required locale to scanTopRegion
+ tests/unit/spec-004-mutation-kills.test.ts | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+91:     expect(scanTopRegion('<main id="main"><p>Stryker was here</p></main>', 'es')).toEqual([]);
+
+The signature is untouched: `scanTopRegion(html: string, _locale: string, internalTerms: readonly
+string[] = [])`. Round 0's constraint — do not loosen the signature to accommodate the one wrong
+call — was honoured. One argument added, three comment lines, one test file, no production code.
+
+## Evidence: full suite on the new head
+
+command: npx vitest run
+exit: 0
+at: 2026-11-05T14:04:47Z
+
+ Test Files  88 passed (88)
+      Tests  971 passed (971)
+
+**The 971 is not unaccounted behaviour.** The phase-1 record carries 923 tests / 86 files; the
+delta is +2 files / +48 tests and matches exactly the two files `09ad3db` added
+(`spec-004-mutation-kills.test.ts` 554 lines, `spec-004-mutation-kills-dom.test.ts` 176 lines),
+which post-date the phase-1 count. No test appeared from nowhere.
+
+## Why `frontend-ci / Docker Build & Push` is still skipped
+
+Round 0 recorded it as "skipped behind `needs: [build]`" and expected a green build to unblock it.
+That was half the reason. The full condition, from the pinned callee
+(`ci-nextjs.yml` line 84):
+
+```yaml
+  docker:
+    needs: [build]
+    if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch && inputs.deploy-on-main
+```
+
+Three independent conjunctions, and this PR satisfies none: the event is `pull_request`, the ref is
+`spec/004-plain-countdown`, and this repo's caller sets `deploy-on-main: false` with a comment
+explaining that there is no Dockerfile and no `GHCR_TOKEN`. A green build therefore cannot unblock
+it — it is skipped **by design on every PR**, and will stay skipped until merge to `main` with that
+input enabled. It carries no signal about this branch, which is why it is not a red and not a hole
+in the verdict. Correcting round 0's explanation here rather than leaving the wrong reason on file.
+
+## Verdict
+
+**PASS.** All terminal checks on head `a119be7` are green: `frontend-ci / Build`,
+`frontend-ci / Unit Tests`, `frontend-ci / Lint & Format`, `Vercel Preview Comments`, `Vercel`. The
+one `skipping` check is unreachable by design on a pull request.
+
+Phase 2 is green. Nothing is routed to the Coder or the Refactorer. Phase-2 budget: 1 of 3
+rounds consumed, 2 in reserve, no escalation.
+
+Per `docs/SPEC_PIPELINE.md §Deploy verification loop (phase 3)`, phase 3 (stage 5c, deploy
+verification) may now start — it requires a green phase-2 loop and does not run before it. This
+document is **uncommitted and needs committing by the PR Opener**; the Verifier commits nothing.
