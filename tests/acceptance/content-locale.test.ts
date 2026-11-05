@@ -175,15 +175,16 @@ describe('T8: the hero statement is bounded as content-model validation', () => 
 
   it('never truncates or clamps the headline to fit the budget', () => {
     const CSS = readSource('web/styles/globals.css');
-    const title = CSS.slice(CSS.indexOf('.hero__title {'), CSS.indexOf('.hero__sub {'));
+    const from = CSS.indexOf('.hero__title {');
+    const title = CSS.slice(from, CSS.indexOf('\n}', from) + 2);
     for (const forbidden of ['text-overflow', 'overflow: hidden', 'line-clamp', 'white-space: nowrap', 'text-wrap: nowrap']) {
       expect(title, forbidden).not.toContain(forbidden);
     }
     expect(title).toContain('var(--text-display)');
     // The statement is rendered whole, never cut: no `slice`/`substring` on the headline line.
-    // Re-pointed by D1: the `<h1>` now renders in `HeroLead.tsx`, the node the band takes as its
-    // lead slot, so the scan follows the element rather than the file it used to sit in.
-    const hero = readSource('web/components/public/HeroLead.tsx');
+    // Re-pointed by spec 004 T2: the `<h1>` renders in step 1 (`NumberStep.tsx`), so the scan
+    // follows the element rather than the file it used to sit in.
+    const hero = readSource('web/components/public/NumberStep.tsx');
     const statementLines = hero.split('\n').filter((line) => line.includes('hero.statement'));
     expect(statementLines.length).toBeGreaterThan(0);
     for (const line of statementLines) {
@@ -242,7 +243,7 @@ describe('T8: the hero statement is bounded as content-model validation', () => 
   });
 
   /**
-   * AC-002-36: the statement-width record is re-measured, never the budget.
+   * The statement-width record is re-measured, never the budget.
    *
    * T6 rewrote `hero.statement` in all five locales while this file pins the statement's measured
    * character count and per-line widths, so the record had to be re-recorded from a real
@@ -257,7 +258,7 @@ describe('T8: the hero statement is bounded as content-model validation', () => 
     readonly lineWidths: readonly number[];
   }
 
-  /** The record AC-002-36 names, and the copy it was measured on. */
+  /** The record, and the copy it was measured on. */
   const RECORDED: Readonly<Record<Locale, WidthRecord>> = {
     es: { chars: 34, lineWidths: [533, 535] },
     en: { chars: 39, lineWidths: [504, 642] },
@@ -301,7 +302,7 @@ describe('T8: the hero statement is bounded as content-model validation', () => 
     }
   }
 
-  it('AC-002-36: the width record is re-measured, and no budget is widened to fit', () => {
+  it('the width record is re-measured, and no budget is widened to fit', () => {
     assertRecordedWidths();
     assertProseTableMatches();
 
