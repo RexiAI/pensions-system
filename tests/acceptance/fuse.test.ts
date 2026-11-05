@@ -4,8 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ReproduceBlock } from '../../web/components/public/ReproduceBlock';
 import { PublicPage } from '../../web/components/PublicPage';
 import { seriesReproduceCommand } from '../../web/components/reproduce-command';
-import { CountdownBlock } from '../../web/components/series/CountdownBlock';
-import { Fuse, burnPoint } from '../../web/components/series/Fuse';
+import { burnPoint, fuseLabelOf, fuseValueOf } from '../../web/components/series/Fuse';
 import { citationRegistry } from '../../web/content/citations';
 import { LOCALES } from '../../web/content/types';
 import { readDerivedSeries } from '../../web/derived/series-store';
@@ -46,13 +45,36 @@ function withValue(value: FuseValue): DerivedSeries {
   return { ...fuseSeries(), value };
 }
 
+/**
+ * The page with the fuse series under test. Spec 004 split the old fuse component: the drawing and
+ * the percentage are step 4, and the ratio, its year, the threshold and the provenance are
+ * `#metodo` — so an assertion chooses its region.
+ */
 function renderFuse(series: DerivedSeries, locale = 'es'): string {
-  return decodeText(renderComponent(Fuse, { content: content(locale), series, freshnessWindowDays: 45 }));
+  const others = seriesFixtures().filter((entry) => entry.seriesId !== 'fuse');
+  return decodeText(page([...others, series], Date.parse('2026-10-31T10:00:00Z'), locale));
 }
 
-function page(series: readonly DerivedSeries[], nowMs = Date.parse('2026-10-31T10:00:00Z')): string {
+/** `#metodo`: the methodological precision the story drops. */
+function methodOf(html: string): string {
+  const at = html.indexOf('id="metodo"');
+  return at === -1 ? '' : html.slice(at, html.indexOf('id="debate"', at));
+}
+
+/** The declared `fuse.label`, computed from the value the same way the page does. */
+function technicalLabel(series: DerivedSeries, locale = 'es'): string {
+  const value = fuseValueOf(series);
+  if (value === undefined) throw new Error('no fuse value');
+  return fuseLabelOf(content(locale), value);
+}
+
+function page(
+  series: readonly DerivedSeries[],
+  nowMs = Date.parse('2026-10-31T10:00:00Z'),
+  locale = 'es',
+): string {
   return renderComponent(PublicPage, {
-    content: ES,
+    content: content(locale),
     figures: [dependencyFigure(), shareFigure()],
     citations: citationRegistry,
     freshnessWindowDays: 45,
@@ -113,8 +135,12 @@ describe('AC-003-13: the display rounding is pinned', () => {
   it('AC-003-13: 62.44 prints "62 %" and the ratio "31,22" with 2025 beside it; 62.50 prints "63 %"', () => {
     const html = renderFuse(fuseSeries());
     const label = fuseElement(html);
+    // The step states the percentage and nothing else; the ratio, its year and the threshold are
+    // methodological precision and render in `#metodo` (spec 004 T5, T8).
     expect(label).toContain(`62${NBSP}%`);
-    expect(label).toContain('31,22 (2025)');
+    expect(label).not.toContain('31,22 (2025)');
+    expect(methodOf(html)).toContain(technicalLabel(fuseSeries()));
+    expect(technicalLabel(fuseSeries())).toContain('31,22 (2025)');
     expect(label).not.toContain('62,44');
     const half = renderFuse(withValue({ observedRatio: 31.25, observedYear: 2025, threshold: 50, consumedPercent: 62.5 }));
     expect(fuseElement(half)).toContain(`63${NBSP}%`);
@@ -197,7 +223,8 @@ describe('AC-003-18: no observed value, no fuse', () => {
       [pyramidSeries(), countdownSeries(), { ...fuse, value: null }],
     ]) {
       const html = page(series);
-      expect(html).not.toContain('fuse');
+      expect(html).not.toContain('class="fuse"');
+      expect(html).not.toContain('fuse__line');
       expect(html).not.toContain(`62${NBSP}%`);
       expect(html).not.toContain(fuse.manifest.inputHash);
       // The projection's 31,91 appears only in the countdown's own back-cast sentence.
@@ -213,14 +240,26 @@ describe('AC-003-18: no observed value, no fuse', () => {
   });
 });
 
-describe('AC-003-19: no threshold year, no fuse', () => {
-  it('AC-003-19: not-crossed, unavailable and withheld countdowns render no fuse beside a valid one', () => {
+describe('AC-003-19: no threshold year, no fused threshold claim', () => {
+  it('AC-003-19: a not-crossed, unavailable or empty countdown renders no number and no clock', () => {
     const notCrossed = { ...countdownSeries(), value: countdownAt(90) };
     for (const countdown of [notCrossed, unavailableSeries(countdownSeries()), { ...countdownSeries(), value: null }]) {
       const html = page([pyramidSeries(), countdown, fuseSeries()]);
-      expect(html).not.toContain('class="fuse"');
-      expect(html).not.toContain('fuse__line');
+      // Step 1 states no number at all, so nothing on the page claims a crossing the projection
+      // does not publish. The fuse is its own step (spec 004 T5) and states its own quantity:
+      // its denominator is the shared threshold parameter, never the countdown's year.
+      expect(html).not.toContain('class="clock"');
+      expect(html).not.toContain('countdown__numeral');
+      expect(html).not.toContain('data-clock-state');
+      expect(html.split('class="fuse"').length - 1).toBe(1);
+      expect(fuseElement(html)).toContain(`62${NBSP}%`);
     }
+  });
+
+  it('AC-003-19: with no fuse value there is no fuse step, whatever the countdown says', () => {
+    const html = page([pyramidSeries(), countdownSeries()]);
+    expect(html).not.toContain('class="fuse"');
+    expect(html).not.toContain('fuse__line');
   });
 });
 
@@ -245,13 +284,16 @@ describe('AC-003-21: the fuse implies no date and does not move with the clock',
   it('AC-003-21: its only numbers are the percentage, the ratio, its year and the threshold', () => {
     const RATIO: Readonly<Record<string, string>> = { es: '31,22', en: '31.22', fr: '31,22', de: '31,22', it: '31,22' };
     for (const locale of LOCALES) {
-      const element = fuseElement(renderFuse(fuseSeries(), locale));
+      const html = renderFuse(fuseSeries(), locale);
+      const element = fuseElement(html);
       const caption = element.slice(element.indexOf('<figcaption'), element.indexOf('</figcaption>'));
       const numbers = caption.replace(/<[^>]+>/g, ' ').match(/\d+(?:[.,]\d+)?/g) ?? [];
-      expect(numbers, locale).toEqual(['62', RATIO[locale], '2025', '50']);
-      // The definition line names ages, never a year, a date or a duration.
-      const definition = element.slice(element.indexOf('fuse__definition'));
-      expect(definition, locale).not.toMatch(/\b(19|20)\d\d\b/);
+      // One numeral on the face; the ratio, its year and the threshold are `#metodo`'s.
+      expect(numbers, locale).toEqual(['62']);
+      const technical = methodOf(html).replace(/<[^>]+>/g, ' ');
+      for (const value of ['62', RATIO[locale] ?? '', '2025', '50']) {
+        expect(technical, `${locale}: ${value}`).toContain(value);
+      }
       for (const forbidden of ['2042', 'role="progressbar"', 'aria-valuenow', '<time']) {
         expect(element, `${locale}: ${forbidden}`).not.toContain(forbidden);
       }
@@ -263,58 +305,8 @@ describe('AC-003-21: the fuse implies no date and does not move with the clock',
   it('AC-003-21: the fuse markup is the same at two render instants, three seconds apart', () => {
     const at = Date.parse('2026-10-31T10:00:00Z');
     expect(fuseElement(page(seriesFixtures(), at))).toBe(fuseElement(page(seriesFixtures(), at + 3000)));
-    const fuseCss = CSS.slice(CSS.indexOf('\n.fuse-group {'), CSS.indexOf('\n.share {'));
+    const fuseCss = CSS.slice(CSS.indexOf('\n.fuse {'), CSS.indexOf('\n.share {'));
     expect(fuseCss).not.toMatch(/transition|animation/);
-  });
-});
-
-describe('AC-003-51: the fuse’s provenance is inside the method disclosure, not inline under the fuse', () => {
-  /** The band's slice of the page: everything above the hero section. */
-  function bandOf(html: string): string {
-    return html.slice(html.indexOf('class="band"'), html.indexOf('class="hero hero--'));
-  }
-
-  /** The band with every disclosure's own content removed: what a reader sees without clicking. */
-  function visibleBand(html: string): string {
-    return bandOf(html).replace(/<details[\s\S]*?<\/details>/g, '');
-  }
-
-  it('AC-003-51: the label, the definition and the reproduce link are the fuse’s own text', () => {
-    const html = renderFuse(fuseSeries());
-    const group = html.slice(html.indexOf('class="fuse-group"'));
-    const figure = group.slice(0, group.indexOf('</figure>'));
-    expect(figure).toContain('class="fuse__line"');
-    expect(figure).toContain('class="fuse__label"');
-    expect(figure).toContain('class="fuse__definition"');
-    expect(group).toContain('class="fuse__reproduce"');
-    // …and nothing above the share row shows a manifest value without a click.
-    const visible = visibleBand(page(seriesFixtures()));
-    const fuse = fuseSeries();
-    expect(visible).not.toContain(fuse.manifest.inputHash);
-    expect(visible).not.toContain(fuse.manifest.reproducePath);
-    expect(visible).not.toContain(fuse.manifest.formulaId);
-    expect(visible).not.toContain(fuse.manifest.sourceUrl[0]);
-  });
-
-  it('AC-003-51: the strip, the digest and the reproduce path render in the method disclosure', () => {
-    const fuse = fuseSeries();
-    const html = renderFuse(fuse);
-    const start = html.indexOf('<details');
-    const details = html.slice(start, html.indexOf('</details>', start));
-    expect(start).toBeGreaterThan(html.indexOf('</figure>'));
-    expect(details).toContain(`<summary>${ES.t('figure.methodLink')}</summary>`);
-    expect(details).toContain('class="provenance__fields"');
-    expect(details).toContain(fuse.manifest.inputHash);
-    expect(details).toContain(fuse.manifest.reproducePath);
-    expect(details).toContain('class="provenance__detail"');
-    // Closed in the prerendered HTML: the reader opens it, the page does not.
-    expect(details.slice(0, details.indexOf('>'))).not.toContain('open');
-    expect(html).not.toContain('<details open');
-  });
-
-  it('AC-003-51: the digest is the same one the reproduce panel publishes', () => {
-    const fuse = fuseSeries(readDerivedSeries());
-    expect(renderFuse(fuseSeries())).toContain(fuse.manifest.inputHash);
   });
 });
 
@@ -322,17 +314,16 @@ describe('AC-003-22: the fuse carries no alarm hue and no new hue', () => {
   it('AC-003-22: burnt is --accent, the cord is --ink-3, nothing resolves --data-deficit or --rule-*', () => {
     expect(CSS).toMatch(/\.fuse__cord\s*\{\s*fill:\s*var\(--ink-3\);\s*\}/);
     expect(CSS).toMatch(/\.fuse__burnt\s*\{\s*fill:\s*var\(--accent\);\s*\}/);
-    const fuseCss = CSS.slice(CSS.indexOf('\n.fuse-group {'), CSS.indexOf('\n.share {'));
+    const fuseCss = CSS.slice(CSS.indexOf('\n.fuse {'), CSS.indexOf('\n.share {'));
     expect(fuseCss).not.toMatch(/--data-deficit|--data-projection|--rule-|#[0-9a-f]{3,8}\b/i);
   });
 
-  it('AC-003-22: the fuse is a sibling of the clock subtree, never inside it', () => {
-    const block = renderComponent(CountdownBlock, { content: ES, countdown: countdownValue() });
-    expect(block).not.toContain('fuse');
+  it('AC-003-22: the fuse is never inside the clock subtree', () => {
     const html = page(seriesFixtures());
-    const band = html.indexOf('class="band"');
-    const countdownEnd = html.indexOf('</section>', html.indexOf('class="clock"'));
-    expect(html.indexOf('class="fuse-group"')).toBeGreaterThan(countdownEnd);
-    expect(html.indexOf('class="fuse-group"')).toBeGreaterThan(band);
+    const clockAt = html.indexOf('class="clock"');
+    const clock = html.slice(clockAt, html.indexOf('</section>', clockAt));
+    expect(clock).not.toContain('fuse');
+    // Step 4 is a different step from step 1: the fuse follows the number group.
+    expect(html.indexOf('class="fuse"')).toBeGreaterThan(clockAt);
   });
 });
