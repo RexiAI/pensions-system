@@ -2788,3 +2788,8 @@ smuggled into this one:
 Open question for the human gate, and the only one that changes what the Coder builds: whether
 step 1 keeps `--surface-hero` as its ground. The design takes yes, with the fallback stated in
 §Design System / Foundation.
+
+## PR
+
+PR: https://github.com/RexiAI/pensions-system/pull/14
+Commits: 20 at PR open, 21 including this record commit
