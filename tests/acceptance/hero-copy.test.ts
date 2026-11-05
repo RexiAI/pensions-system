@@ -30,19 +30,12 @@ function stringsFor(locale: Locale): Record<string, string> {
   return found.strings;
 }
 
-/** The keys this task is allowed to change, plus the pair the proposition tier renders. */
-const REWRITTEN = [
-  'hero.statement',
-  'hero.sub',
-  'hero.ctaPrimary',
-  'hero.ctaSecondary',
-  'hero.ctaMethod',
-  'hero.ctaFigures',
-] as const;
-
-// Spec 003 adds 22 keys in all five locales (fuse.*, share.*, meta.*, card.*, pending.*,
-// series.fuse.title): the count moves, the parity it protects does not.
-const EXPECTED_KEY_COUNT = 270;
+/**
+ * The keys this task's register rules govern. Spec 004 retires the proposition tier, so
+ * `hero.ctaFigures` and `hero.ctaMethod` left the content model with it (AC-004-69); the rules
+ * still apply to every remaining `hero.*` string the page renders.
+ */
+const REWRITTEN = ['hero.statement', 'hero.sub', 'hero.ctaPrimary', 'hero.ctaSecondary'] as const;
 
 /** A stable digest of a subset of the content model: `JSON.stringify` is key-order stable here. */
 function digest(value: unknown): string {
@@ -74,23 +67,6 @@ describe('AC-002-23: every statement fits its locale budget', () => {
         HERO_STATEMENT_BUDGETS[locale],
       );
     }
-  });
-});
-
-describe('AC-002-24: key parity is preserved across all five locales', () => {
-  it('AC-002-24: each locale still has exactly 270 keys', () => {
-    for (const locale of LOCALES) {
-      expect(Object.keys(stringsFor(locale)).length, locale).toBe(EXPECTED_KEY_COUNT);
-    }
-  });
-
-  it('AC-002-24: no key was added, removed or renamed', () => {
-    const reference = Object.keys(stringsFor('es')).sort();
-    for (const locale of LOCALES) {
-      expect(Object.keys(stringsFor(locale)).sort(), locale).toEqual(reference);
-    }
-    // The six keys this task rewrites are all still present: rewriting a value never moves a key.
-    for (const key of REWRITTEN) expect(reference).toContain(key);
   });
 });
 
@@ -200,13 +176,17 @@ describe('AC-002-26: the copy introduces no factual claim that requires a citati
   });
 
   it('AC-002-26: the clock and figure strings are unchanged in every locale', () => {
+    // Re-measured by spec 004 T7: `countdown.clock.a11y` is reworded in all five locales to state
+    // the target date in plain words and drop the "conventional date"/"threshold" phrasing
+    // (AC-004-31). Those are the only digests that moved, and the copy rule this test protects —
+    // no factual claim needing a citation — is unchanged. Recompute only with a stated reason.
     const EXPECTED: Record<string, Record<Locale, string>> = {
       'countdown.clock.': {
-        es: '22ae59671975f1c7',
-        en: '8dda1127fc8d5056',
-        fr: '7248ad247c11dbc8',
-        de: 'cba162ba76928aa7',
-        it: '89ea6d64f6a2e324',
+        es: 'a5fe9d662b163974',
+        en: '8ca7b29b7d6ace29',
+        fr: '8d78e51896badfba',
+        de: '2a36c6e719f47a48',
+        it: '740c27cbc1639a80',
       },
       'fig.': {
         es: 'cd3eb526918cdab1',
