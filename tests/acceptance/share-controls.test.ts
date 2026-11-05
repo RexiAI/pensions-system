@@ -4,7 +4,6 @@
 import { act, createElement, type ReactElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { bandCountdown } from '../../web/components/series/CountdownBand';
 import { ShareRow } from '../../web/components/share/ShareRow';
 import type { ShareRowProps, ShareStrings } from '../../web/components/share/ShareRow';
 import { formatYear, integerFormatter } from '../../web/content/format';
@@ -56,16 +55,15 @@ function shareStrings(local: CountryLocaleContent): ShareStrings {
   };
 }
 
-/** The props `CountdownBand` hands the share row: the same templates, anchor and canonical URL. */
+/** The props `StoryStrip` hands the share row: the same templates, anchor and canonical URL. */
 function shareProps(locale: Locale = 'es'): ShareRowProps {
   const local = content(locale);
-  const countdown = bandCountdown(countdownValue());
-  if (!countdown) throw new Error('no band countdown');
-  const year = formatYear(countdown.thresholdYear, locale);
+  const countdown = countdownValue();
+  const year = formatYear(countdown.thresholdYear ?? 0, locale);
   const url = canonicalUrl(publicPathFor(locale));
   return {
     url,
-    anchor: countdown.anchor,
+    anchor: countdown.anchor ?? '',
     locale,
     withDays: local.t('share.text', { year, url, days: DAYS_PLACEHOLDER }),
     withoutDays: local.t('share.textNoJs', { year, url }),

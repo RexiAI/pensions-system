@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { Hero } from '../../web/components/public/Hero';
-import type { DerivedFigure } from '../../web/ingest/types';
-import { content, dependencyFigure, renderComponent, shareFigure, unresolvedFigures } from '../fixtures/figures';
+import { PublicPage } from '../../web/components/PublicPage';
+import { citationRegistry } from '../../web/content/citations';
+import { content, dependencyFigure, renderComponent, shareFigure } from '../fixtures/figures';
+import { seriesFixtures } from '../fixtures/series';
 import { stripComments } from '../helpers/source-scan';
 
 /**
@@ -16,10 +17,15 @@ const CSS = readFileSync('web/styles/globals.css', 'utf8');
 const CODE = stripComments(CSS);
 const ES = content('es');
 
-/** The declarations of one class's rule, as written. A later duplicate would not be folded in. */
+/**
+ * The declarations of one class's own rule, as written. The search is anchored at a line start so
+ * a descendant rule (`.step--meaning .hero__cta`) is not mistaken for the class's own.
+ */
 function rule(selector: string): string {
-  const at = CODE.indexOf(`${selector} {`);
-  expect(at, `${selector} must be declared`).toBeGreaterThan(-1);
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = new RegExp(`(?:^|\\n)${escaped} \\{`).exec(CODE);
+  expect(match, `${selector} must be declared`).not.toBeNull();
+  const at = (match?.index ?? 0) + (match?.[0].startsWith('\n') === true ? 1 : 0);
   return CODE.slice(at, CODE.indexOf('}', at));
 }
 
@@ -27,15 +33,20 @@ function declarations(source: string): string {
   return source.slice(source.indexOf('{'));
 }
 
-/** A tier-1/tier-2 hero: one eligible figure, so the numeric tier renders. */
-function numericHero(): string {
-  return renderComponent(Hero, { content: ES, figures: [dependencyFigure(), shareFigure()] });
-}
-
-/** A tier-3 hero: no eligible figure, so the proposition tier renders. */
-function propositionHero(): string {
-  const figures: readonly DerivedFigure[] = unresolvedFigures();
-  return renderComponent(Hero, { content: ES, figures });
+/**
+ * The page's two actions (spec 004 T6): step 5's primary, then the after-story strip's method
+ * link. The hero's action block and its proposition tier retired with the band, so the hierarchy
+ * is asserted on the composition that renders it.
+ */
+function page(): string {
+  return renderComponent(PublicPage, {
+    content: ES,
+    figures: [dependencyFigure(), shareFigure()],
+    citations: citationRegistry,
+    freshnessWindowDays: 45,
+    stale: false,
+    series: seriesFixtures(),
+  });
 }
 
 /** One attribute value from an element's attribute string, or an empty string. */
@@ -43,15 +54,12 @@ function attribute(attributes: string, name: string): string {
   return new RegExp(`${name}="([^"]*)"`).exec(attributes)?.[1] ?? '';
 }
 
-/** Every `<a …>` in the hero's actions block, with its class, href and visible text. */
+/** Every action link on the page, with its class, href and visible text, in document order. */
 function actions(html: string): { className: string; href: string; text: string }[] {
-  const start = html.indexOf('class="hero__actions"');
-  expect(start).toBeGreaterThan(-1);
-  const block = html.slice(start, html.indexOf('</div>', start));
-  return [...block.matchAll(/<a\b([^>]*)>([^<]*)<\/a>/g)].map((match) => ({
-    className: attribute(match[1] ?? '', 'class'),
-    href: attribute(match[1] ?? '', 'href'),
-    text: (match[2] ?? '').trim(),
+  return [...html.matchAll(/<a class="(hero__cta(?:-secondary)?)" href="([^"]*)">([^<]*)<\/a>/g)].map((match) => ({
+    className: attribute(`class="${match[1]}"`, 'class'),
+    href: attribute(`href="${match[2]}"`, 'href'),
+    text: (match[3] ?? '').trim(),
   }));
 }
 
@@ -69,21 +77,15 @@ describe('AC-002-31: one visually dominant primary action', () => {
     expect(cta).toContain('padding: var(--space-3) var(--space-5)');
   });
 
-  it('AC-002-31: it is the only accent-coloured action above the fold', () => {
-    // The secondary must not resolve the accent: the accent does exactly one job here.
+  it('AC-002-31: it is the page’s only accent-filled action', () => {
+    // Read as "the page's only accent-filled action" (spec 004 T6 watch item d): the CTA is now
+    // the fifth step's, so the fold clause is vacuous and the hierarchy is what remains.
     expect(rule('.hero__cta-secondary')).not.toContain('var(--accent)');
-    // And no *other* rule inside the hero's actions block paints a link in the accent.
-    const actionsAt = CODE.indexOf('.hero__actions {');
-    const nextSection = CODE.indexOf('/* ', actionsAt + 1);
-    const heroActionRules = CODE.slice(actionsAt, nextSection === -1 ? undefined : nextSection);
-    for (const match of heroActionRules.matchAll(/\.hero__[a-z-]+[^{]*\{([^}]*)\}/g)) {
-      const body = match[1] ?? '';
-      expect(body, 'a hero action rule uses the accent as its ink').not.toMatch(/color:\s*var\(--accent\)/);
-    }
-    // The rendered tier renders exactly one primary per hero.
-    for (const html of [numericHero(), propositionHero()]) {
-      expect(html.split('class="hero__cta"').length - 1).toBe(1);
-    }
+    const filled = [...CODE.matchAll(/([^{}]+)\{([^}]*background:\s*var\(--accent\)[^}]*)\}/g)]
+      .map((match) => (match[1] ?? '').trim())
+      .filter((selector) => !selector.startsWith('.admin-') && !selector.startsWith('.operator'));
+    expect(filled).toEqual(['.hero__cta']);
+    expect(page().split('class="hero__cta"').length - 1).toBe(1);
   });
 });
 
@@ -145,8 +147,8 @@ describe('AC-002-34: the secondary no longer competes on hue', () => {
 });
 
 describe('AC-002-35: both links keep their href targets and accessible names', () => {
-  it('AC-002-35: the numeric tier is `#figuras` primary, `#metodo` secondary', () => {
-    const links = actions(numericHero());
+  it('AC-002-35: step 5 is `#figuras` primary, the strip is `#metodo` secondary', () => {
+    const links = actions(page());
     expect(links).toHaveLength(2);
     expect(links[0]).toEqual({ className: 'hero__cta', href: '#figuras', text: ES.t('hero.ctaPrimary') });
     expect(links[1]).toEqual({
@@ -156,26 +158,25 @@ describe('AC-002-35: both links keep their href targets and accessible names', (
     });
   });
 
-  it('AC-002-35: the proposition tier is `#metodo` primary, `#figuras` secondary', () => {
-    const links = actions(propositionHero());
-    expect(links).toHaveLength(2);
-    expect(links[0]).toEqual({ className: 'hero__cta', href: '#metodo', text: ES.t('hero.ctaMethod') });
-    expect(links[1]).toEqual({
-      className: 'hero__cta-secondary',
-      href: '#figuras',
-      text: ES.t('hero.ctaFigures'),
-    });
+  it('AC-002-35: the after-story strip carries the method target, outside every step', () => {
+    const html = page();
+    const strip = html.slice(html.indexOf('class="story__strip"'), html.indexOf('id="figuras"'));
+    expect(strip).toContain('href="#metodo"');
+    expect(strip).toContain(ES.t('hero.ctaSecondary'));
+    // It renders after the fifth step and inside no step.
+    expect(html.indexOf('class="story__strip"')).toBeGreaterThan(html.indexOf('data-top-step="meaning"'));
+    expect(strip).not.toContain('data-top-step');
   });
 
   it('AC-002-35: each link’s visible text is its accessible name', () => {
     // No `aria-label` overrides, no extra span: the text node is the name, so the two CTAs keep
     // distinct intents and a screen reader hears the same words a sighted reader reads.
-    for (const html of [numericHero(), propositionHero()]) {
-      for (const link of actions(html)) {
-        expect(link.text.length, 'a link has no text to name it').toBeGreaterThan(0);
-      }
-      const block = html.slice(html.indexOf('class="hero__actions"'), html.indexOf('</div>', html.indexOf('class="hero__actions"')));
-      expect(block).not.toContain('aria-label');
+    const html = page();
+    for (const link of actions(html)) {
+      expect(link.text.length, 'a link has no text to name it').toBeGreaterThan(0);
+    }
+    for (const element of html.matchAll(/<a class="hero__cta(?:-secondary)?"[^>]*>/g)) {
+      expect(element[0]).not.toContain('aria-label');
     }
   });
 });

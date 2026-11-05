@@ -309,7 +309,7 @@ describe('AC-001-117: the palette meets its contrast minimums', () => {
 /** Selectors whose role is a label, an eyebrow, a chip word, a state word, a caption, the scope
  *  mark or a provenance label: Revision 3 §P3 F2 forbids `--font-mono` on every one of them. */
 const LABEL_SELECTORS = [
-  '.hero__panel-label',
+  '.step__label',
   '.plate__label',
   '.register__label',
   '.figure-row__chip',
@@ -318,7 +318,6 @@ const LABEL_SELECTORS = [
   '.scope',
   '.provenance__field dt',
   '.provenance__detail dt',
-  '.hero__comparison dt',
   '.readout__item dt',
   '.hero__subject-field dt',
   '.demography__readout-item dt',
@@ -342,9 +341,6 @@ const MONO_SELECTORS = [
   '.site-header__stamp',
   '.index-panel__stamp',
   '.locale-group__cell',
-  '.hero__value',
-  '.hero__status-count',
-  '.hero__comparison dd',
   '.readout__item dd',
   '.plate__assumptions',
   '.chart__tick',
@@ -432,12 +428,12 @@ describe('AC-001-118: labels are not measurements', () => {
   });
 
   it('AC-001-118: the four non-colour surfaces of P3 F3 and F5 are migrated', () => {
-    // F3: the hero panel loses its hairline border and keeps the projection rule as its edge;
-    // Revision 4 §P2 gives it its own ground instead of `--surface-2`.
-    const panel = CSS.slice(CSS.indexOf('.hero__panel {'), CSS.indexOf('.hero__panel-label'));
-    expect(panel).not.toContain('--border-hair');
-    expect(panel).toContain('var(--surface-hero)');
-    expect(panel).not.toContain('var(--surface-2)');
+    // F3: the page's one ground is step 1's, and it is still `--surface-hero` with no border; the
+    // panel that carried it retires with the band (spec 004 T2, T12).
+    const step = CSS.slice(CSS.indexOf('.step--number {'), CSS.indexOf('.step__label {'));
+    expect(step).not.toContain('border-top');
+    expect(step).toContain('var(--surface-hero)');
+    expect(step).not.toContain('var(--surface-2)');
     // F5: the ledger rows drop their rule and separate by space; the name rises a step.
     const row = CSS.slice(CSS.indexOf('.figure-row {'), CSS.indexOf('.figure-row__head {'));
     expect(row).not.toContain('border-top');

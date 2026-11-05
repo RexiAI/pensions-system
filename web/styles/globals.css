@@ -88,8 +88,7 @@ svg {
    allowed to shrink below its content, or it pushes the page wider than the window. */
 .plate > *,
 .plate__caption > *,
-.hero > *,
-.hero__status-row > *,
+.step > *,
 .figure-slot > *,
 .figure-row > *,
 .figure-row__head > *,
@@ -333,100 +332,34 @@ svg {
   }
 }
 
-/* ---------- Hero: numeric and propositional (D2) ---------- */
+/* ---------- Spec 004: the five-step story (T1-T7), the method region (T8), the strip (T6) ---------- */
 
-.hero {
-  padding-top: var(--space-9);
-  display: grid;
-  grid-template-columns: 7fr 5fr;
-  gap: var(--space-6);
+/* One axis, one order. Every story element starts at the page's content edge, and the DOM order is
+   the reading order: this section declares no `order`, no `grid-column` and no `grid-area`, so no
+   presentation rule can re-sequence what a screen reader hears (the defect this spec removes). */
+.story {
+  display: block;
 }
 
-.hero--proposition {
-  grid-template-columns: 8fr 4fr;
-  padding-top: var(--space-7);
+.step {
+  padding-block: var(--space-8);
 }
 
-.hero__title {
-  font-size: var(--text-display);
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-display);
-  margin: 0 0 var(--space-4);
-  overflow-wrap: break-word;
+/* One hairline between two steps, on the upper one only: two adjacent steps share one line and
+   no rule is doubled. Step 1 opens the page, so it has no top border at all. */
+.step + .step {
+  border-top: var(--border-hair);
 }
 
-.hero__sub {
-  font-size: var(--text-body-lg);
-  max-width: var(--measure);
-}
-
-.hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  align-items: center;
-  margin-top: var(--space-5);
-}
-
-/* Spec 002 §T7: one dominant primary action, one clearly subordinate secondary. Before this the
-   two hero actions were both `a { color: var(--accent) }`, so raising the accent's chroma made the
-   secondary louder as well as the primary — a hierarchy that inverted the more the accent worked.
-   The accent now does exactly one job above the fold: it is the primary's material.
-   Every value here is a token: no literal colour, size, spacing or radius (AC-001-117). */
-.hero__cta {
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: var(--text-body);
-  padding: var(--space-3) var(--space-5);
-  border-radius: var(--radius);
-  text-decoration: none;
-}
-
-/* The subordinate step: a text link, not a second button. It opts out of the global accent ink,
-   keeps a visible underline so the affordance never rests on colour alone, and sets at the
-   primary's own size — a step larger would invert the hierarchy this rule exists to fix.
-   `text-decoration-line` rather than the `text-decoration` shorthand on purpose: the shorthand
-   resets `text-decoration-thickness` to `auto`, and the 1px hairline the reader sees is the shared
-   `a` rule's own declaration. No literal is declared here. */
-.hero__cta-secondary {
-  color: var(--ink-2);
-  font-size: var(--text-body);
-  text-decoration-line: underline;
-}
-
-.hero__panel {
-  /* Revision 3 F3: the panel is material, not a box. Its top edge is the 3px projection rule
-     inside the countdown; the border would be a second, meaningless edge.
-     Revision 4 §P2: the material is its own ground, not `--surface-2`. A second step of the same
-     beige reads as a shaded region of the page; a warmer, deeper sheet reads as paper laid on
-     paper, which is what makes the panel worth looking at. */
+/* Step 1 is the story's one ground (T2). It spans the content width with no inline inset, so its
+   text sits exactly on the axis every later step uses. */
+.step--number {
   background: var(--surface-hero);
-  padding: var(--space-5);
+  padding-block: var(--space-6);
 }
 
-/* While the band leads the page, the band carries the lead block, so this section holds the
-   readings panel alone (spec 003 layout fix). It keeps 002's column — the panel's width and its
-   right-hand placement — and the column the lead used to fill stays empty: the section is a block
-   below the band, not a second lead. */
-.hero--band {
-  grid-template-columns: 7fr 5fr;
-}
-
-.hero--band > .hero__panel,
-.hero--band > .hero__status {
-  grid-column: 2;
-}
-
-/* The countdown block and the readings are wrapped so the mobile query can lift one above the
-   headline (see the `max-width: 900px` block below). At every wider width the wrappers have no
-   box at all, so the panel's flow — countdown, rule, label, value, … — is byte-for-byte the
-   layout this panel had before the wrappers existed. */
-.hero__panel-countdown,
-.hero__panel-readings {
-  display: contents;
-}
-
-.hero__panel-label,
+/* The instrument's label treatment, unchanged, for the surfaces that still carry labels: the
+   plate's `FIG. 01` marker and the register key's row labels. */
 .plate__label,
 .register__label {
   font-family: var(--font-label);
@@ -436,62 +369,13 @@ svg {
   text-transform: uppercase;
 }
 
-.hero__value {
-  font-family: var(--font-mono);
-  font-size: var(--text-num-xl);
-  font-variant-numeric: tabular-nums;
-  margin: var(--space-2) 0;
-}
-
-.hero__status {
-  border: none;
-  padding: 0;
-}
-
-.hero__status-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.hero__status-row {
-  min-height: var(--figure-state-row-min);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: var(--space-3);
-  border-top: var(--border-hair);
-  font-size: var(--text-small);
-}
-
-.hero__status-row a {
-  text-decoration: none;
-}
-
-.hero__status-count {
-  font-family: var(--font-mono);
-  font-size: var(--text-micro);
-  color: var(--ink-3);
-  margin: var(--space-2) 0 0;
-}
-
-.hero__comparisons,
-.readout {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-5);
-  margin: 0;
-  padding: 0;
-}
-
-.hero__comparison dt,
+/* A readout's term is a label and its value is a measurement. */
 .readout__item dt {
   font-family: var(--font-label);
   font-size: var(--text-micro);
   color: var(--ink-3);
 }
 
-.hero__comparison dd,
 .readout__item dd {
   font-family: var(--font-mono);
   font-size: var(--text-num-m);
@@ -499,10 +383,106 @@ svg {
   margin: 0;
 }
 
+/* Step 4 is the page's shortest step, and that is the point (T5): a status, not a claim. */
+.step--distance {
+  padding-block: var(--space-7);
+}
+
+/* The step label: the step's only chrome, a signpost rather than a headline. */
+.step__label {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+  text-transform: uppercase;
+  margin: 0 0 var(--space-2);
+}
+
+/* The page's claim, in step 2 and in step 5: the one place the statement size is spent on a `<p>`. */
+.step__statement {
+  font-size: var(--text-h2);
+  line-height: var(--leading-snug);
+  color: var(--ink-1);
+  margin: 0;
+  max-inline-size: var(--measure);
+}
+
+/* Step 1's one plain sentence, at reading size: the date it names is a word in a sentence. */
+.step__sentence {
+  font-size: var(--text-body-lg);
+  line-height: var(--leading-body);
+  color: var(--ink-2);
+  margin: var(--space-4) 0 0;
+  max-inline-size: var(--measure);
+}
+
+/* Step 5's one action. `min-block-size` keeps the target above the project's own floor. */
+.step--meaning .hero__cta {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-min);
+  margin-top: var(--space-5);
+}
+
+/* The seam between the story and the appendix: the method link and the share row. Flex, not a
+   grid, so an absent share row cannot leave a track with nothing in it. */
+.story__strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block: var(--space-5) var(--space-9);
+}
+
+/* The method link is a real target, not a 28px line. */
+.story__strip .hero__cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-min);
+}
+
+/* The region heading of the appendix: outside `#figuras`, so the anchor lands on the first plate. */
+.region__heading {
+  font-size: var(--text-h2);
+  line-height: var(--leading-snug);
+  color: var(--ink-1);
+  margin: var(--space-8) 0 0;
+}
+
+/* The page's one `<h1>`, inside step 1: the display step of the ladder, uncapped by `--measure`
+   (a character measure at 64px resolves past the content width and correctly never binds). */
+.hero__title {
+  font-size: var(--text-display);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  margin: 0 0 var(--space-4);
+  overflow-wrap: break-word;
+}
+
+/* Spec 002 §T7: the accent does exactly one job in the story — it is the primary's material.
+   The subordinate step is a text link, so the affordance never rests on colour alone. */
+.hero__cta {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--text-body);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius);
+  text-decoration: none;
+}
+
+.hero__cta-secondary {
+  color: var(--ink-2);
+  font-size: var(--text-body);
+  text-decoration-line: underline;
+}
+
+/* The appendix facts beside each plate: the definition, the period, the publisher, the series. */
 .hero__subject {
   display: grid;
   gap: var(--space-3);
-  margin: var(--space-5) 0 0;
+  margin: 0;
+  max-inline-size: var(--measure);
   border-top: var(--border-hair);
   padding-top: var(--space-3);
 }
@@ -520,6 +500,12 @@ svg {
   font-size: var(--text-small);
   color: var(--ink-2);
   overflow-wrap: break-word;
+}
+
+@media (min-width: 768px) {
+  .step--distance {
+    padding-block: var(--space-8);
+  }
 }
 
 .source-strip {
@@ -1174,7 +1160,6 @@ svg {
 }
 
 @media (max-width: 900px) {
-  .hero,
   .dossier,
   .assumptions__clusters,
   .site-footer {
@@ -1186,87 +1171,16 @@ svg {
   .reproduce__row {
     grid-template-columns: 1fr;
   }
-
-  /* The band's lead is above the clock at every width, so this section is one column everywhere:
-     the readings panel takes the whole column rather than being pushed into a second one that
-     does not exist (an explicit column 2 on a one-column grid would widen the page). */
-  .hero--band > .hero__panel,
-  .hero--band > .hero__status {
-    grid-column: auto;
-  }
-
-  /* The clock is the page's hook (Revision 3 §P2), and on a phone it must not sit behind a
-     headline, a scope mark and two call-to-action links. The countdown block is lifted above the
-     headline block; the readings stay below it; the panel becomes transparent and its ground
-     moves onto the two blocks, so each keeps the material it had. Measured on the built app at
-     390x844: the clock rail moves from y 870-1124 (entirely below the fold) to 479-733 (inside
-     it). Nothing is hidden, nothing shrinks, and every rule here lives in this query, so the
-     desktop composition above 900px is untouched.
-     The visual order is therefore countdown, headline, readings, while the document order
-     remains headline, countdown, readings. That is deliberate: the document order is the one a
-     screen reader hears, and starting with the <h1> is the better reading order. Neither block
-     moved here contains a focusable element (`hero__panel` holds no link, no button and no
-     control), so the keyboard order is unaffected. */
-  .hero__panel,
-  .hero--proposition .hero__status {
-    display: contents;
-  }
-
-  .hero__panel-countdown,
-  .hero__panel-readings {
-    display: block;
-  }
-
-  .hero--numeric .hero__panel-countdown,
-  .hero--numeric .hero__panel-readings {
-    background: var(--surface-hero);
-    padding: var(--space-5);
-  }
-
-  .hero__panel-countdown {
-    order: 1;
-  }
-
-  .hero__lead {
-    order: 2;
-  }
-
-  .hero__panel-readings,
-  .hero__status-list {
-    order: 3;
-  }
-
-  .hero__status-count {
-    order: 4;
-  }
 }
 
 @media (max-width: 767px) {
-  .hero {
-    padding-top: var(--space-7);
-  }
-
   /* 320 floor: gutters shrink to keep the measured budget of 298px inside 320. */
   :root {
     --gutter: 16px;
-    --band-pad-block: var(--space-4);
   }
-
 }
 
-/* ---------- Revision 2: the countdown (R2, R5) ---------- */
-
-/* Revision 4 §C2: the whole face is centred, not just the numeral row. `justify-items` centres
-   every child that has a box of its own (the numeral row, the year row, the rules, the prose
-   blocks below); `text-align` is inherited, so the eyebrow, the threshold year and the sentences
-   all sit on the same axis as the clock rail underneath. One declaration each, no breakpoint and
-   no state re-declares them — the centred face is not a desktop variant. */
-.countdown {
-  display: grid;
-  gap: var(--space-2);
-  justify-items: center;
-  text-align: center;
-}
+/* ---------- The countdown's precision, re-set flush left for `#metodo` (spec 004 T8) ---------- */
 
 .countdown__eyebrow,
 .countdown__range,
@@ -1277,49 +1191,24 @@ svg {
   font-size: var(--text-micro);
   letter-spacing: var(--tracking-label);
   color: var(--ink-3);
-  margin: 0;
+  margin: var(--space-2) 0 0;
 }
 
 .countdown__eyebrow {
   text-transform: uppercase;
+  margin-top: 0;
 }
 
-/* The threshold rule: one of the two coloured marks permitted above the fold, and the face's
-   axis. A centred grid item shrinks to fit and a rule has no content, so `justify-self: stretch`
-   is what keeps it spanning the panel while everything it separates is centred. */
-.countdown__rule {
-  height: var(--rule-projection);
-  background: var(--data-projection);
-  justify-self: stretch;
-}
-
-.countdown__value {
-  margin: 0;
-  display: flex;
-  /* The numeral and its unit centre as one group, not the numeral alone with the unit trailing. */
-  justify-content: center;
-  align-items: baseline;
-  gap: var(--space-2);
-}
-
-.countdown__numeral {
-  font-family: var(--font-mono);
-  font-size: var(--text-num-xl);
-  font-variant-numeric: tabular-nums;
-  line-height: var(--leading-tight);
-  color: var(--ink-1);
-}
-
-.countdown__unit {
-  font-size: var(--text-num-m);
+.countdown__definition {
+  font-size: var(--text-small);
   color: var(--ink-2);
+  margin: var(--space-2) 0 0;
 }
 
+/* The year pair: the value in mono, its label as the description of that value. */
 .countdown__year-line {
-  margin: 0;
+  margin: var(--space-3) 0 0;
   display: flex;
-  /* The threshold year and its label centre as one group, like the numeral row above them. */
-  justify-content: center;
   align-items: baseline;
   gap: var(--space-2);
 }
@@ -1329,40 +1218,6 @@ svg {
   font-size: var(--text-num-m);
   font-variant-numeric: tabular-nums;
   color: var(--data-projection);
-}
-
-.countdown__definition,
-.countdown__statement {
-  font-size: var(--text-small);
-  color: var(--ink-2);
-  margin: 0;
-}
-
-/* Revision 4 §C2: prose that wraps centres as a block inside a measure, never across the panel.
-   Centred ragged-right prose at the panel's full width (295px on a phone, 429px on a desktop)
-   reads worse than flush left — the eye loses the left edge and finds no right one. The measure
-   is 280px at the default root size: 65% of the desktop panel, and the narrowest that still keeps
-   the whole rail inside the first viewport at 390x844 in every locale (see `--measure-face`).
-   `text-wrap: balance` is progressive: an engine without it wraps normally and still centres. */
-.countdown__definition,
-.countdown__statement,
-.countdown__range,
-.countdown__source,
-.countdown__backcast {
-  max-inline-size: var(--measure-face);
-  margin-inline: auto;
-  text-wrap: balance;
-}
-
-.hero__panel-rule {
-  border: 0;
-  border-top: var(--border-hair);
-  margin: var(--space-4) 0;
-}
-
-/* The figure value is demoted while the countdown carries the largest type (R5). */
-.hero__value--demoted {
-  font-size: var(--text-num-l);
 }
 
 /* ---------- Revision 2: the scope mark (R4) ---------- */
@@ -1389,13 +1244,8 @@ svg {
 
 /* ---------- Revision 2: the age structure (R1) ---------- */
 
+/* The step owns the padding and the rule; the region itself is a plain container (spec 004 T4). */
 .demography {
-  margin: var(--space-8) 0;
-  border-top: var(--border-hair);
-  padding-top: var(--space-5);
-}
-
-.demography__figure {
   margin: 0;
 }
 
@@ -1432,12 +1282,28 @@ svg {
   gap: var(--space-6);
 }
 
+/* The year line names the panel, so it sets as a panel title rather than as a caption. */
 .demography__panel-head {
   margin: 0 0 var(--space-2);
   font-family: var(--font-label);
-  font-size: var(--text-micro);
+  font-size: var(--text-small);
   letter-spacing: var(--tracking-label);
-  color: var(--ink-3);
+  color: var(--ink-2);
+}
+
+/* One annotation per panel: a sentence that places the eye, so the mark means something without
+   depending on hue (spec 004 T4). */
+.demography__annotation {
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  color: var(--ink-2);
+  margin: var(--space-3) 0 0;
+}
+
+/* The annotated band is outlined, never filled differently: a 1px stroke of `--ink-2`. */
+.demography__bar-group[data-annotated='true'] .demography__bar {
+  stroke: var(--ink-2);
+  stroke-width: 1;
 }
 
 .demography__panel-year {
@@ -1486,10 +1352,6 @@ svg {
   fill: var(--ink-3);
 }
 
-.demography--unavailable {
-  border-top: var(--border-hair);
-}
-
 .reproduce__count {
   font-family: var(--font-mono);
   font-size: var(--text-micro);
@@ -1505,38 +1367,36 @@ svg {
   margin-top: var(--space-4);
 }
 
-@media (min-width: 1024px) {
-  /* The hero stops defining itself as the whole viewport (R5). */
-  .hero {
-    min-height: var(--hero-min-h);
-    align-content: start;
-  }
-
+@media (min-width: 768px) {
   /* One age-label gutter on the outer left only. */
   .demography__panel:not(:first-child) .demography__age {
     display: none;
   }
 }
 
-@media (max-width: 1023px) {
-  .demography__panels {
-    grid-template-columns: 1fr;
-    gap: var(--space-4);
-  }
-
-  .demography__panel {
-    --pyramid-band-h: 8px;
-  }
-}
-
+/* Below 768 each panel is a row of [chart 5fr | annotation 7fr], its year line above both. Two
+   tracks, and every one of them carries a child. */
 @media (max-width: 767px) {
-  .demography__readout {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    font-size: var(--text-meta);
+  .demography__panels {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
   }
 
   .demography__panel {
     --pyramid-band-h: 6px;
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    column-gap: var(--space-4);
+    align-items: start;
+  }
+
+  .demography__panel-head {
+    grid-column: 1 / -1;
+  }
+
+  .demography__readout {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    font-size: var(--text-meta);
   }
 
   /* Age labels every twenty years only, and no percentage axis on the smallest screen. */
@@ -1546,57 +1406,40 @@ svg {
   }
 }
 
-/* ---------- Revision 3: the anchored clock (§P2) ---------- */
+/* ---------- The number group: the clock as step 1's measurement (spec 004 T2) ---------- */
 
-/* The clock is the countdown block's one centred group: the years numeral, then the four-field
-   band, then the anchor line and the lines below it. No ground of its own, no border, no chip, no
-   icon, and — since spec 002 §T3 — no separator above it either: the 1px rule that used to keep
-   the years numeral out of this group has been removed, and the risk it mitigated is recorded as
-   accepted in `CountdownBlock.tsx`. What replaces it is rhythm, not a line: `margin-top:
-   var(--space-4)` keeps the group clear of the back-cast sentence above, while the numeral and
-   the fields are separated by the tight `--space-2` the rest of the face already uses. The
-   `padding-top` went with the rule — it existed only to clear it.
-   Revision 4 §C2: the rail centres its own text, so it reads as one face with the block above it
-   even where it is mounted on its own; `justify-self: stretch` keeps the group spanning the panel
-   while its contents are centred. */
+/* Flush left, on the page's one axis. The centred face of Revision 4 was the panel's geometry and
+   does not survive the move into the story: centring is what made the block read as a card. */
 .clock {
-  margin-top: var(--space-4);
-  justify-self: stretch;
-  text-align: center;
+  margin: 0;
+  text-align: start;
 }
 
-/* Revision 4 §C1: the face is centred. It is a three-column grid, not a baseline-aligned flex
-   run, for one reason: the day count spans every column, so its centre *is* the row's centre by
-   construction — not by measuring a numeral that runs from `3` to `1.234`. `justify-content`
-   centres the track set on the face (the face fills the panel, so that is the panel's axis too,
-   at every width); `justify-items` centres each numeral's box inside its own cell.
-   The columns are fixed, never `auto`: an `auto` track absorbs the spanning numeral's width and
-   the three sub-day fields then start at different offsets from the day count's axis. Fixed,
-   equal tracks keep the row symmetric whatever the numeral says.
-   Nothing here is state-dependent: there is no left-aligned variant, in motion, reduced motion,
-   or elapsed. */
+/* Three fixed, equal columns for the three sub-day fields; the day count spans them. Fixed rather
+   than `auto` so no numeral can size a track, and every track has a child. */
 .clock__fields {
   display: grid;
   grid-template-columns: repeat(3, var(--clock-sub-col));
-  justify-content: center;
-  justify-items: center;
+  justify-content: start;
+  justify-items: start;
   column-gap: var(--clock-gap);
   row-gap: var(--space-2);
+  margin-top: var(--space-4);
 }
 
-/* The day cell owns the whole first row: no label can size it and no sibling can pull it. */
 .clock__field--days {
   grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
 }
 
 .clock__field {
   display: grid;
-  /* The numeral and its label share one axis, so a label wider than the numeral does not drag
-     the numeral sideways — the "short numeral over a wide label" failure. */
-  justify-items: center;
+  justify-items: start;
   gap: var(--space-1);
   margin: 0;
-  text-align: center;
+  text-align: start;
 }
 
 .clock__value {
@@ -1604,14 +1447,18 @@ svg {
   font-variant-numeric: tabular-nums;
 }
 
+/* The page's largest numeral, and the only one at this step of the ladder. */
 .clock__value--days {
-  font-size: var(--text-num-l);
+  font-size: var(--text-num-xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
   color: var(--ink-1);
   min-inline-size: var(--clock-days-min);
 }
 
+/* The sub-day fields step down to meta: four numerals at 32px become one measured quantity. */
 .clock__value--sub {
-  font-size: var(--text-small);
+  font-size: var(--text-meta);
   color: var(--ink-2);
   min-inline-size: var(--clock-unit-min);
 }
@@ -1622,11 +1469,76 @@ svg {
   color: var(--ink-3);
 }
 
+/* The day's own label sits beside its numeral, on the baseline, at reading size (T2): at 80px the
+   unit was a caption the reader had to hunt for under the number. */
+.clock__field--days .clock__label {
+  font-size: var(--text-body-lg);
+  color: var(--ink-2);
+}
+
+/* The years numeral: the group's first quantity, one step below the day count on the ladder. */
+.countdown__value {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.countdown__numeral {
+  font-family: var(--font-mono);
+  font-size: var(--text-num-l);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-tight);
+  color: var(--ink-1);
+}
+
+.countdown__unit {
+  font-size: var(--text-num-m);
+  color: var(--ink-2);
+}
+
+/* The sub-day fields are hidden, never frozen: a seconds field that never changes is a stopped
+   clock, and the day count is complete without them (AC-001-112). */
+@media (prefers-reduced-motion: reduce) {
+  .clock__field--sub {
+    display: none;
+  }
+}
+
+/* ---------- The method region (spec 004 T8) ---------- */
+
+.method {
+  border-top: var(--border-hair);
+  padding-block: var(--space-9) 0;
+  max-inline-size: var(--measure);
+}
+
+.method__heading {
+  font-size: var(--text-h2);
+  line-height: var(--leading-snug);
+  color: var(--ink-1);
+  margin: 0 0 var(--space-5);
+}
+
+/* Three groups, one hairline each: the countdown's precision, the fuse's, then the provenance. */
+.method__group {
+  border-top: var(--border-hair);
+  padding-block: var(--space-6);
+}
+
+.method__note {
+  font-family: var(--font-label);
+  font-size: var(--text-meta);
+  color: var(--ink-3);
+  margin: var(--space-2) 0 0;
+}
+
+/* The two disclosure slots of the countdown's precision: open text, never collapsed (AC-004-32). */
 .clock__anchor {
   font-family: var(--font-label);
   font-size: var(--text-small);
   color: var(--ink-1);
-  margin: var(--space-2) 0 0;
+  margin: var(--space-3) 0 0;
 }
 
 .clock__anchor-label {
@@ -1641,250 +1553,24 @@ svg {
   margin: var(--space-3) 0 0;
 }
 
-/* Rendered always in the countdown's own group in Reproducir; in the block itself at >=1024px. */
 .clock__arithmetic {
   font-family: var(--font-label);
   font-size: var(--text-micro);
   color: var(--ink-3);
   margin: var(--space-2) 0 0;
-  display: none;
 }
 
-@media (min-width: 1024px) {
-  .clock__arithmetic {
-    display: block;
-  }
-}
-
-/* Revision 4 §C2: the rail's three lines centre as blocks inside the same measure as the
-   projection block above them. The anchor line is the first to wrap — `fecha convencional del
-   umbral` plus the date is 46 characters at `--text-small` inside a 295px panel — and a centred
-   line that wraps across the panel's full width would be the exact ragged-right shape the
-   flush-left version at least aligned to an edge. */
-.clock__anchor,
-.clock__definition,
-.clock__arithmetic {
-  max-inline-size: var(--measure-face);
-  margin-inline: auto;
-  text-wrap: pretty;
-}
-
-/* The sub-day fields are hidden, never frozen: a seconds field that never changes is a stopped
-   clock, and the day count is complete without them (AC-001-112). */
-@media (prefers-reduced-motion: reduce) {
-  .clock__field--sub {
-    display: none;
-  }
-}
-
-.reproduce__note {
-  font-family: var(--font-label);
-  font-size: var(--text-micro);
-  color: var(--ink-3);
-  margin: calc(-1 * var(--space-2)) 0 var(--space-3);
-}
-
-/* ---------- Spec 003: the countdown band (T1), the fuse (T2), sharing (T3), pending (T5) ---------- */
-
-/* The band leads the page at the content width: no rail, no column beside it, not sticky, not
-   floating. It is the hero panel's own material (`--surface-hero`) and centres its contents on
-   one axis, as the countdown face already does. */
-.band {
-  display: grid;
-  gap: var(--space-2);
-  justify-items: center;
-  margin-top: var(--space-2);
-  padding: var(--band-pad-block) var(--space-5);
-  text-align: center;
-  background: var(--surface-hero);
-}
-
-/* The band's reading order is the page's identity, then the clock, then the fuse, then the way to
-   share it (D1, AC-003-48). The fuse cannot sit inside the countdown block — that block's markup
-   carries no `<svg>` (AC-001-99) — so the block's own box is dissolved here and its children take
-   their place in the band's grid by `order`. The clock is dissolved the same way, by `order`
-   only: its group keeps the whole subtree (the numerals, the fields and the three disclosures,
-   AC-001-113), and the three disclosures are ordered *after* the share row because they are what
-   stands between the fields and the fold. Chromium keeps the `role="group"` node — and its label —
-   in the accessibility tree through `display: contents` (verified over CDP against this build).
-   None of the reordered nodes holds a focusable element, so the keyboard order still follows the
-   band's reading order. */
-.band > .countdown {
-  display: contents;
-}
-
-.band .clock {
-  display: contents;
-}
-
-/* The lead block — the `<h1>`, the scope mark, the sub and the two actions — leads the band. Its
-   spacing is re-set here because it was sized as a column beside the readings panel: the h1's
-   bottom margin, the actions' top margin and the scope mark's margins are the hero grid's, and
-   inside the band they are the difference between the fuse clearing the fold and missing it. */
-.band > .hero__lead {
-  order: 1;
-  /* The lead spans the band's content box rather than shrinking to fit on the centre axis: the h1's
-     line boxes and the sub then wrap against the band's own width, so the copy's height is a
-     property of the viewport and not of the longest word. */
-  justify-self: stretch;
-}
-
-.band .hero__title {
-  margin-bottom: var(--space-2);
-}
-
-.band .hero__sub {
-  margin: 0;
-}
-
-.band .hero__actions {
-  justify-content: center;
-  margin-top: var(--space-3);
-}
-
-.band .scope {
-  margin: 0;
-}
-
-.band .countdown__eyebrow {
-  order: 2;
-}
-
-.band .countdown__value {
-  order: 3;
-}
-
-.band .clock__fields {
-  order: 4;
-  justify-self: stretch;
-}
-
-.band > .fuse-group {
-  order: 5;
-  justify-self: stretch;
-}
-
-/* Directly under the fuse: the band's one spreading mechanism does not wait for six paragraphs
-   of projection prose (D1, AC-003-50). */
-.band > .share {
-  order: 6;
-}
-
-.band .countdown__rule,
-.band .countdown__year-line,
-.band .countdown__definition,
-.band .countdown__range,
-.band .countdown__source,
-.band .countdown__backcast {
-  order: 7;
-}
-
-.band .clock__anchor,
-.band .clock__definition,
-.band .clock__arithmetic {
-  order: 8;
-}
-
-/* Desktop: the copy shares a line with the statement's own row rather than stacking under it. At
-   64px the h1 is one line in Spanish and Italian and two in English, French and German; stacked,
-   that second line alone is more than the difference between the share row's fold target and the
-   fold. The `<h1>` keeps its own row (flex-basis 100%) and the scope mark, the sub and the two
-   actions share the next one — the 002 internal order, unchanged, on a band that is centred as a
-   whole. */
-@media (min-width: 900px) {
-  .band .hero__lead {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    column-gap: var(--space-4);
-    row-gap: var(--space-1);
-  }
-
-  .band .hero__title {
-    flex-basis: 100%;
-    margin-bottom: 0;
-  }
-
-  .band .hero__actions {
-    margin-top: 0;
-  }
-}
-
-/* A phone is where the fold budget is tightest: the lead, the eyebrow, the clock and the fuse all
-   have to clear 844px at 390 wide. The band's own edges pay for it — its inner margin becomes the
-   page's gutter, its block padding and its top margin shrink — and the h1's bottom margin and the
-   actions' top margin come down with them. No type size, measure or line height moves: every
-   content height above the fold on a phone is unchanged (AC-003-06, AC-003-48). */
-@media (max-width: 767px) {
-  .band {
-    margin-top: 0;
-    padding-block: var(--space-3);
-    padding-inline: var(--space-3);
-  }
-
-  .band .hero__title {
-    margin-bottom: var(--space-1);
-  }
-
-  .band .hero__actions {
-    margin-top: var(--space-2);
-  }
-}
-
-/* The band is the page's full content width, so its prose wraps to the page's reading measure
-   rather than the 280px measure of the old side panel. */
-.band .countdown__definition,
-.band .countdown__range,
-.band .countdown__source,
-.band .countdown__backcast,
-.band .clock__anchor,
-.band .clock__definition,
-.band .clock__arithmetic {
-  max-inline-size: var(--measure);
-}
-
-/* OQ-2: the day numeral on the numeral ladder's top step; the sub-day fields at display size and
-   full ink; the years numeral demoted so the day count is the page's largest numeral. Sizes only:
-   nothing here touches `display`, so reduced motion still hides the sub-day fields. */
-.band .clock__value--days {
-  font-size: var(--text-clock-days);
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-display);
-}
-
-.band .clock__value--sub {
-  font-size: var(--text-clock-sub);
-  line-height: var(--leading-tight);
-  color: var(--ink-1);
-}
-
-.band .countdown__numeral {
-  font-size: var(--text-band-years);
-}
-
-/* AC-003-05: the two-reference sentence is visible at every width inside the band. */
-.band .clock__arithmetic {
-  display: block;
-}
-
-.fuse-group {
-  display: grid;
-  gap: var(--space-1);
-  justify-items: center;
-}
+/* ---------- The fuse (spec 003 T2), now step 4's face ---------- */
 
 .fuse {
   display: grid;
-  gap: var(--space-2);
-  justify-items: center;
-  justify-self: stretch;
+  gap: var(--space-3);
   margin: 0;
 }
 
+/* The step's widest object: the full content width, burnt from its far end. */
 .fuse__line {
   display: block;
-  justify-self: stretch;
   inline-size: 100%;
   block-size: var(--fuse-burnt-h);
 }
@@ -1897,20 +1583,26 @@ svg {
   fill: var(--accent);
 }
 
+/* One measurement line, one string, one size: the percentage and the words that name its
+   denominator. Splitting the numeral out would be a second typographic system for one line. */
 .fuse__label {
-  font-size: var(--text-small);
+  font-size: var(--text-plate);
+  line-height: var(--leading-snug);
   font-variant-numeric: tabular-nums;
   color: var(--ink-1);
 }
 
 .fuse__definition {
-  max-inline-size: var(--measure);
-  margin: 0;
   font-size: var(--text-meta);
   color: var(--ink-3);
+  margin: var(--space-2) 0 0;
 }
 
+/* Demoted, never shrunk: `#reproducir` is a real target in this register too. */
 .fuse__reproduce {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-min);
   font-size: var(--text-meta);
   color: var(--ink-2);
 }
@@ -1977,13 +1669,3 @@ svg {
   clip-path: inset(50%);
 }
 
-.pending {
-  padding: var(--space-5);
-  border: var(--border-hair);
-  background: var(--surface-2);
-}
-
-.pending__heading {
-  margin: 0 0 var(--space-3);
-  font-size: var(--text-h3);
-}

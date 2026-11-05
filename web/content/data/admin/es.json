@@ -118,5 +118,7 @@
   "admin.parameter.name.pension_payment_count": "Número de pagas",
   "admin.parameter.name.retirement_age": "Edad de jubilación",
   "admin.parameter.name.contribution_base_limits": "Bases de cotización",
-  "admin.parameter.name.revaluation_rule": "Regla de revalorización"
+  "admin.parameter.name.revaluation_rule": "Regla de revalorización",
+  "admin.home.figureList": "Figuras publicadas",
+  "admin.home.figureAvailability": "Disponibilidad"
 }

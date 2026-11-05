@@ -1,21 +1,23 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { FigureStatusRow } from '../../web/components/FigureStatusRow';
-import { Hero } from '../../web/components/public/Hero';
+import { MethodRegion } from '../../web/components/public/MethodRegion';
+import { NumberStep } from '../../web/components/public/NumberStep';
 import { ReproduceBlock } from '../../web/components/public/ReproduceBlock';
-import { bandCountdown } from '../../web/components/series/CountdownBand';
-import { Fuse, burnPoint, fuseValueOf } from '../../web/components/series/Fuse';
+import { FuseLine, burnPoint, fuseValueOf } from '../../web/components/series/Fuse';
+import { TOP_STEPS } from '../../web/components/public/top-steps';
 import { formatWholePercent } from '../../web/content/format';
 import { COUNTRY_DOCUMENTS, validateDocument } from '../../web/content/registry';
 import { shareCopyProblems } from '../../web/content/share-copy';
 import type { LocaleDocument } from '../../web/content/types';
 import { computeFuse, displayPercent, drawnFraction } from '../../web/series/fuse';
 import { shareHref } from '../../web/share/links';
-import { content, dependencyFigure, renderComponent } from '../fixtures/figures';
+import { content, renderComponent } from '../fixtures/figures';
 import { committedPayload, countdownValue, seriesFixtures } from '../fixtures/series';
 
 const ES = content('es');
 const URL_ES = 'https://example.org';
+const NOW = Date.parse('2041-12-28T20:57:55Z');
 
 function fuse() {
   const entry = seriesFixtures().find((candidate) => candidate.seriesId === 'fuse');
@@ -78,29 +80,34 @@ describe('fuse arithmetic', () => {
   });
 });
 
-describe('the fuse component', () => {
-  it('renders nothing for a missing, unavailable or empty series', () => {
+describe('the fuse drawing', () => {
+  it('publishes nothing for a missing, unavailable or empty series', () => {
     expect(fuseValueOf(undefined)).toBeUndefined();
     expect(fuseValueOf({ ...fuse(), availability: 'unavailable' })).toBeUndefined();
     expect(fuseValueOf({ ...fuse(), value: null })).toBeUndefined();
-    expect(renderComponent(Fuse, { content: ES, series: { ...fuse(), value: null }, freshnessWindowDays: 45 })).toBe('');
   });
 
-  it('draws two rects with no style attribute and links to the reproduce panel', () => {
-    const html = renderComponent(Fuse, { content: ES, series: fuse(), freshnessWindowDays: 45 });
+  it('draws two rects with no style attribute', () => {
+    const html = renderComponent(FuseLine, { consumedPercent: 62.44 });
     expect(html.split('<rect').length - 1).toBe(2);
     expect(html).not.toContain('style=');
-    expect(html).toContain('href="#reproducir"');
   });
 });
 
-describe('the band’s countdown guard', () => {
-  it('accepts only a computed countdown with an anchor and a year', () => {
+describe('the number group’s guard', () => {
+  it('renders no clock without an anchor, whatever the countdown says', () => {
+    const step = TOP_STEPS[0];
+    if (step === undefined) throw new Error('no first step');
     const value = countdownValue();
-    expect(bandCountdown(value)).toBe(value);
-    expect(bandCountdown({ ...value, anchor: null })).toBeUndefined();
-    expect(bandCountdown({ ...value, thresholdYear: null })).toBeUndefined();
-    expect(bandCountdown({ ...value, state: 'not-crossed' })).toBeUndefined();
+    for (const broken of [
+      { ...value, anchor: null, thresholdYear: null, state: 'not-crossed' as const },
+      { ...value, anchor: null },
+    ]) {
+      const html = renderComponent(NumberStep, { step, content: ES, countdown: broken, nowMs: NOW });
+      expect(html).not.toContain('class="clock"');
+      expect(html).not.toContain('countdown__numeral');
+    }
+    expect(renderComponent(NumberStep, { step, content: ES, countdown: value, nowMs: NOW })).toContain('class="clock"');
   });
 });
 
@@ -138,18 +145,23 @@ describe('share copy rules', () => {
   });
 });
 
-describe('the nested status row and the demoted hero', () => {
+describe('the nested status row and the method region', () => {
   it('a nested row steps its title down to h3 and drops the chip', () => {
     const html = renderComponent(FigureStatusRow, { figureNumber: 3, content: ES, state: 'unavailable', nested: true });
     expect(html).toContain('<h3 class="figure-row__title"');
     expect(html).not.toContain('figure-row__chip');
   });
 
-  it('the hero figure is demoted while the band shows, without a countdown in the panel', () => {
-    const html = renderComponent(Hero, { content: ES, figures: [dependencyFigure()], bandShown: true });
-    expect(html).toContain('hero__value hero__value--demoted');
-    expect(html).not.toContain('class="countdown"');
-    expect(renderComponent(Hero, { content: ES, figures: [dependencyFigure()] })).not.toContain('hero__value--demoted');
+  it('the method region carries the fuse’s own precision and the reproduce target', () => {
+    const html = renderComponent(MethodRegion, {
+      content: ES,
+      sources: { countdown: countdownValue(), fuse: fuse() },
+      freshnessWindowDays: 45,
+      nowMs: NOW,
+      countries: [{ geo: 'ES', name: ES.country.name, href: '#' }],
+    });
+    expect(html).toContain(`<p class="fuse__definition">${ES.t('fuse.definition')}</p>`);
+    expect(html).toContain(`<a class="fuse__reproduce" href="#reproducir">${ES.t('fuse.reproduce')}</a>`);
   });
 
   it('the reproduce panel does not advertise a series that carries no value', () => {

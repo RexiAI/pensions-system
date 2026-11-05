@@ -8,14 +8,10 @@ import { readClock } from '../../series/clock';
 import type { ClockField, ClockReading } from '../../series/clock';
 import { startClockTicker } from '../../series/clock-ticker';
 
-/** The seven copy slots the design requires, already resolved to text by the server parent. */
+/** The six copy slots the number group needs, already resolved to text by the server parent. */
 export interface ClockStrings {
+  /** The group's accessible name: the target date in plain words (spec 004 T7). */
   a11y: string;
-  anchor: string;
-  anchorLabel: string;
-  definition: string;
-  arithmetic: string;
-  elapsed: string;
   days: string;
   hours: string;
   minutes: string;
@@ -144,29 +140,15 @@ function ClockFields({
   );
 }
 
-/** The anchor the fields count to, the definition of the reading, and its arithmetic. */
-function ClockFootnotes({ strings, elapsed }: { strings: ClockStrings; elapsed: boolean }) {
-  return (
-    <>
-      <p className="clock__anchor">
-        <span className="clock__anchor-label">{strings.anchorLabel}</span>{' '}
-        <span className="clock__anchor-date">{strings.anchor}</span>
-      </p>
-      <p className="clock__definition">{elapsed ? strings.elapsed : strings.definition}</p>
-      <p className="clock__arithmetic">{strings.arithmetic}</p>
-    </>
-  );
-}
-
 /**
- * The clock rail (T20, §P2). Server-rendered complete — the years numeral, four fields, the
- * anchor line and the definition are in the HTML before any script runs — then corrected from the
+ * The clock group (T20, §P2; rescoped by spec 004 T2/T7). Server-rendered complete — the years
+ * numeral and the four fields are in the HTML before any script runs — then corrected from the
  * device clock in a pre-paint layout effect and ticked at 1 Hz.
  *
- * Spec 002 §T3 merges the years numeral into this container: it is the group's first child, so a
- * reader reads `N años`, then `M días HH MM SS`, then the date both quantities resolve to. The
- * numeral arrives as pre-resolved text from the server parent, the same convention as the
- * `ClockStrings` slots, so this leaf still resolves nothing from the content model.
+ * Spec 004 removes the three footnotes from this leaf: the anchor line, the definition and the
+ * arithmetic are methodological precision, and they render in `#metodo`, below the story. What
+ * stays here is the measurement and the group's accessible name, which states the target date in
+ * plain words instead of naming a conventional date.
  *
  * What is deliberately absent: `aria-live`, `role="timer"`, `aria-atomic`, `aria-busy` (nothing
  * announces sixty times a minute), any colons between the fields, and any React state — the tick
@@ -187,7 +169,6 @@ export function CountdownClock({ anchor, nowMs, locale, strings, years, yearsUni
     >
       <YearsNumeral years={years} unit={yearsUnit} />
       <ClockFields formatDays={formatDays} reading={reading} strings={strings} refs={refs} />
-      <ClockFootnotes strings={strings} elapsed={reading.elapsed} />
     </div>
   );
 }

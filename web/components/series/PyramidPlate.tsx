@@ -1,16 +1,15 @@
 import { AGE_BANDS, bandLabel } from '../../series/age-bands';
 import type { BandShare, PyramidValue, YearStructure } from '../../series/age-structure';
 import { formatValue } from '../../content/format';
-import { datasetForUrl, publisherForUrl } from '../../sources/labels';
-import type { CountryLocaleContent } from '../../content/types';
+import { publisherForUrl } from '../../sources/labels';
+import type { CountryLocaleContent, Locale } from '../../content/types';
+import type { LocaleKey } from '../../content/keys';
 import { DataTable } from '../DataTable';
-import { ProvenanceStrip } from '../ProvenanceStrip';
 import type { DerivedSeries } from '../../ingest/series-types';
 
 export interface PyramidPlateProps {
   content: CountryLocaleContent;
   series: DerivedSeries;
-  freshnessWindowDays: number;
 }
 
 /** The panel geometry. Age increases upward; one hue per panel; both sexes share that hue. */
@@ -22,6 +21,9 @@ const PITCH = 14;
 const BAR_HEIGHT = 10;
 const TOP = 10;
 const LABEL_X = 38;
+
+/** The band the first and last panels point at: the wide foot, before and after the bulge. */
+const BASE_BAND = AGE_BANDS[0] as number;
 
 /** Coordinates are rounded to one decimal at build time (design §Chart strategy). */
 function round1(value: number): number {
@@ -36,12 +38,27 @@ function sideLength(share: number, axisMax: number): number {
   return round1(Math.max(0, Math.min(1, share / axisMax)) * SIDE);
 }
 
-function Bar({ band, index, hue, axisMax }: { band: BandShare; index: number; hue: YearStructure['hue']; axisMax: number }) {
+function Bar({
+  band,
+  index,
+  hue,
+  axisMax,
+  annotated,
+}: {
+  band: BandShare;
+  index: number;
+  hue: YearStructure['hue'];
+  axisMax: number;
+  annotated: boolean;
+}) {
   const y = barY(index);
   const male = sideLength(band.male, axisMax);
   const female = sideLength(band.female, axisMax);
   return (
-    <g className={`demography__bar-group demography__bar-group--${hue}`}>
+    <g
+      className={`demography__bar-group demography__bar-group--${hue}`}
+      data-annotated={annotated ? 'true' : undefined}
+    >
       <rect className="demography__bar" x={CENTRE - male} y={y} width={male} height={BAR_HEIGHT} />
       <rect className="demography__bar" x={CENTRE} y={y} width={female} height={BAR_HEIGHT} />
     </g>
@@ -69,38 +86,94 @@ function Axis({ axisMax, content }: { axisMax: number; content: CountryLocaleCon
   );
 }
 
+/** The band a panel's annotation points the eye at: the wide foot, or the bulge that retires. */
+function annotatedBand(year: YearStructure): number {
+  if (year.hue !== 'measured') return BASE_BAND;
+  const largest = [...year.bands].sort((a, b) => b.total - a.total)[0];
+  return largest === undefined ? BASE_BAND : largest.band;
+}
+
+const ANNOTATION_KEYS: Readonly<Record<YearStructure['hue'], LocaleKey>> = {
+  reference: 'steps.why.annotation.reference',
+  measured: 'steps.why.annotation.measured',
+  projected: 'steps.why.annotation.projected',
+};
+
+/**
+ * The panel's chart: one shared axis, one bar group per band and the age labels, in one SVG. The
+ * panel's accessible name is the SVG's own `<title>`, and the readout is its description.
+ */
+function PanelChart({
+  year,
+  content,
+  axisMax,
+  titleId,
+  stateWord,
+}: {
+  year: YearStructure;
+  content: CountryLocaleContent;
+  axisMax: number;
+  titleId: string;
+  stateWord: string;
+}) {
+  const annotated = annotatedBand(year);
+  return (
+    <svg
+      className="demography__svg"
+      viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+      role="img"
+      aria-labelledby={titleId}
+      aria-describedby="demography-readout"
+    >
+      <title id={titleId}>{`${year.year} · ${stateWord}`}</title>
+      <Axis axisMax={axisMax} content={content} />
+      {year.bands.map((band, index) => (
+        <Bar
+          band={band}
+          index={index}
+          hue={year.hue}
+          axisMax={axisMax}
+          annotated={band.band === annotated}
+          key={band.band}
+        />
+      ))}
+      {year.bands.map((band, index) => (
+        <text
+          className={band.band % 20 === 0 ? 'demography__age demography__age--major' : 'demography__age'}
+          x={LABEL_X}
+          y={barY(index) + BAR_HEIGHT}
+          textAnchor="end"
+          key={`label-${band.band}`}
+        >
+          {bandLabel(band.band)}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+/**
+ * One panel: its year and state, the chart, and exactly one annotation (spec 004 T4). The
+ * annotation is visible text naming a published band in words, so the meaning of the mark is
+ * carried by a sentence and an outline, never by hue alone.
+ */
 function Panel({ year, content, axisMax }: { year: YearStructure; content: CountryLocaleContent; axisMax: number }) {
   const stateWord = content.t(year.state === 'observed' ? 'demography.year.observed' : 'demography.year.projected');
-  const titleId = `demography-${year.year}-title`;
   return (
     <div className={`demography__panel demography__panel--${year.hue}`} data-projection={year.state === 'projected' ? 'projected' : 'observed'}>
       <p className="demography__panel-head">
         <span className="demography__panel-year">{year.year}</span> <span className="demography__panel-state">{stateWord}</span>
       </p>
-      <svg
-        className="demography__svg"
-        viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-        role="img"
-        aria-labelledby={titleId}
-        aria-describedby="demography-readout"
-      >
-        <title id={titleId}>{`${year.year} · ${stateWord}`}</title>
-        <Axis axisMax={axisMax} content={content} />
-        {year.bands.map((band, index) => (
-          <Bar band={band} index={index} hue={year.hue} axisMax={axisMax} key={band.band} />
-        ))}
-        {year.bands.map((band, index) => (
-          <text
-            className={band.band % 20 === 0 ? 'demography__age demography__age--major' : 'demography__age'}
-            x={LABEL_X}
-            y={barY(index) + BAR_HEIGHT}
-            textAnchor="end"
-            key={`label-${band.band}`}
-          >
-            {bandLabel(band.band)}
-          </text>
-        ))}
-      </svg>
+      <PanelChart
+        year={year}
+        content={content}
+        axisMax={axisMax}
+        titleId={`demography-${year.year}-title`}
+        stateWord={stateWord}
+      />
+      <p className="demography__annotation">
+        {content.t(ANNOTATION_KEYS[year.hue], { band: bandLabel(annotatedBand(year)) })}
+      </p>
     </div>
   );
 }
@@ -162,68 +235,65 @@ function tableRows(value: PyramidValue, content: CountryLocaleContent): string[]
   ]);
 }
 
-/** The statement the block makes when the series has never been computed in this deployment. */
-function UnavailableRow({ content }: { content: CountryLocaleContent }) {
-  return (
-    <section className="demography demography--unavailable" id="demografia" aria-labelledby="demography-heading" data-state="unavailable">
-      <h2 id="demography-heading">{content.t('demography.heading')}</h2>
-      <p>{content.t('figure.unavailable.reason')}</p>
-      <a href="#metodo">{content.t('figure.methodLink')}</a>
-    </section>
-  );
-}
-
-/**
- * The age structure (T17, R1): a three-panel instrument, server-rendered, readable with no
- * JavaScript, carrying its own manifest. The table is emitted by the same component as the
- * chart, so there is no code path that renders one without the other (AC-001-97).
- */
-export function PyramidPlate({ content, series, freshnessWindowDays }: PyramidPlateProps) {
-  const value = series.value as PyramidValue | null;
-  if (series.availability !== 'computed' || value === null) return <UnavailableRow content={content} />;
-  const caption = content.t('demography.table.caption', {
+function tableCaption(value: PyramidValue, series: DerivedSeries, content: CountryLocaleContent, locale: Locale): string {
+  return content.t('demography.table.caption', {
     heading: content.t('demography.heading'),
     years: value.years.map((year) => year.year).join(', '),
     source: [...new Set(series.manifest.sourceUrl.map(publisherForUrl))].join(', '),
-    series: [...new Set(series.manifest.sourceUrl.map(datasetForUrl))].join(' · '),
+    // The caption sits inside the story, so it names the series by its public title: the dataset
+    // identifiers belong to the operator register and to `#metodo`, never above the fold (T9).
+    series: content.t('series.pyramid.title'),
     variant: content.t('demography.variant'),
     // The shares are read against these totals, so the caption carries them: a table can be read
     // out of context, and a share without its denominator is an unverifiable claim.
     totals: value.years
-      .map((year) => `${year.year}: ${formatValue(year.population, 'integer', content.locale, '')}`)
+      .map((year) => `${year.year}: ${formatValue(year.population, 'integer', locale, '')}`)
       .join(' · '),
     scope: content.country.name,
   });
+}
+
+/** The disclosure that hosts the finding sentence, the six-value readout and the data table. */
+function PyramidTable({ value, series, content }: { value: PyramidValue; series: DerivedSeries; content: CountryLocaleContent }) {
   return (
-    <section className="demography" id="demografia" aria-labelledby="demography-heading">
-      <figure className="demography__figure">
-        <figcaption className="demography__caption">
-          <p className="plate__label">{content.t('demography.eyebrow')}</p>
-          <h2 id="demography-heading">{content.t('demography.heading')}</h2>
-          <p className="demography__finding">{findingSentence(value, content)}</p>
-        </figcaption>
-        <Readout value={value} content={content} />
-        <div className="demography__panels">
-          {value.years.map((year) => (
-            <Panel year={year} content={content} axisMax={value.axisMaxPercent} key={year.year} />
-          ))}
-        </div>
-        <DataTable
-          id="demography-table"
-          caption={caption}
-          summaryLabel={content.t('demography.table.summary', { count: AGE_BANDS.length })}
-          columns={tableColumns(value, content)}
-          rows={tableRows(value, content)}
-          nullLabel={content.t('table.notDefined')}
-        />
-      </figure>
-      <ProvenanceStrip
-        manifest={series.manifest}
-        figureId={series.seriesId}
-        freshnessWindowDays={freshnessWindowDays}
-        content={content}
-        derivedPath="data/derived/series"
-      />
-    </section>
+    <DataTable
+      id="demography-table"
+      summaryLabel={content.t('demography.table.summary', { count: AGE_BANDS.length })}
+      table={{
+        caption: tableCaption(value, series, content, content.locale),
+        columns: tableColumns(value, content),
+        rows: tableRows(value, content),
+        nullLabel: content.t('table.notDefined'),
+      }}
+    >
+      <p className="demography__finding">{findingSentence(value, content)}</p>
+      <Readout value={value} content={content} />
+    </DataTable>
+  );
+}
+
+/**
+ * The age structure (T17, R1; re-composed by spec 004 T4): three panels side by side, one
+ * annotation each, and one disclosure that hosts the finding sentence, the six-value readout and
+ * the data table.
+ *
+ * Two rules the re-composition turns into structure rather than restraint: the face of the chart
+ * carries no percentage (the ten numerals the block used to open with are inside the disclosure),
+ * and the component renders nothing at all when the series has no computed value — no "en
+ * preparación" row, no method link, no heading (AC-004-19). The table is still emitted by this
+ * component and only together with the charts (AC-001-97).
+ */
+export function PyramidPlate({ content, series }: PyramidPlateProps) {
+  const value = series.value as PyramidValue | null;
+  if (series.availability !== 'computed' || value === null) return null;
+  return (
+    <div className="demography" id="demografia">
+      <div className="demography__panels">
+        {value.years.map((year) => (
+          <Panel year={year} content={content} axisMax={value.axisMaxPercent} key={year.year} />
+        ))}
+      </div>
+      <PyramidTable value={value} series={series} content={content} />
+    </div>
   );
 }

@@ -47,7 +47,7 @@ describe('public surface independence', () => {
       const result = contentRegistry.get('ES', locale);
       if (!result.ok) throw new Error('missing locale');
       const html = pageFor(locale);
-      expect(html, locale).toContain(result.content.strings['hero.sub']);
+      expect(html, locale).toContain(result.content.strings['hero.statement']);
       expect(html, locale).toContain(result.content.strings['thesis.label']);
       expect(html.length).toBeGreaterThan(2000);
     }

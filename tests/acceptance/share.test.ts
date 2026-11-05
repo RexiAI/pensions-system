@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { PublicPage } from '../../web/components/PublicPage';
-import { CountdownBand, bandCountdown } from '../../web/components/series/CountdownBand';
+import { StoryStrip } from '../../web/components/public/StoryStrip';
 import { citationRegistry } from '../../web/content/citations';
 import { integerFormatter } from '../../web/content/format';
 import { shareCopyProblems } from '../../web/content/share-copy';
@@ -24,9 +24,7 @@ const ES_TEMPLATE =
   'Faltan {days} días para el 1 de enero de {year}: el año en que, según la proyección de Eurostat, España llega a 50 mayores de 65 por cada 100 personas en edad de trabajar. Compruébalo: {url}';
 
 function band(locale: Locale = 'es', value: CountdownValue = countdownValue()): string {
-  const countdown = bandCountdown(value);
-  if (!countdown) throw new Error('no band countdown');
-  return renderComponent(CountdownBand, { content: content(locale), countdown, nowMs: NOW, freshnessWindowDays: 45 });
+  return renderComponent(StoryStrip, { content: content(locale), countdown: value });
 }
 
 function shareRegion(html: string): string {

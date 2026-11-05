@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { Hero } from '../../web/components/public/Hero';
 import { PublicPage } from '../../web/components/PublicPage';
 import { publicPageProps } from '../../web/components/public-page-props';
 import { citationRegistry } from '../../web/content/citations';
 import {
   PLATE_FIXTURES,
   content,
-  dependencyFigure,
   renderComponent,
   renderPlate,
   shareFigure,
@@ -45,23 +43,12 @@ function region(html: string, start: string, end: string): string {
 }
 
 /**
- * The hero panel's markup, from its opening tag to the snapshot stamp that closes it.
- *
- * The end marker is the stamp, not `</div></section>`: since Revision 3 the countdown block's
- * clock rail is a `div` inside the section, so the closing-tag sequence appears twice and a
- * first-match slice would stop inside the countdown instead of at the panel's end.
+ * The appendix: the region that publishes the computed plates (spec 004 T10). It used to be the
+ * hero panel; the plates' geometry did not change, their position did.
  */
-function heroPanelRegion(html: string): string {
-  const at = html.indexOf('<div class="hero__panel">');
-  const end = html.indexOf('<p class="site-header__stamp">', at === -1 ? 0 : at);
-  return at === -1 || end === -1 ? '' : html.slice(at, end);
-}
-
-/** The rendered hero panel: the largest type on the page. */
-function heroPanel(locale: Locale): string {
-  return heroPanelRegion(
-    renderComponent(Hero, { content: content(locale), figures: [dependencyFigure(), shareFigure()] }),
-  );
+function figuresRegion(html: string): string {
+  const at = html.indexOf('id="figuras"');
+  return at === -1 ? '' : html.slice(at, html.indexOf('id="metodo"', at));
 }
 
 function readout(html: string, number: number): string {
@@ -77,12 +64,12 @@ function dataTable(html: string, number: number): string {
 }
 
 describe('the page never renders a percentage point as a fraction', () => {
-  it('carries 13,23 in the hero and in the fig-02 plate, table and axis ticks', () => {
-    const hero = heroPanel('es');
+  it('carries 13,23 in the appendix and in the fig-02 plate, table and axis ticks', () => {
+    const appendix = figuresRegion(page('es'));
     const plate = renderPlate(shareFigure(), 'es');
 
-    expect(hero).toContain(`13,23${NBSP}%`);
-    expect(hero).toContain(`9,82${NBSP}%`);
+    expect(appendix).toContain(`13,23${NBSP}%`);
+    expect(appendix).toContain(`9,82${NBSP}%`);
 
     expect(readout(plate, 2)).toContain(`13,23${NBSP}%`);
     expect(readout(plate, 2)).toContain(`9,82${NBSP}%`);
@@ -97,16 +84,20 @@ describe('the page never renders a percentage point as a fraction', () => {
     expect(chart).toContain(`16,00${NBSP}%`);
   });
 
-  it('carries 13.23 with an en decimal point in the en hero and plate', () => {
-    expect(heroPanel('en')).toContain('13.23%');
+  it('carries 13.23 with an en decimal point in the en appendix and plate', () => {
+    expect(figuresRegion(page('en'))).toContain('13.23%');
     expect(readout(renderPlate(shareFigure(), 'en'), 2)).toContain('13.23%');
   });
 
   it('carries no 1323, 982, 1439 or 1700 in any numeric surface of the page', () => {
     for (const locale of ['es', 'en', 'fr', 'de', 'it'] as const) {
-      const hero = heroPanel(locale);
+      // The plates' own provenance disclosures carry full digests, which may contain any hex run,
+      // so the digit-absence claim is made on the parts that render numbers.
+      const appendix = figuresRegion(page(locale));
       for (const scaled of NOT_A_POINT) {
-        expect(hero, `${locale} hero must not carry ${scaled}`).not.toContain(scaled);
+        expect(appendix, `${locale} appendix must not carry ${scaled} in a chart`).not.toMatch(
+          new RegExp(`${scaled}[^<]*%`),
+        );
       }
       // The plate's provenance strip carries a full digest, which may contain any hex run, so the
       // digit-absence claim is scoped to the parts that render numbers.
@@ -159,11 +150,11 @@ function tickTexts(chart: string): string[] {
 const TWO_DIGIT_PERCENT = /^\d{1,2}[.,]\d{2}(?:\u00A0)?%$/;
 
 describe('the committed page carries the published percentage points', () => {
-  it('renders the committed 13,23 in the es hero, readout, table and axis', () => {
+  it('renders the committed 13,23 in the es appendix, readout, table and axis', () => {
     const html = committedPage('es');
     const plate = figureRegion(html, 2);
 
-    expect(heroPanelRegion(html)).toContain(`13,23${NBSP}%`);
+    expect(figuresRegion(html)).toContain(`13,23${NBSP}%`);
     expect(readout(plate, 2)).toContain(`13,23${NBSP}%`);
     expect(readout(plate, 2)).toContain(`9,82${NBSP}%`);
     expect(readout(plate, 2)).toContain(`14,39${NBSP}%`);
@@ -181,7 +172,7 @@ describe('the committed page carries the published percentage points', () => {
     const html = committedPage('en');
     const plate = figureRegion(html, 2);
 
-    expect(heroPanelRegion(html)).toContain('13.23%');
+    expect(figuresRegion(html)).toContain('13.23%');
     expect(readout(plate, 2)).toContain('13.23%');
     expect(readout(plate, 2)).toContain('9.82%');
     expect(readout(plate, 2)).toContain('14.39%');
