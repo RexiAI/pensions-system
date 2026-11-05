@@ -23,11 +23,7 @@ const ES = content('es');
 const fileExists = (path: string): boolean => existsSync(path);
 
 function renderPyramid(series = pyramidSeries(), locale = 'es'): string {
-  return renderComponent(PyramidPlate, {
-    content: content(locale),
-    series,
-    freshnessWindowDays: 45,
-  });
+  return renderComponent(PyramidPlate, { content: content(locale), series });
 }
 
 /**
@@ -207,13 +203,11 @@ describe('AC-001-97: the chart and the table are emitted together or not at all'
     expect(html.split('scope="row"').length - 1).toBe(21);
   });
 
-  it('AC-001-97: an unavailable pyramid renders neither, and says so', () => {
+  it('AC-001-97: an unavailable pyramid renders neither, and nothing in its place', () => {
+    // Spec 004 T4 (AC-004-19): the "en preparación" row retires with the block, so the region
+    // renders nothing at all — no chart without a table, and no apology either.
     const html = renderPyramid(unavailableSeries(pyramidSeries()));
-    expect(html).not.toContain('<svg');
-    expect(html).not.toContain('<table');
-    expect(html).not.toContain('<details');
-    expect(html).toContain('<h2');
-    expect(html).toContain(ES.t('figure.methodLink'));
+    expect(html).toBe('');
   });
 });
 
