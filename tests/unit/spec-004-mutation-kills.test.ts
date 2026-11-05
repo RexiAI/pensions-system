@@ -85,7 +85,10 @@ describe('public-plain-language: the region boundary', () => {
    */
   it('skips empty and blank caller terms and carries no default terms of its own', () => {
     expect(scanTopRegion('<main id="main"><p>texto llano</p></main>', 'es', ['', ' ', '\n'])).toEqual([]);
-    expect(scanTopRegion('<main id="main"><p>Stryker was here</p></main>')).toEqual([]);
+    // No third argument: the point is that the *default* term list is empty for benign text.
+    // `'es'` is inert here — `scanTopRegion` ignores its locale — and matches the sibling call
+    // one line above, so both assertions read as one shape of call.
+    expect(scanTopRegion('<main id="main"><p>Stryker was here</p></main>', 'es')).toEqual([]);
     expect(BANNED_TOP_TERMS.every((term) => term.trim() !== '')).toBe(true);
   });
 });
