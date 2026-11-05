@@ -290,6 +290,14 @@
       {
         "text": "La population de 16 à 64 ans projetée par l'INE diminue entre 2026 et 2070.",
         "citationId": "ine-proyecciones-36643"
+      },
+      {
+        "text": "Les retraites contributives sont payées aujourd'hui par les cotisations.",
+        "citationId": "ss-estadisticas-pensiones"
+      },
+      {
+        "text": "Chaque personne occupée soutient aujourd'hui plus de bénéficiaires de retraite qu'au début de la série : la valeur est passée de {first} à {latest}.",
+        "citationId": "eurostat-emp-pens"
       }
     ],
     "disputes": [

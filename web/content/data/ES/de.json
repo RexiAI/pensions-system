@@ -290,6 +290,14 @@
       {
         "text": "Die vom INE projizierte Bevölkerung zwischen 16 und 64 Jahren sinkt zwischen 2026 und 2070.",
         "citationId": "ine-proyecciones-36643"
+      },
+      {
+        "text": "Beitragsrenten werden heute aus Beiträgen gezahlt.",
+        "citationId": "ss-estadisticas-pensiones"
+      },
+      {
+        "text": "Jede erwerbstätige Person trägt heute mehr Rentenempfänger als zu Beginn der Reihe: Der Wert stieg von {first} auf {latest}.",
+        "citationId": "eurostat-emp-pens"
       }
     ],
     "disputes": [

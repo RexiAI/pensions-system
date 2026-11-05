@@ -290,6 +290,14 @@
       {
         "text": "La población de 16 a 64 años proyectada por el INE se reduce entre 2026 y 2070.",
         "citationId": "ine-proyecciones-36643"
+      },
+      {
+        "text": "Las pensiones contributivas de hoy se pagan con las cotizaciones.",
+        "citationId": "ss-estadisticas-pensiones"
+      },
+      {
+        "text": "Cada persona ocupada sostiene hoy más beneficiarios de pensión que al inicio de la serie: la cifra pasó de {first} a {latest}.",
+        "citationId": "eurostat-emp-pens"
       }
     ],
     "disputes": [

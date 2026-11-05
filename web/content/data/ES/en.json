@@ -290,6 +290,14 @@
       {
         "text": "The population aged 16 to 64 that INE projects shrinks between 2026 and 2070.",
         "citationId": "ine-proyecciones-36643"
+      },
+      {
+        "text": "Contributory pensions today are paid out of contributions.",
+        "citationId": "ss-estadisticas-pensiones"
+      },
+      {
+        "text": "Each employed person today supports more pension beneficiaries than at the start of the series: the figure rose from {first} to {latest}.",
+        "citationId": "eurostat-emp-pens"
       }
     ],
     "disputes": [
