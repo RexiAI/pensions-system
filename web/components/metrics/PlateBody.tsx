@@ -33,14 +33,8 @@ export interface PlateBodyProps {
   nullLabel: string;
 }
 
-/**
- * The visual chart and its non-visual table, produced by one component: a table is emitted if
- * and only if a chart is emitted (T11 as amended by D5). There is no code path that renders
- * one without the other, which is what stops a chart-shaped hole coming back.
- */
-function ChartWithTable({ view, nullLabel }: { view: PlateView; nullLabel: string }) {
-  if (!view.chart) return null;
-  const spec = view.chart;
+/** The same chart rendered twice: the wide frame and the compact one, from one spec. */
+function ChartVariants({ spec, view }: { spec: ChartSpec; view: PlateView }) {
   return (
     <>
       <div className="chart__variant chart__variant--wide">
@@ -49,13 +43,29 @@ function ChartWithTable({ view, nullLabel }: { view: PlateView; nullLabel: strin
       <div className="chart__variant chart__variant--compact">
         <Chart spec={spec} title={view.title} view={view} variant="compact" />
       </div>
+    </>
+  );
+}
+
+/**
+ * The visual chart and its non-visual table, produced by one component: a table is emitted if
+ * and only if a chart is emitted (T11 as amended by D5). There is no code path that renders
+ * one without the other, which is what stops a chart-shaped hole coming back.
+ */
+function ChartWithTable({ view, nullLabel }: { view: PlateView; nullLabel: string }) {
+  if (!view.chart) return null;
+  return (
+    <>
+      <ChartVariants spec={view.chart} view={view} />
       <DataTable
         id={`fig-0${view.figureNumber}-table`}
-        caption={view.caption}
         summaryLabel={view.summary}
-        columns={view.columns}
-        rows={view.rows}
-        nullLabel={nullLabel}
+        table={{
+          caption: view.caption,
+          columns: view.columns,
+          rows: view.rows,
+          nullLabel,
+        }}
       />
     </>
   );
