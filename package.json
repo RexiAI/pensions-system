@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "prebuild": "tsx scripts/verify-derived.ts && tsx scripts/check-content-scope.ts && tsx scripts/check-public-vocabulary.ts && tsx scripts/check-scenario-traceability-3digit.ts",
+    "prebuild": "tsx scripts/verify-derived.ts && tsx scripts/check-content-scope.ts && tsx scripts/check-public-vocabulary.ts && tsx scripts/check-scenario-traceability-3digit.ts && tsx scripts/check-plain-language.ts",
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
@@ -21,7 +21,8 @@
     "check:client-secrets": "tsx scripts/check-client-secrets.ts",
     "sitemap:check": "tsx scripts/check-sitemap.ts",
     "check:public-vocabulary": "tsx scripts/check-public-vocabulary.ts",
-    "check:content-scope": "tsx scripts/check-content-scope.ts"
+    "check:content-scope": "tsx scripts/check-content-scope.ts",
+    "check:plain-language": "tsx scripts/check-plain-language.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "2.2.2",
