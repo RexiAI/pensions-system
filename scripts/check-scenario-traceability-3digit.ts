@@ -112,6 +112,14 @@ export const RETIRED_SCENARIOS: readonly string[] = [
   'AC-003-51',
 ];
 
+/**
+ * Scenarios a later spec has formally *superseded*: the criterion is not in the retired list
+ * above (its subject still exists), but no test may cite it any more because a stronger scenario
+ * replaced its assertion. Spec 005 T8 supersedes `AC-004-11` (step 2 was the sole carrier of the
+ * `50`/`100` statement) with `AC-005-10` (steps 1 and 2 carry it).
+ */
+export const SUPERSEDED_SCENARIOS: readonly string[] = ['AC-004-11'];
+
 export interface TraceabilityReport {
   /** Scenarios with no test citing them. */
   untested: string[];
@@ -124,7 +132,7 @@ export interface TraceabilityReport {
 export function checkTraceability(root: string): TraceabilityReport {
   const declared = declaredScenarios(root);
   const cited = citedScenarios(root);
-  const retired = new Set(RETIRED_SCENARIOS);
+  const retired = new Set([...RETIRED_SCENARIOS, ...SUPERSEDED_SCENARIOS]);
   return {
     untested: [...declared.keys()].filter((id) => !cited.has(id) && !retired.has(id)).sort(),
     unknown: [...cited.keys()].filter((id) => !declared.has(id)).sort(),

@@ -121,14 +121,14 @@ describe('AC-004-10: one sentence, bound to the shared parameter', () => {
   });
 });
 
-describe('AC-004-11: the threshold statement is stated once at the top', () => {
-  it('AC-004-11: one step carries both the threshold and the base, and it is step 2', () => {
+describe('AC-005-10: the proportion is stated in step 1 and step 2, and nowhere else', () => {
+  it('AC-005-10: the threshold-and-base carrier set is number and breakage', () => {
     const html = storyPage('es');
     const carriers = ['number', 'breakage', 'why', 'distance', 'meaning'].filter((id) => {
       const text = storyText(stepOf(html, id));
       return new RegExp(`(?<![\\d.,])${COUNTDOWN_THRESHOLD}(?![\\d.,])`).test(text) && /(?<![\d.,])100(?![\d.,])/.test(text);
     });
-    expect(carriers).toEqual(['breakage']);
+    expect(carriers).toEqual(['number', 'breakage']);
   });
 });
 

@@ -1,6 +1,11 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { checkTraceability, declaredScenarios, citedScenarios } from '../../scripts/check-scenario-traceability-3digit';
+import {
+  SUPERSEDED_SCENARIOS,
+  checkTraceability,
+  declaredScenarios,
+  citedScenarios,
+} from '../../scripts/check-scenario-traceability-3digit';
 
 /**
  * AC-004-74…79 — retire the layout pins of 001-003, keep the rest (spec 004 T17).
@@ -100,7 +105,13 @@ describe('AC-004-76: scenario traceability is green', () => {
     const report = checkTraceability(ROOT);
     expect(report.untested.filter((id) => id.startsWith('AC-004-'))).toEqual([]);
     expect(report.unknown.filter((id) => id.startsWith('AC-004-'))).toEqual([]);
-    for (const id of ours) expect(cited.has(id), id).toBe(true);
+    // Spec 005 T8 supersedes one AC-004 scenario without retiring it: the threshold statement
+    // still exists, but its carrier set widened, so its assertion lives under AC-005-10 now.
+    const superseded = new Set(SUPERSEDED_SCENARIOS);
+    for (const id of ours) {
+      if (superseded.has(id)) continue;
+      expect(cited.has(id), id).toBe(true);
+    }
   });
 });
 
