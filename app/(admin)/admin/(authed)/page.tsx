@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { adminT } from '@/web/content/admin';
 import { DEFAULT_FRESHNESS_WINDOW_DAYS, loadAdminConfig } from '@/web/admin/config';
 import { pageSession } from '@/web/admin/page-session';
@@ -5,6 +6,7 @@ import { createFileRevisionStore, readAudit } from '@/web/admin/persistence';
 import { pendingFor } from '@/web/admin/revisions/pending-store';
 import type { PendingRevision } from '@/web/admin/revisions/types';
 import { createFileDerivedStore } from '@/web/derived/store';
+import { FigureTable } from '@/web/admin/views/FigureTable';
 import type { DerivedFigure } from '@/web/ingest/types';
 
 interface PanelData {
@@ -81,37 +83,67 @@ function PendingTable({ pending }: { pending: readonly PendingRevision[] }) {
   );
 }
 
-export default async function PanelHome() {
-  const data = await panelData();
-  const snapshot = data.figures[0]?.manifest.fetchedAt ?? '-';
+/** The snapshot's four facts — figure count, fetch date, freshness window, commit — as a `<dl>`. */
+function SummaryList({ data }: { data: PanelData }) {
+  const rows: ReadonlyArray<readonly [string, string | number]> = [
+    [adminT('admin.home.figures'), data.figures.length],
+    [adminT('admin.home.snapshot'), data.figures[0]?.manifest.fetchedAt ?? '-'],
+    [adminT('admin.home.window'), data.window],
+    [adminT('admin.home.commit'), data.publishedCommit],
+  ];
   return (
-    <section>
+    <dl>
+      {rows.map(([term, value]) => (
+        <Fragment key={term}>
+          <dt>{term}</dt>
+          <dd>{value}</dd>
+        </Fragment>
+      ))}
+    </dl>
+  );
+}
+
+/** The published snapshot's own header: which revision, how many figures, when, over what window. */
+function PublishedSummary({ data }: { data: PanelData }) {
+  return (
+    <>
       <h1>{adminT('admin.home.published')}</h1>
       <p>
         <span>{`${adminT('admin.home.revision')} `}</span>
         <strong>{data.publishedId}</strong>
       </p>
-      <dl>
-        <dt>{adminT('admin.home.figures')}</dt>
-        <dd>{data.figures.length}</dd>
-        <dt>{adminT('admin.home.snapshot')}</dt>
-        <dd>{snapshot}</dd>
-        <dt>{adminT('admin.home.window')}</dt>
-        <dd>{data.window}</dd>
-        <dt>{adminT('admin.home.commit')}</dt>
-        <dd>{data.publishedCommit}</dd>
-      </dl>
+      <SummaryList data={data} />
       <p>
         <a href="/">{adminT('admin.home.publicSite')}</a>
       </p>
+    </>
+  );
+}
 
+/** The panel's one mutating control: a refresh, refused in copy while a revision is pending. */
+function RefreshForm({ csrf, pendingCount }: { csrf: string; pendingCount: number }) {
+  return (
+    <>
       <form action="/api/admin/refresh" method="post">
-        <input type="hidden" name="csrf" value={data.csrf} />
+        <input type="hidden" name="csrf" value={csrf} />
         <button className="admin-btn" type="submit">
           {adminT('admin.home.refresh')}
         </button>
       </form>
-      <p>{data.pending.length > 0 ? adminT('admin.home.refreshDisabled') : adminT('admin.home.refreshNote')}</p>
+      <p>{pendingCount > 0 ? adminT('admin.home.refreshDisabled') : adminT('admin.home.refreshNote')}</p>
+    </>
+  );
+}
+
+export default async function PanelHome() {
+  const data = await panelData();
+  return (
+    <section>
+      <PublishedSummary data={data} />
+      <RefreshForm csrf={data.csrf} pendingCount={data.pending.length} />
+
+      <h2>{adminT('admin.home.figureList')}</h2>
+      <FigureTable figures={data.figures} />
 
       <h2>{adminT('admin.home.pending')}</h2>
       <PendingTable pending={data.pending} />
