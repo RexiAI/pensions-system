@@ -32,7 +32,7 @@
     "hero.snapshotLabel": "Daten:",
     "hero.panelFooter": "Quelle: Sozialversicherung und INE",
     "steps.number.label": "Die Zahl",
-    "steps.number.sentence": "Es bleiben diese Tage bis zum {date}, dem Tag, an dem die ältere Bevölkerung den Anteil erreicht, den der nächste Schritt erklärt.",
+    "steps.number.sentence": "Es bleiben diese Tage bis zum {date}: an diesem Tag erreicht die Bevölkerung ab 65 Jahren {threshold} je {base} Personen im Alter von 15 bis 64 Jahren.",
     "steps.breakage.label": "Was bricht",
     "steps.breakage.sentence": "Der Anteil der Menschen ab 65 Jahren erreicht {threshold} auf {base} Menschen von 15 bis 64 Jahren, und dem System, das sie trägt, geht der Spielraum aus.",
     "steps.why.label": "Warum",

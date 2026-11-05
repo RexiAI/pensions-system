@@ -32,7 +32,7 @@
     "hero.snapshotLabel": "Data:",
     "hero.panelFooter": "Source: Social Security and INE",
     "steps.number.label": "The number",
-    "steps.number.sentence": "These days remain until {date}, the day the older population reaches the share the next step explains.",
+    "steps.number.sentence": "These days remain until {date}: on that day the population aged 65 and over reaches {threshold} for every {base} people aged 15 to 64.",
     "steps.breakage.label": "What breaks",
     "steps.breakage.sentence": "The share of people aged 65 and over reaches {threshold} for every {base} people aged 15 to 64, and the system that supports them runs out of room.",
     "steps.why.label": "Why",

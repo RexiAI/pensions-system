@@ -32,7 +32,7 @@
     "hero.snapshotLabel": "Données :",
     "hero.panelFooter": "Source : Sécurité sociale et INE",
     "steps.number.label": "Le chiffre",
-    "steps.number.sentence": "Il reste ces jours jusqu'au {date}, le jour où la population âgée atteint la part que l'étape suivante explique.",
+    "steps.number.sentence": "Il reste ces jours jusqu'au {date} : ce jour-là, la population de 65 ans et plus atteint {threshold} pour {base} personnes de 15 à 64 ans.",
     "steps.breakage.label": "Ce qui casse",
     "steps.breakage.sentence": "La part des personnes de 65 ans et plus atteint {threshold} pour {base} personnes de 15 à 64 ans, et le système qui les fait vivre n'a plus de marge.",
     "steps.why.label": "Pourquoi",

@@ -32,7 +32,7 @@
     "hero.snapshotLabel": "Datos:",
     "hero.panelFooter": "Fuente: Seguridad Social e INE",
     "steps.number.label": "El número",
-    "steps.number.sentence": "Faltan estos días para el {date}, el día en que la población mayor alcanza la proporción que explica el paso siguiente.",
+    "steps.number.sentence": "Faltan estos días para el {date}: ese día la población de 65 y más años llega a {threshold} por cada {base} personas de 15 a 64 años.",
     "steps.breakage.label": "Qué se rompe",
     "steps.breakage.sentence": "La proporción de personas de 65 y más años llega a {threshold} por cada {base} personas de 15 a 64 años, y el sistema que las mantiene se queda sin margen.",
     "steps.why.label": "Por qué",

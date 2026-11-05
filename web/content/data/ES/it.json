@@ -32,7 +32,7 @@
     "hero.snapshotLabel": "Dati:",
     "hero.panelFooter": "Fonte: Previdenza sociale e INE",
     "steps.number.label": "Il numero",
-    "steps.number.sentence": "Restano questi giorni fino al {date}, il giorno in cui la popolazione anziana raggiunge la quota che il passo successivo spiega.",
+    "steps.number.sentence": "Restano questi giorni fino al {date}: quel giorno la popolazione di 65 anni e più raggiunge {threshold} per ogni {base} persone tra i 15 e i 64 anni.",
     "steps.breakage.label": "Che cosa si rompe",
     "steps.breakage.sentence": "La quota di persone di 65 anni e più arriva a {threshold} ogni {base} persone da 15 a 64 anni, e il sistema che le sostiene resta senza margine.",
     "steps.why.label": "Perché",
