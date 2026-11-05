@@ -3094,3 +3094,5 @@ Build PASS (deployment `READY` at head `a119be7`), health check PASS (HTTP 200 w
 DOM verified and the retired hero markup absent), E2E SKIPPED with a recorded reason. Stage 5d may proceed.
 The two findings above are configuration follow-ups for the human and do not gate this spec's deploy
 verification.
+
+Commits: 26 on the branch (25 at the archive, plus this record commit)
