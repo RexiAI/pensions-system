@@ -5,15 +5,8 @@ import { BANNED_PATTERNS, scanPublicText, stripOperatorSubtrees } from '../../we
 import { FigureLedgerNote } from '../../web/components/FigureLedgerNote';
 import { PublicPage } from '../../web/components/PublicPage';
 import { FigureStatusRow } from '../../web/components/FigureStatusRow';
-import { Hero } from '../../web/components/public/Hero';
-import { HERO_ORDER, heroFigureNumber, selectHeroSubject } from '../../web/components/public/hero-subject';
-import { formatValue } from '../../web/content/format';
-import { publisherForUrl } from '../../web/sources/labels';
 import { ProvenanceStrip } from '../../web/components/ProvenanceStrip';
-import esDocument from '../../web/content/data/ES/es.json';
 import { citationRegistry } from '../../web/content/citations';
-import { createRegistry } from '../../web/content/registry';
-import type { LocaleDocument } from '../../web/content/types';
 import { LOCALES } from '../../web/content/types';
 import type { DerivedFigure } from '../../web/ingest/types';
 import { shareCard } from '../../web/seo/share-card';
@@ -158,8 +151,10 @@ describe('Revision 1 D1: the unresolved figure as a first-class state', () => {
     }
   });
 
-  it('writes the ledger note once, above the first unresolved figure', () => {
-    const figures = unresolvedFigures();
+  it('writes the ledger note once, above the first ledger row', () => {
+    // Spec 004 T10: an `unavailable` figure never reaches the appendix, so the ledger note's
+    // reachable case is a figure that claims `computed` and is promoted to `withheld`.
+    const figures = [makeFigure({ figureId: 'fig-01', unit: 'ratio', value: null })];
     const html = pageHtml(figures);
     const note = renderComponent(FigureLedgerNote, { content: ES });
 
@@ -170,203 +165,18 @@ describe('Revision 1 D1: the unresolved figure as a first-class state', () => {
     expect(noteAt).toBeLessThan(firstRowAt);
   });
 
-  it('keeps strict figure order while interleaving plates and rows', () => {
+  it('publishes only the computed figure, in figure order, and nothing for the rest', () => {
     const figures = unresolvedFigures().map((figure) =>
       figure.figureId === 'fig-02' ? shareFigure() : figure,
     );
     const html = pageHtml(figures);
-    const anchors = ['fig-01', 'fig-02', 'fig-03', 'fig-04', 'fig-05', 'fig-06', 'fig-07'].map((anchor) =>
-      html.indexOf(`id="${anchor}"`),
-    );
-
-    expect(anchors.every((position) => position > -1)).toBe(true);
-    // Re-pointed by spec 003 T5 (AC-001-81/84/87): every unavailable figure now renders in one
-    // "en preparación" block at the first such figure's slot, so the unavailable anchors keep
-    // their order inside the block and the computed plates keep theirs around it.
-    const pending = ['fig-01', 'fig-03', 'fig-04', 'fig-05', 'fig-06', 'fig-07'].map((anchor) =>
-      html.indexOf(`id="${anchor}"`),
-    );
-    expect([...pending].sort((a, b) => a - b)).toEqual(pending);
-    const block = html.indexOf('class="pending"');
-    expect(block).toBeGreaterThan(-1);
-    expect(pending.every((position) => position > block)).toBe(true);
-    expect(html.indexOf('id="fig-02"')).toBeGreaterThan(pending[pending.length - 1] ?? -1);
-  });
-});
-
-describe('Revision 1 D2: the hero subject ladder', () => {
-  const shareTitle = ES.t('fig.02.title');
-  const shareDefinition = ES.t('fig.02.definition');
-  const depTitle = ES.t('fig.01.title');
-  const depDefinition = ES.t('fig.01.definition');
-  const coverTitle = ES.t('fig.07.title');
-  const coverDefinition = ES.t('fig.07.definition');
-  const notDefined = ES.t('table.notDefined');
-
-  /** The hero panel's mono label and its headline value, as rendered. */
-  function panelParts(html: string): { label: string; value: string } {
-    const labelAt = html.indexOf('class="hero__panel-label"');
-    const valueAt = html.indexOf('class="hero__value"');
-    return {
-      label: html.slice(labelAt, html.indexOf('</p>', labelAt)),
-      value: html.slice(valueAt, html.indexOf('</p>', valueAt)),
-    };
-  }
-
-  it('takes whichever eligible figure is present, in either position', () => {
-    const first = selectHeroSubject([dependencyFigure(), coverFigure()]);
-    expect(first.kind).toBe('figure');
-    if (first.kind !== 'figure') throw new Error('unreachable');
-    expect(first.figureId).toBe('fig-01');
-    expect(first.headline).toBeCloseTo(0.33, 6);
-    expect(first.comparisons.length).toBe(3);
-
-    const second = selectHeroSubject([unavailable(dependencyFigure()), shareFigure()]);
-    expect(second.kind).toBe('figure');
-    if (second.kind !== 'figure') throw new Error('unreachable');
-    expect(second.figureId).toBe('fig-02');
-    expect(second.headline).toBeCloseTo(13.23, 6);
-    expect(second.definitionId).toBe('pension-expenditure-gdp.international');
-    expect(second.period).toBe('1995-2024');
-    expect(second.sourceUrl.length).toBeGreaterThan(0);
-  });
-
-  it('orders the ladder fig-02 then fig-01, on the measured series', () => {
-    // Recorded product-owner decision (15-design.md D2, 2026-10-26): the share of GDP rises
-    // over the window while the dependency ratio is flat across the recent decade.
-    expect(HERO_ORDER).toEqual(['fig-02', 'fig-01']);
-
-    const subject = selectHeroSubject([dependencyFigure(), shareFigure()]);
-    expect(subject.kind).toBe('figure');
-    if (subject.kind !== 'figure') throw new Error('unreachable');
-    expect(subject.figureId).toBe('fig-02');
-    // Percentage points, not a fraction: the share is stored as 13.23, never as 0.1323.
-    expect(subject.unit).toBe('percentPoints');
-    expect(subject.headline).toBeCloseTo(13.23, 6);
-    expect(subject.definitionId).toBe('pension-expenditure-gdp.international');
-    expect(subject.period).toBe('1995-2024');
-    expect(subject.comparisons.length).toBe(3);
-  });
-
-  it('resolves each figure’s own number, never its position in the ladder', () => {
-    expect(heroFigureNumber('fig-02')).toBe(2);
-    expect(heroFigureNumber('fig-01')).toBe(1);
-  });
-
-  it('renders tier 1 as the share-of-GDP figure under its own label, definition and unit', () => {
-    const html = renderComponent(Hero, { content: ES, figures: [dependencyFigure(), shareFigure()] });
-    const { label, value } = panelParts(html);
-
-    expect(html).toContain('hero hero--numeric');
-    expect(label).toContain(shareTitle);
-    expect(html).toContain(shareDefinition);
-    // Identity, not digits alone: the headline is the share's own number in the share's own
-    // unit — percentage points — stated as an exact string, so a formatter that scales it to
-    // `1323 %` fails here. An expectation derived through the formatter under test could not.
-    expect(value).toContain('13,23\u00A0%');
-    expect(value).not.toContain('1323');
-    expect(html).toContain('1995-2024');
-    expect(html).toContain(publisherForUrl(shareFigure().manifest.sourceUrl[0]));
-  });
-
-  it('never captions tier 1 as the dependency ratio or as contribution cover', () => {
-    const html = renderComponent(Hero, { content: ES, figures: [dependencyFigure(), shareFigure()] });
-
-    expect(html).not.toContain(depTitle);
-    expect(html).not.toContain(depDefinition);
-    expect(html).not.toContain(coverTitle);
-    expect(html).not.toContain(coverDefinition);
-    // The value is formatted with its own unit: a percentage, never the ratio's two decimals.
-    expect(html).not.toContain(formatValue(0.33, 'ratio', ES.locale, notDefined));
-    expect(html).not.toContain('2009-2024');
-  });
-
-  it('falls to tier 2 with the dependency figure under its own label and ratio unit', () => {
-    const html = renderComponent(Hero, {
-      content: ES,
-      figures: [unavailable(shareFigure()), dependencyFigure()],
-    });
-    const { label, value } = panelParts(html);
-
-    expect(html).toContain('hero hero--numeric');
-    expect(label).toContain(depTitle);
-    expect(html).toContain(depDefinition);
-    expect(value).toContain(formatValue(0.33, 'ratio', ES.locale, notDefined));
-    expect(html).toContain('2009-2024');
-    expect(html).not.toContain(shareTitle);
-    expect(html).not.toContain(shareDefinition);
-    expect(html).not.toContain(coverTitle);
-    // The share figure is unavailable here, so neither its points value nor its fraction-scaled
-    // form may appear: asserted as the exact string, not through the formatter under test.
-    expect(html).not.toContain('13,23\u00A0%');
-    expect(html).not.toContain('1323');
-  });
-
-  it('keeps each figure under its own label in every locale', () => {
-    for (const locale of LOCALES) {
-      const localeContent = content(locale);
-      const shareHero = renderComponent(Hero, {
-        content: localeContent,
-        figures: [dependencyFigure(), shareFigure()],
-      });
-      expect(shareHero, locale).toContain(localeContent.t('fig.02.title'));
-      expect(shareHero, locale).toContain(localeContent.t('fig.02.definition'));
-      expect(shareHero, locale).not.toContain(localeContent.t('fig.01.title'));
-
-      const dependencyHero = renderComponent(Hero, {
-        content: localeContent,
-        figures: [unavailable(shareFigure()), dependencyFigure()],
-      });
-      expect(dependencyHero, locale).toContain(localeContent.t('fig.01.title'));
-      expect(dependencyHero, locale).toContain(localeContent.t('fig.01.definition'));
-      expect(dependencyHero, locale).not.toContain(localeContent.t('fig.02.title'));
+    expect(html).toContain('id="fig-02"');
+    // Spec 004 T10: no anchor, no row and no block for a figure with no value.
+    for (const anchor of ['fig-01', 'fig-03', 'fig-04', 'fig-05', 'fig-06', 'fig-07']) {
+      expect(html, anchor).not.toContain(`id="${anchor}"`);
     }
-  });
-
-  it('falls to the proposition when no eligible figure is computed', () => {
-    expect(selectHeroSubject(unresolvedFigures()).kind).toBe('proposition');
-    expect(selectHeroSubject([]).kind).toBe('proposition');
-  });
-
-  it('never promotes fig-03, fig-04 or fig-05, and never the thesis', () => {
-    for (const fixture of [cohortFigure, debtFigure, baseGrowthFigure]) {
-      const subject = selectHeroSubject([unavailable(dependencyFigure()), unavailable(shareFigure()), fixture()]);
-      expect(subject.kind).toBe('proposition');
-    }
-  });
-
-  it('renders the propositional hero with no numeral above the fold', () => {
-    const html = pageHtml(unresolvedFigures());
-
-    expect(html).toContain('hero hero--proposition');
-    expect(html).toContain(ES.t('hero.statement'));
-    expect(html).toContain(ES.t('hero.ctaMethod'));
-    expect(html).toContain(ES.t('hero.ctaFigures'));
-    expect(html).not.toContain('hero__value');
-    expect(html).toContain(ES.t('figure.statusSummary', { total: 7, computed: 0 }));
-    expect(html).toContain(`aria-label="${ES.t('figure.statusLabel')}"`);
-  });
-
-  it('writes the propositional hero from the content model, never from a state word', () => {
-    const html = renderComponent(Hero, { content: ES, figures: unresolvedFigures() });
-
-    expect(html).toContain('<h1');
-    expect(html).not.toContain('hero__value');
-    expect(html).not.toContain(ES.t('figure.unavailable.chip') + '</p>');
-    expect(html).toContain(ES.t('figure.unavailable.chip'));
-  });
-
-  it('fails a content model with no proposition slot instead of falling back to a state word', () => {
-    const document = esDocument as unknown as LocaleDocument;
-    const withoutProposition = { ...document.strings };
-    delete withoutProposition['hero.statement'];
-    const registry = createRegistry([{ ...document, strings: withoutProposition }]);
-    const result = registry.get('ES', 'es');
-
-    expect(result.ok).toBe(false);
-    if (result.ok) throw new Error('unreachable');
-    expect(result.error.code).toBe('incomplete-content');
-    expect(result.error.detail).toContain('hero.statement');
+    expect(html).not.toContain('class="pending"');
+    expect(html).not.toContain(ES.t('figure.unavailable.reason'));
   });
 });
 

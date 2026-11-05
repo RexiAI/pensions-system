@@ -84,23 +84,21 @@
      the measure did not change any locale's clock top. After the merge it does change French's,
      which is why the figure above supersedes it rather than repeating it.
 
-     The phone is the binding viewport — the panel is 295px there, so the block's margin is 7.5px
-     a side rather than the 74px it gets on a desktop. Measured in Chromium against the built app,
-     2026-10-29 — see the table in `tests/acceptance/first-viewport.test.ts`. */
+     The phone was the binding viewport — the panel is 295px there, so the block's margin was
+     7.5px a side rather than the 74px it got on a desktop. Measured in Chromium against the built
+     app, 2026-10-29. Spec 004 retires the centred face and with it the table that recorded these
+     rows: no rule resolves this measure any more, and `AC-004-77` asserts the declaration survives
+     while nothing places with it. */
   --measure-face: 17.5rem;
 
-  /* Spec 003 T1 (OQ-2): the countdown band. Aliases onto the numeral ladder, never new sizes: the
-     day numeral takes the ladder's top step (`--text-num-xl`, 80px desktop, 44px at 390) so it is
-     strictly larger than the 4rem-capped `h1` at every width; the sub-day fields and the demoted
-     `16 años` numeral take `--text-num-l` (32px). The display cap is unchanged. */
-  --text-clock-days: var(--text-num-xl);
+  /* Spec 003 T1 (OQ-2) introduced three numeral aliases for the band. Spec 004 T2 sets step 1's
+     numerals on the ladder directly (`--text-num-xl` for the day count, `--text-num-l` for the
+     years), so `--text-clock-days` and `--text-band-years` lost their last consumer and are
+     deleted with the rules they served. `--text-clock-sub` is retained: no rule resolves it any
+     more either, but AC-003-04's assertion names it by declaring that the sub-day fields must not
+     take a numeral size (they take `--text-meta`), and that assertion is not this stage's to move.
+     No declaration here claims a pinning test it does not have. */
   --text-clock-sub: var(--text-num-l);
-  --text-band-years: var(--text-num-l);
-  /* D1 put the page's identity above the clock and the share row under the fuse, so the band's own
-     block padding is now part of the fold budget (AC-003-06, AC-003-50): `--space-6` from 768 up
-     (was `--space-7`) and `--space-4` below it. The breathing comes out of the sheet's edges, not
-     out of any content: no type size, measure or margin in the band moved to buy these pixels. */
-  --band-pad-block: var(--space-6);
   /* Spec 003 T2: the fuse's burnt segment; the cord is 1px, drawn in the SVG's own units. */
   --fuse-burnt-h: 6px;
   /* Spec 003 T3: share controls (WCAG 2.5.5 target size), their gap and their glyph. */
@@ -164,7 +162,6 @@
   --chart-projection: var(--data-projection); /* projected; never used without --dash-projection */
   --dash-projection: 6 4;                   /* stroke-dasharray on every projected line */
   --rule-projection: 3px;                   /* the countdown threshold rule */
-  --hero-min-h: 560px;                      /* supersedes the full-viewport hero >=1024px */
   --pyramid-band-h: 14px;                   /* 5-year band pitch; 8px <1024px, 6px <768px */
 
   --ground-instrument: var(--surface-1);

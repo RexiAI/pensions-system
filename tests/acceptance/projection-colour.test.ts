@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { PyramidPlate } from '../../web/components/series/PyramidPlate';
-import { CountdownBlock } from '../../web/components/series/CountdownBlock';
+import { MethodRegion } from '../../web/components/public/MethodRegion';
 import { content, renderComponent } from '../fixtures/figures';
 import { countdownValue, pyramidSeries } from '../fixtures/series';
 
@@ -10,11 +10,18 @@ const TOKENS = readFileSync('web/styles/tokens.css', 'utf8');
 const CSS = readFileSync('web/styles/globals.css', 'utf8');
 
 function renderPyramid(): string {
-  return renderComponent(PyramidPlate, { content: ES, series: pyramidSeries(), freshnessWindowDays: 45 });
+  return renderComponent(PyramidPlate, { content: ES, series: pyramidSeries() });
 }
 
+/** The countdown's precision, where the threshold year is printed beside its label. */
 function renderCountdown(): string {
-  return renderComponent(CountdownBlock, { content: ES, countdown: countdownValue() });
+  return renderComponent(MethodRegion, {
+    content: ES,
+    sources: { countdown: countdownValue() },
+    freshnessWindowDays: 45,
+    nowMs: Date.parse('2026-10-31T10:00:00Z'),
+    countries: [{ geo: 'ES', name: ES.country.name, href: '#' }],
+  });
 }
 
 describe('AC-001-106: a projected value is encoded by dash, position and a printed word, not hue alone', () => {
@@ -38,11 +45,14 @@ describe('AC-001-106: a projected value is encoded by dash, position and a print
     expect(CSS).toMatch(/stroke-dasharray:\s*var\(--dash-projection\)/);
   });
 
-  it('AC-001-106: the threshold is printed as a word beside the projected year', () => {
+  it('AC-001-106: the threshold year is printed beside the label that names it', () => {
     const html = renderCountdown();
     expect(html).toContain(ES.t('countdown.yearLabel'));
-    expect(html).toContain('countdown__rule');
-    expect(CSS).toMatch(/\.countdown__rule\s*\{[^}]*background:\s*var\(--data-projection\)/s);
+    expect(html).toContain('countdown__year');
+    // The 3px accent rule retires with the band (spec 004 T2); the amber is still the projection
+    // encoding, declared for the panels and for the printed year.
+    expect(CSS).not.toContain('.countdown__rule');
+    expect(CSS).toMatch(/\.countdown__year\s*\{[^}]*color:\s*var\(--data-projection\)/s);
   });
 
   it('AC-001-106: every panel is named in words, so no panel is distinguished by colour', () => {
