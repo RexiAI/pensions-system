@@ -2793,3 +2793,196 @@ step 1 keeps `--surface-hero` as its ground. The design takes yes, with the fall
 
 PR: https://github.com/RexiAI/pensions-system/pull/14
 Commits: 20 at PR open, 21 including this record commit
+
+---
+
+# Phase 2 — post-PR CI (stage 4, round 0 of max 3)
+
+Phase-2 counter: **round 0 of 3** (`phase2Retries=0`). Phase 1 consumed one retry
+(`phase1Retries=1`, attempt 2). Per `docs/SPEC_PIPELINE.md §Remediation budget` the
+two counters are independent — this counter starts fresh.
+
+PR: #14 · branch `spec/004-plain-countdown` · head `b216f15538aa26834c3ce6b4425ceb91b3478165`
+Workflow: `CI` (`.github/workflows/ci.yml`). The pipeline doc calls this workflow
+"Self CI"; this repo names it "CI". Same workflow, name mismatch only — recorded so a
+later reader does not hunt for a workflow that does not exist here.
+
+## Per-check result (round 0)
+
+| Check | Bucket | Verdict |
+|---|---|---|
+| `frontend-ci / Unit Tests` | pass | PASS |
+| `frontend-ci / Lint & Format` | pass | PASS |
+| `Vercel Preview Comments` | pass | PASS |
+| `frontend-ci / Docker Build & Push` | skipping | NOT RUN — skipped via `needs: [build]`; carries no signal either way |
+| `frontend-ci / Build` | fail | **FAIL** |
+| `Vercel` | fail | **FAIL** |
+
+Headline verdict for round 0: **FAIL** — two terminal red checks, both from one defect.
+
+## Evidence: phase-2 CI check status (round 0)
+
+command: gh pr checks 14 --json name,state,bucket,workflow,link
+exit: 0
+at: 2026-11-05T13:58:16Z
+
+skipping	SKIPPED	frontend-ci / Docker Build & Push
+fail	FAILURE	frontend-ci / Build
+pass	SUCCESS	frontend-ci / Unit Tests
+pass	SUCCESS	frontend-ci / Lint & Format
+pass	SUCCESS	Vercel Preview Comments
+fail	FAILURE	Vercel
+
+The first query at `2026-11-05T13:53:36Z` returned `pending` for
+`frontend-ci / Unit Tests`, `frontend-ci / Lint & Format` and `Vercel`. Pending is
+neither pass nor fail, so the poll below ran until terminal.
+
+## Evidence: pending poll to terminal
+
+command: for i in $(seq 1 16); do gh pr checks 14 --json name,state,bucket; pending=$(...); [ "$pending" = 0 ] && exit 0; sleep 30; done
+exit: 0
+at: 2026-11-05T13:56:24Z
+
+[13:53:42Z] iter=1 pending=2
+[13:54:14Z] iter=2 pending=2
+[13:54:47Z] iter=3 pending=2
+[13:55:19Z] iter=4 pending=1
+[13:55:52Z] iter=5 pending=1
+[13:56:24Z] iter=6 pending=0
+ALL TERMINAL
+skipping	frontend-ci / Docker Build & Push
+fail	frontend-ci / Build
+pass	frontend-ci / Unit Tests
+pass	frontend-ci / Lint & Format
+pass	Vercel Preview Comments
+fail	Vercel
+
+## Evidence: failing check IDs
+
+command: gh api repos/RexiAI/pensions-system/commits/b216f15538aa26834c3ce6b4425ceb91b3478165/check-runs --jq '.check_runs[] | select(.conclusion=="failure") | {name,id,conclusion}'
+exit: 0
+at: 2026-11-05T13:58:16Z
+
+{"conclusion":"failure","id":127288210706,"name":"frontend-ci / Build"}
+
+`Vercel` is a commit status, not a check-run, so it is absent from this query by
+construction; its evidence is the deployment-status block below.
+
+## Evidence: failing job log — `frontend-ci / Build` (run 42039785097)
+
+command: gh run view 42039785097 --log-failed
+exit: 0
+at: 2026-11-05T13:58:19Z
+
+frontend-ci / Build	UNKNOWN STEP	2026-11-05T13:56:13.4109230Z   Running TypeScript ...
+frontend-ci / Build	UNKNOWN STEP	2026-11-05T13:56:20.1717349Z ##[error]tests/unit/spec-004-mutation-kills.test.ts(88,12): error TS2554: Expected 2-3 arguments, but got 1.
+frontend-ci / Build	UNKNOWN STEP	2026-11-05T13:56:20.2102779Z Failed to type check.
+
+## Evidence: local type-check reproduction
+
+command: npx tsc --noEmit
+exit: 1
+at: 2026-11-05T13:58:19Z
+
+tests/unit/spec-004-mutation-kills.test.ts(88,12): error TS2554: Expected 2-3 arguments, but got 1.
+
+One error and one only: the tree is otherwise type-clean at this commit.
+
+## Evidence: Vercel deployment status (head commit)
+
+command: gh api repos/RexiAI/pensions-system/deployments/7575444480/statuses --jq '.[]|{state,description,created_at,environment_url}'
+exit: 0
+at: 2026-11-05T13:58:25Z
+
+{"created_at":"2026-11-05T13:53:43Z","description":"Deployment has failed — run this Vercel CLI command: npx vercel inspect dpl_FuRj74yHxAWdru1fi62sxrU73mFj --logs","environment_url":"https://pensions-system-1e94yotn7-danielbueno76-4270s-projects.vercel.app","state":"failure"}
+
+## Diagnosis
+
+**One defect produces both red checks.**
+
+`tests/unit/spec-004-mutation-kills.test.ts:88` calls `scanTopRegion` with one
+argument:
+
+```ts
+expect(scanTopRegion('<main id="main"><p>Stryker was here</p></main>')).toEqual([]);
+```
+
+The signature is `scanTopRegion(html: string, _locale: string, internalTerms:
+readonly string[] = [])` — two required parameters. Every other call site in the repo
+passes two or three (`plain-language-gate.test.ts`, `locale-parity.test.ts`,
+`plain-language-properties.test.ts` ×6, `check-plain-language.ts`, and this same file
+at lines 64, 72, 87). Line 88 is the sole outlier.
+
+The test's intent — "carries no default terms of its own" — is expressible by passing
+`'es'` and omitting the terms array, which is what line 87 already does with an
+explicit array. The omission, not the assertion, is the defect.
+
+Why it escaped phase 1, and why it is red in CI:
+
+- `vitest` (the Unit Tests job, and the phase-1 "full test suite" evidence) transpiles
+  without type-checking, so the runtime suite is genuinely green — 923 tests pass with
+  `_locale` simply `undefined`.
+- `frontend-ci / Build` runs `npm run build` → `prebuild` scripts → `next build`,
+  which runs tsc over the whole project including `tests/`. That is where it fails.
+
+`Vercel` fails on the same commit for the same reason, with high confidence but not
+by reading its log: **`VERCEL_TOKEN` is absent from this machine's environment**
+(`config/agent.local.env` defines no `VERCEL_TOKEN` key), so `vercel inspect --logs`
+cannot authenticate. The attribution rests on three independent facts instead:
+
+1. Vercel's build command for this project is `npm run build` (`package.json`), the
+   same command the failing CI Build job ran on the same commit.
+2. Differential: deployment `7493605169` (`c1dfc5b6`, 2026-11-02T13:39:14Z) is
+   `state=success`; deployments `7575433411` (`02ba081`, 2026-11-05T13:53:12Z) and
+   `7575444480` (`b216f15`, 2026-11-05T13:53:42Z) are `state=failure`. Commit `09ad3db`
+   — the commit that introduced the offending test file — is dated
+   `2026-11-05T13:52:29Z`, immediately before the first red deployment.
+3. `git show 09ad3db --stat` attributes the file to that commit
+   (`tests/unit/spec-004-mutation-kills.test.ts | 554 +++++`).
+
+Round 1 re-checks the Vercel check after the fix; if it goes green, attribution is
+confirmed by observation rather than inference.
+
+**Not the cause, and worth stating so nobody chases it:** the `Turbopack build
+encountered 3 warnings` block about filesystem access tracing the whole project is a
+warning, emitted after `✓ Compiled successfully in 4.8s`. The build died at the
+type-check step, not there. Likewise this is **not** OOS-1 — no exit-141 SIGPIPE, no
+`.next/` interaction, nothing from `check-code-principles.sh`. Nothing here is a defect
+in the standards repo.
+
+## Routing
+
+- **`frontend-ci / Build` + `Vercel` → spec-coder.** Test defect (a compile-blocking
+  type error in a test file), which is the matrix's "behaviour / test / product defect"
+  class. The fix is one argument at line 88. **Do not touch the signature**: making
+  `_locale` optional would weaken a contract five other call sites and the shipped gate
+  script depend on, to accommodate the one call that is wrong.
+- **Originating stage:** `09ad3db test(spec-004): cover the mutants that survived stage
+  5a` — the Mutation Runner's commit. The routing matrix has no Mutation Runner lane, so
+  it routes to the Coder, but the stage that wrote the line is worth naming so the
+  pattern is not repeated next round.
+- **Not routed:** no infrastructure, credential, or gate-script defect is implicated.
+
+## Finding for the pipeline (not this branch) — phase-1 gate coverage
+
+The phase-1 "full test suite" check ran `npm test` (vitest), which does not type-check.
+`package.json` already exposes `"typecheck": "tsc --noEmit"`, and no local gate invoked
+it. A type error therefore passed phase 1 green and failed on the first CI run — a
+whole round of the phase-2 budget spent on something a `npm run typecheck` in the
+Verifier's check 2 would have caught locally.
+
+Recommendation, as a follow-up rather than a fix in this branch: the Verifier's check 2
+should run the project's type-check in addition to its test runner wherever a separate
+type-check command exists. This is the same class as OOS-1 — a gap in the gate set, not
+a defect in the deliverable.
+
+## Pipeline state
+
+**Verdict: FAIL.** The pipeline **stops at phase 2** and does **not** advance to stage
+5c (deploy verification): `docs/SPEC_PIPELINE.md §Deploy verification loop (phase 3)`
+requires the phase-2 loop to be green first, and the two loops never race.
+
+Phase-2 budget consumed: 0 of 3 fix-and-repush rounds (this is the initial check, round
+0). Two rounds remain before exhaustion escalation.
+
+Commits: 23 on the branch (22 at the phase-2 fix, plus this record commit)
