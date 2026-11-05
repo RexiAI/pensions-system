@@ -1215,32 +1215,6 @@ verified the *property* independently (the id-set diff above shows no preserved 
 citation), so no behaviour is unverified — but the assertion is a sample wearing a universal's
 name. WARN (§W-2), not a blocker.
 
-### OOS-4 — nothing between stage 5a and the push type-checks the test files the Mutation Runner adds
-
-Found in phase-2 round 0, and this entry **corrects round 0's own attribution**. Round 0 recorded
-the gap as "phase 1 ran `npm test` only, so a type error passed phase 1 green". That is wrong about
-where the error came from: `tests/unit/spec-004-mutation-kills.test.ts` was added by `09ad3db`
-(stage 5a, the Mutation Runner), which runs *after* this Verifier's phase-1 checks. The file did not
-exist when check 2 ran, so no phase-1 check could have caught it. The `.md` evidence and the commit
-dates agree on the ordering (phase-1 re-verification precedes the stage-5a report in this document;
-`09ad3db` is dated 2026-11-05T13:52:29Z, after the phase-1 cycle closed).
-
-What is true: `package.json` exposes `"typecheck": "tsc --noEmit"`, and **nothing between stage 5a
-writing new test files and the PR Opener pushing them invokes it**. `vitest` transpiles without
-type-checking, so the suite was green at 923 tests while `next build` — which type-checks `tests/`
-— failed on the one-argument `scanTopRegion` call. The first machine to type-check the line was
-CI, one round of the phase-2 budget later.
-
-One-line fix, as requested: **check 2 must run both `npm test` and the project's type-check**,
-not `npm test` alone. Necessary but not sufficient for this instance — check 2 runs before stage
-5a. The gate that would actually have caught it is the one the PR Opener already runs before
-pushing (stage 5b), or the stage-5a report's own "final test suite" step: either must type-check,
-because stage 5a is the only stage that writes test files after the Verifier has finished.
-
-This is a defect in the pipeline's gate set in `my-engineering-standards`, not in this branch.
-Same class as OOS-1 — a gap in the gates rather than a defect in the deliverable. Routed to a
-follow-up spec; not the Coder or the Refactorer.
-
 ## WARNs for the Architect (not blockers)
 
 - **W-1** — 5 design-principles WARNs at diff scope, itemised and assessed under the
@@ -2815,360 +2789,308 @@ Open question for the human gate, and the only one that changes what the Coder b
 step 1 keeps `--surface-hero` as its ground. The design takes yes, with the fallback stated in
 §Design System / Foundation.
 
-## PR
+## 40-deploy.md
 
-PR: https://github.com/RexiAI/pensions-system/pull/14
-Commits: 20 at PR open, 21 including this record commit
+# 40-deploy — 004-plain-countdown (stage 5c, deploy verification)
+
+- Stage: 5c Deploy Verifier
+- Branch: `spec/004-plain-countdown`
+- PR: #14 (draft, OPEN) — https://github.com/RexiAI/pensions-system/pull/14
+- Head SHA verified: `a119be73a41832a5495d87221d3266f9072e4a25`
+- Phase-2 precondition: **green** — all terminal checks pass on this exact head, so phase 3 is allowed to start.
+- **Phase-3 attempt count: 1** (first verification pass; **0 of 3** fix-and-redeploy rounds consumed)
+- Repo classification: **frontend** — Next.js `16.4.3` declared in `package.json` dependencies, Vercel Git integration connected to the repo. Vercel lane applies.
+
+I did not build, deploy, or fix anything. The Vercel Git integration is the source of truth for the build;
+everything below is a transcription of observation of the live system. **`vercel deploy` was never run.**
+
+## Summary
+
+| Component | Result |
+|---|---|
+| Build | **PASS** — deployment `READY`, built from head `a119be7` |
+| Health check | **PASS** — HTTP 200, serving the post-004 five-step page (not a stale build) |
+| E2E | **SKIP** — no E2E suite exists in this repo (see §E2E) |
+| **Verdict** | **PASS** |
 
 ---
 
-# Phase 2 — post-PR CI (stage 4, round 0 of max 3)
+## Evidence: deployment identity
 
-Phase-2 counter: **round 0 of 3** (`phase2Retries=0`). Phase 1 consumed one retry
-(`phase1Retries=1`, attempt 2). Per `docs/SPEC_PIPELINE.md §Remediation budget` the
-two counters are independent — this counter starts fresh.
-
-PR: #14 · branch `spec/004-plain-countdown` · head `b216f15538aa26834c3ce6b4425ceb91b3478165`
-Workflow: `CI` (`.github/workflows/ci.yml`). The pipeline doc calls this workflow
-"Self CI"; this repo names it "CI". Same workflow, name mismatch only — recorded so a
-later reader does not hunt for a workflow that does not exist here.
-
-## Per-check result (round 0)
-
-| Check | Bucket | Verdict |
-|---|---|---|
-| `frontend-ci / Unit Tests` | pass | PASS |
-| `frontend-ci / Lint & Format` | pass | PASS |
-| `Vercel Preview Comments` | pass | PASS |
-| `frontend-ci / Docker Build & Push` | skipping | NOT RUN — skipped via `needs: [build]`; carries no signal either way |
-| `frontend-ci / Build` | fail | **FAIL** |
-| `Vercel` | fail | **FAIL** |
-
-Headline verdict for round 0: **FAIL** — two terminal red checks, both from one defect.
-
-## Evidence: phase-2 CI check status (round 0)
-
-command: gh pr checks 14 --json name,state,bucket,workflow,link
+command: `vercel inspect https://pensions-system-git-spec-00-565dd3-danielbueno76-4270s-projects.vercel.app`
 exit: 0
-at: 2026-11-05T13:58:16Z
+at: 2026-11-05T14:03:00Z
 
-skipping	SKIPPED	frontend-ci / Docker Build & Push
-fail	FAILURE	frontend-ci / Build
-pass	SUCCESS	frontend-ci / Unit Tests
-pass	SUCCESS	frontend-ci / Lint & Format
-pass	SUCCESS	Vercel Preview Comments
-fail	FAILURE	Vercel
+```
+Vercel CLI 64.5.0 (Node.js 24.21.0)
+Loading teams…
+Fetching deployment "pensions-system-git-spec-00-565dd3-danielbueno76-4270s-projects.vercel.app" in danielbueno76-4270s-projects
+> Fetched deployment "pensions-system-jm1oampyq-danielbueno76-4270s-projects.vercel.app" in danielbueno76-4270s-projects [335ms]
 
-The first query at `2026-11-05T13:53:36Z` returned `pending` for
-`frontend-ci / Unit Tests`, `frontend-ci / Lint & Format` and `Vercel`. Pending is
-neither pass nor fail, so the poll below ran until terminal.
+  General
 
-## Evidence: pending poll to terminal
+    id		dpl_6TvQME6p88iCcgafFRTdyt8kEYF5
+    name	pensions-system
+    target	preview
+    status	● Ready
+    url		https://pensions-system-jm1oampyq-danielbueno76-4270s-projects.vercel.app
+    created	Thu Nov 05 2026 15:01:23 GMT+0100 (Central European Standard Time) [8m ago]
 
-command: for i in $(seq 1 16); do gh pr checks 14 --json name,state,bucket; pending=$(...); [ "$pending" = 0 ] && exit 0; sleep 30; done
-exit: 0
-at: 2026-11-05T13:56:24Z
+  Duration
 
-[13:53:42Z] iter=1 pending=2
-[13:54:14Z] iter=2 pending=2
-[13:54:47Z] iter=3 pending=2
-[13:55:19Z] iter=4 pending=1
-[13:55:52Z] iter=5 pending=1
-[13:56:24Z] iter=6 pending=0
-ALL TERMINAL
-skipping	frontend-ci / Docker Build & Push
-fail	frontend-ci / Build
-pass	frontend-ci / Unit Tests
-pass	frontend-ci / Lint & Format
-pass	Vercel Preview Comments
-fail	Vercel
+    build duration	26s
+    post-build duration	21s
+    billable duration	1m
+    CPU Minutes Usage	2 minutes (1m x 2vCPU)
 
-## Evidence: failing check IDs
+  Aliases
 
-command: gh api repos/RexiAI/pensions-system/commits/b216f15538aa26834c3ce6b4425ceb91b3478165/check-runs --jq '.check_runs[] | select(.conclusion=="failure") | {name,id,conclusion}'
-exit: 0
-at: 2026-11-05T13:58:16Z
-
-{"conclusion":"failure","id":127288210706,"name":"frontend-ci / Build"}
-
-`Vercel` is a commit status, not a check-run, so it is absent from this query by
-construction; its evidence is the deployment-status block below.
-
-## Evidence: failing job log — `frontend-ci / Build` (run 42039785097)
-
-command: gh run view 42039785097 --log-failed
-exit: 0
-at: 2026-11-05T13:58:19Z
-
-frontend-ci / Build	UNKNOWN STEP	2026-11-05T13:56:13.4109230Z   Running TypeScript ...
-frontend-ci / Build	UNKNOWN STEP	2026-11-05T13:56:20.1717349Z ##[error]tests/unit/spec-004-mutation-kills.test.ts(88,12): error TS2554: Expected 2-3 arguments, but got 1.
-frontend-ci / Build	UNKNOWN STEP	2026-11-05T13:56:20.2102779Z Failed to type check.
-
-## Evidence: local type-check reproduction
-
-command: npx tsc --noEmit
-exit: 1
-at: 2026-11-05T13:58:19Z
-
-tests/unit/spec-004-mutation-kills.test.ts(88,12): error TS2554: Expected 2-3 arguments, but got 1.
-
-One error and one only: the tree is otherwise type-clean at this commit.
-
-## Evidence: Vercel deployment status (head commit)
-
-command: gh api repos/RexiAI/pensions-system/deployments/7575444480/statuses --jq '.[]|{state,description,created_at,environment_url}'
-exit: 0
-at: 2026-11-05T13:58:25Z
-
-{"created_at":"2026-11-05T13:53:43Z","description":"Deployment has failed — run this Vercel CLI command: npx vercel inspect dpl_FuRj74yHxAWdru1fi62sxrU73mFj --logs","environment_url":"https://pensions-system-1e94yotn7-danielbueno76-4270s-projects.vercel.app","state":"failure"}
-
-## Diagnosis
-
-**One defect produces both red checks.**
-
-`tests/unit/spec-004-mutation-kills.test.ts:88` calls `scanTopRegion` with one
-argument:
-
-```ts
-expect(scanTopRegion('<main id="main"><p>Stryker was here</p></main>')).toEqual([]);
+    ╶ https://pensions-system-git-spec-00-565dd3-danielbueno76-4270s-projects.vercel.app
 ```
 
-The signature is `scanTopRegion(html: string, _locale: string, internalTerms:
-readonly string[] = [])` — two required parameters. Every other call site in the repo
-passes two or three (`plain-language-gate.test.ts`, `locale-parity.test.ts`,
-`plain-language-properties.test.ts` ×6, `check-plain-language.ts`, and this same file
-at lines 64, 72, 87). Line 88 is the sole outlier.
+The branch alias resolves to `dpl_6TvQME6p88iCcgafFRTdyt8kEYF5`. That deployment's git metadata was read
+from the Vercel API to prove it was built from **this** PR head, not from an older commit:
 
-The test's intent — "carries no default terms of its own" — is expressible by passing
-`'es'` and omitting the terms array, which is what line 87 already does with an
-explicit array. The omission, not the assertion, is the defect.
+command: `curl -sS -H "Authorization: Bearer $TOKEN" https://api.vercel.com/v13/deployments/dpl_6TvQME6p88iCcgafFRTdyt8kEYF5`
+exit: 0
+at: 2026-11-05T14:06:00Z
 
-Why it escaped phase 1, and why it is red in CI:
+```
+id           dpl_6TvQME6p88iCcgafFRTdyt8kEYF5
+url          pensions-system-jm1oampyq-danielbueno76-4270s-projects.vercel.app
+readyState   READY
+githubCommitSha          a119be73a41832a5495d87221d3266f9072e4a25
+githubCommitRef          spec/004-plain-countdown
+githubCommitRepo         pensions-system
+githubPrId               14
+githubDeployment         1
+```
 
-- `vitest` (the Unit Tests job, and the phase-1 "full test suite" evidence) transpiles
-  without type-checking, so the runtime suite is genuinely green — 923 tests pass with
-  `_locale` simply `undefined`.
-- `frontend-ci / Build` runs `npm run build` → `prebuild` scripts → `next build`,
-  which runs tsc over the whole project including `tests/`. That is where it fails.
+### How the preview URL was obtained (no `VERCEL_TOKEN`)
 
-`Vercel` fails on the same commit for the same reason, with high confidence but not
-by reading its log: **`VERCEL_TOKEN` is absent from this machine's environment**
-(`config/agent.local.env` defines no `VERCEL_TOKEN` key), so `vercel inspect --logs`
-cannot authenticate. The attribution rests on three independent facts instead:
+Three independent sources agree, so the identity is not inferred from a single signal:
 
-1. Vercel's build command for this project is `npm run build` (`package.json`), the
-   same command the failing CI Build job ran on the same commit.
-2. Differential: deployment `7493605169` (`c1dfc5b6`, 2026-11-02T13:39:14Z) is
-   `state=success`; deployments `7575433411` (`02ba081`, 2026-11-05T13:53:12Z) and
-   `7575444480` (`b216f15`, 2026-11-05T13:53:42Z) are `state=failure`. Commit `09ad3db`
-   — the commit that introduced the offending test file — is dated
-   `2026-11-05T13:52:29Z`, immediately before the first red deployment.
-3. `git show 09ad3db --stat` attributes the file to that commit
-   (`tests/unit/spec-004-mutation-kills.test.ts | 554 +++++`).
+1. GitHub commit status `Vercel` on `a119be7` — `state: success`, `description: "Deployment has completed"`,
+   `target_url: https://vercel.com/danielbueno76-4270s-projects/pensions-system/6TvQME6p88iCcgafFRTdyt8kEYF5`.
+2. The Vercel bot's PR comment on #14 — its encoded payload carries
+   `previewUrl: pensions-system-git-spec-00-565dd3-danielbueno76-4270s-projects.vercel.app`,
+   `inspectorUrl: …/6TvQME6p88iCcgafFRTdyt8kEYF5`, `nextCommitStatus: "DEPLOYED"`, `projectId: prj_ZS8blMFO18fwOrMaJfRJAEJgqZbz`.
+3. `vercel inspect` on that alias resolves to `dpl_6TvQME6p88iCcgafFRTdyt8kEYF5`, whose `githubCommitSha` is the head SHA.
 
-Round 1 re-checks the Vercel check after the fix; if it goes green, attribution is
-confirmed by observation rather than inference.
-
-**Not the cause, and worth stating so nobody chases it:** the `Turbopack build
-encountered 3 warnings` block about filesystem access tracing the whole project is a
-warning, emitted after `✓ Compiled successfully in 4.8s`. The build died at the
-type-check step, not there. Likewise this is **not** OOS-1 — no exit-141 SIGPIPE, no
-`.next/` interaction, nothing from `check-code-principles.sh`. Nothing here is a defect
-in the standards repo.
-
-## Routing
-
-- **`frontend-ci / Build` + `Vercel` → spec-coder.** Test defect (a compile-blocking
-  type error in a test file), which is the matrix's "behaviour / test / product defect"
-  class. The fix is one argument at line 88. **Do not touch the signature**: making
-  `_locale` optional would weaken a contract five other call sites and the shipped gate
-  script depend on, to accommodate the one call that is wrong.
-- **Originating stage:** `09ad3db test(spec-004): cover the mutants that survived stage
-  5a` — the Mutation Runner's commit. The routing matrix has no Mutation Runner lane, so
-  it routes to the Coder, but the stage that wrote the line is worth naming so the
-  pattern is not repeated next round.
-- **Not routed:** no infrastructure, credential, or gate-script defect is implicated.
-
-## Finding for the pipeline (not this branch) — phase-1 gate coverage
-
-The phase-1 "full test suite" check ran `npm test` (vitest), which does not type-check.
-`package.json` already exposes `"typecheck": "tsc --noEmit"`, and no local gate invoked
-it. A type error therefore passed phase 1 green and failed on the first CI run — a
-whole round of the phase-2 budget spent on something a `npm run typecheck` in the
-Verifier's check 2 would have caught locally.
-
-Recommendation, as a follow-up rather than a fix in this branch: the Verifier's check 2
-should run the project's type-check in addition to its test runner wherever a separate
-type-check command exists. This is the same class as OOS-1 — a gap in the gate set, not
-a defect in the deliverable.
-
-## Pipeline state
-
-**Verdict: FAIL.** The pipeline **stops at phase 2** and does **not** advance to stage
-5c (deploy verification): `docs/SPEC_PIPELINE.md §Deploy verification loop (phase 3)`
-requires the phase-2 loop to be green first, and the two loops never race.
-
-Phase-2 budget consumed: 0 of 3 fix-and-repush rounds (this is the initial check, round
-0). Two rounds remain before exhaustion escalation.
-
-Commits: 23 on the branch (22 at the phase-2 fix, plus this record commit)
+All three name the same deployment id, and that deployment's `githubCommitSha` equals the verified head.
+Nothing was fabricated and no deployment was triggered.
 
 ---
 
-# Phase 2 — round 1 result (of max 3)
+## Evidence: build status
 
-Phase-2 counter after this round: **1 of 3 consumed, 2 remain** (`phase2Retries=1`). Phase-1
-retries stay at 1 (`phase1Retries=1`); the counters are independent per
-`docs/SPEC_PIPELINE.md §Remediation budget`.
+command: `vercel ls --meta githubCommitRef=spec/004-plain-countdown` (then per-deployment API reads)
+exit: 0
+at: 2026-11-05T14:07:00Z
 
-Re-check is **scoped**: round 0's only reds were `frontend-ci / Build` and `Vercel`, and those are
-the two checks re-verified here. The round-0 greens (`Unit Tests`, `Lint & Format`, `Vercel
-Preview Comments`) were re-read as part of the same status query but not separately re-investigated.
+```
+  Age     Project                                          Deployment                                                                    Status      Environment
+  8m      danielbueno76-4270s-projects/pensions-system     https://pensions-system-jm1oampyq-danielbueno76-4270s-projects.vercel.app     ● Ready     Preview
+  17m     danielbueno76-4270s-projects/pensions-system     https://pensions-system-1e94yotn7-danielbueno76-4270s-projects.vercel.app     ● Error     Preview
+  17m     danielbueno76-4270s-projects/pensions-system     https://pensions-system-no7j1ulhg-danielbueno76-4270s-projects.vercel.app     ● Error     Preview
+```
 
-Head under test: **`a119be73a41832a5495d87221d3266f9072e4a25`**, 23 commits, run **42041011517**
-(`pull_request`, workflow `CI`, conclusion `success`). The superseded head `b216f15`'s failing run
-was `42039785097`; the check-run ids below are all new, which is what proves these results belong
-to the new head rather than a stale read.
+Build for head `a119be7`: **PASS** (`READY`, build duration 26s). No build-log excerpt is needed because the
+build did not fail.
 
-## Per-check result (round 1)
+### Context: two earlier, superseded `ERROR` builds on this branch
 
-| Check | Bucket | Round 0 | Verdict |
+Two deployments on this same branch failed before the head build, and they are recorded here so the
+history is not silently dropped:
+
+| Deployment | Commit | Message | Error |
 |---|---|---|---|
-| `frontend-ci / Build` | pass | fail | **PASS — was red, now green** |
-| `Vercel` | pass | fail | **PASS — was red, now green** |
-| `frontend-ci / Unit Tests` | pass | pass | PASS |
-| `frontend-ci / Lint & Format` | pass | pass | PASS |
-| `Vercel Preview Comments` | pass | pass | PASS |
-| `frontend-ci / Docker Build & Push` | skipping | skipping | still NOT RUN — by design, see below |
+| `dpl_9hT9ridzQwkJ7TUxFG4jhybu4QcU` | `02ba081a6350` | `docs(changes): archive 004-plain-countdown` | `errorCode: lint_or_type_error`, `Command "npm run build" exited with 1` |
+| `dpl_FuRj74yHxAWdru1fi62sxrU73mFj` | `b216f15538aa` | `docs(changes): record PR URL and commit count for 004-plain-countdown` | `errorCode: lint_or_type_error`, `Command "npm run build" exited with 1` |
 
-Headline verdict for round 1: **PASS** — every check that can run on a PR is green.
+These are **superseded, not current**: the head commit `a119be7` built `READY` and serves the correct page.
+The `prebuild` stage runs the repo's content gates (`verify-derived`, `check-content-scope`,
+`check-public-vocabulary`, `check-scenario-traceability-3digit`, `check-plain-language`), so a spec folder
+removed by an early archive breaks the build and its restoration fixes it — consistent with these two
+docs-only commits failing and the head succeeding. Their error class (`lint_or_type_error`) is
+code/config-diagnostic, not ambiguous, and the head build is green, so **no escalation is triggered**.
+Recorded as an observation only; no action routed.
 
-## Evidence: round-1 CI check status
+---
 
-command: gh pr checks 14 --json name,state,bucket,workflow,link
+## Evidence: health check
+
+command: `curl` against the preview URL — unauthenticated probe, then authenticated probe using the
+per-machine automation-bypass secret (`config/agent.local.env`, name `VERCEL_AUTOMATION_BYPASS_SECRET`;
+value never printed), then DOM assertions on the served HTML
 exit: 0
-at: 2026-11-05T14:05:15Z
+at: 2026-11-05T14:10:47Z
 
-skipping	SKIPPED	frontend-ci / Docker Build & Push	CI
-pass	SUCCESS	frontend-ci / Build	CI
-pass	SUCCESS	Vercel Preview Comments	
-pass	SUCCESS	frontend-ci / Unit Tests	CI
-pass	SUCCESS	frontend-ci / Lint & Format	CI
-pass	SUCCESS	Vercel	
-
-## Evidence: poll to terminal (nothing pending)
-
-command: for i in $(seq 1 18); do gh pr checks 14 --json name,state,bucket; pending=$(...); [ "$pending" = 0 ] && exit 0; sleep 30; done
-exit: 0
-at: 2026-11-05T14:04:05Z
-
-[14:01:55Z] iter=1 pending=2 total=4
-[14:02:27Z] iter=2 pending=1 total=4
-[14:03:00Z] iter=3 pending=1 total=5
-[14:03:32Z] iter=4 pending=1 total=5
-[14:04:05Z] iter=5 pending=0 total=6
-ALL TERMINAL
-
-The check count grows as jobs report (4 → 5 → 6); the loop only stops at `pending=0`, so no check
-was judged while unstarted.
-
-## Evidence: head and run identity
-
-command: gh run view 42041011517 --json headSha,conclusion,status,workflowName,event
-exit: 0
-at: 2026-11-05T14:05:19Z
-
-{"headSha":"a119be73a41832a5495d87221d3266f9072e4a25","conclusion":"success","status":"completed","workflowName":"CI","event":"pull_request"}
-
-## Evidence: check-run ids on the new head
-
-command: gh api repos/RexiAI/pensions-system/commits/a119be73a41832a5495d87221d3266f9072e4a25/check-runs --jq '.check_runs[]|{name,id,conclusion,status}'
-exit: 0
-at: 2026-11-05T14:05:15Z
-
-{"conclusion":"skipped","id":127292715944,"name":"frontend-ci / Docker Build & Push","status":"completed"}
-{"conclusion":"success","id":127292194696,"name":"frontend-ci / Build","status":"completed"}
-{"conclusion":"success","id":127291720093,"name":"Vercel Preview Comments","status":"completed"}
-{"conclusion":"success","id":127291499725,"name":"frontend-ci / Lint & Format","status":"completed"}
-{"conclusion":"success","id":127291499174,"name":"frontend-ci / Unit Tests","status":"completed"}
-
-`frontend-ci / Build` is now `127292194696`, not round 0's failing `127288210706` — a different
-check-run on a different commit, not a cached verdict.
-
-## Evidence: Vercel commit status on the new head
-
-command: gh api repos/RexiAI/pensions-system/commits/a119be73a41832a5495d87221d3266f9072e4a25/status --jq '{state,total:.total_count,statuses:[.statuses[]|{context,state,description}]}'
-exit: 0
-at: 2026-11-05T14:05:19Z
-
-{"state":"success","statuses":[{"context":"Vercel","description":"Deployment has completed","state":"success"}],"total":1}
-
-**This closes round 0's open inference.** Round 0 could not read the Vercel build log
-(`VERCEL_TOKEN` is absent on this machine and `config/agent.local.env` defines no such key), so it
-attributed the Vercel red to the same `npm run build` type-check failure by differential only —
-last green deployment `c1dfc5b6` on 2026-11-02, first red `02ba081` immediately after `09ad3db`.
-With the type error removed and nothing else changed in the build path, the same commit's Vercel
-deployment reports `Deployment has completed` / `success`. The differential attribution was
-correct. This remains an observation, not a log read — the log is still not readable from here.
-
-## Evidence: the fix, and the test count
-
-command: git show 7ed639a --stat --oneline; awk 'NR>=86 && NR<=93' tests/unit/spec-004-mutation-kills.test.ts
-exit: 0
-at: 2026-11-05T14:04:30Z
-
-7ed639a fix(spec-004): pass the required locale to scanTopRegion
- tests/unit/spec-004-mutation-kills.test.ts | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-91:     expect(scanTopRegion('<main id="main"><p>Stryker was here</p></main>', 'es')).toEqual([]);
-
-The signature is untouched: `scanTopRegion(html: string, _locale: string, internalTerms: readonly
-string[] = [])`. Round 0's constraint — do not loosen the signature to accommodate the one wrong
-call — was honoured. One argument added, three comment lines, one test file, no production code.
-
-## Evidence: full suite on the new head
-
-command: npx vitest run
-exit: 0
-at: 2026-11-05T14:04:47Z
-
- Test Files  88 passed (88)
-      Tests  971 passed (971)
-
-**The 971 is not unaccounted behaviour.** The phase-1 record carries 923 tests / 86 files; the
-delta is +2 files / +48 tests and matches exactly the two files `09ad3db` added
-(`spec-004-mutation-kills.test.ts` 554 lines, `spec-004-mutation-kills-dom.test.ts` 176 lines),
-which post-date the phase-1 count. No test appeared from nowhere.
-
-## Why `frontend-ci / Docker Build & Push` is still skipped
-
-Round 0 recorded it as "skipped behind `needs: [build]`" and expected a green build to unblock it.
-That was half the reason. The full condition, from the pinned callee
-(`ci-nextjs.yml` line 84):
-
-```yaml
-  docker:
-    needs: [build]
-    if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch && inputs.deploy-on-main
+```
+--- unauthenticated probe ---
+http_code=302
+--- authenticated probe (automation bypass) ---
+http_code=200 time_total=0.169226
+bytes=226311
+--- DOM assertions ---
+data-top-step occurrences: 1
+distinct data-top-step values:
+     1	data-top-step="number"
+     2	data-top-step="breakage"
+     3	data-top-step="why"
+     4	data-top-step="distance"
+     5	data-top-step="meaning"
+retired markup:
+  hero--band   = 0
+  class="band  = 0
+  band__       = 0
+at: 2026-11-05T14:10:47Z
 ```
 
-Three independent conjunctions, and this PR satisfies none: the event is `pull_request`, the ref is
-`spec/004-plain-countdown`, and this repo's caller sets `deploy-on-main: false` with a comment
-explaining that there is no Dockerfile and no `GHCR_TOKEN`. A green build therefore cannot unblock
-it — it is skipped **by design on every PR**, and will stay skipped until merge to `main` with that
-input enabled. It carries no signal about this branch, which is why it is not a red and not a hole
-in the verdict. Correcting round 0's explanation here rather than leaving the wrong reason on file.
+Two notes so the output above is not misread:
+
+- The bare `302` is **Vercel Deployment Protection**, not an application failure: the body is
+  `Protected by Vercel Authentication`. The deployment is a protected preview, which is expected for this
+  project. With the configured automation-bypass header the same URL returns `200`.
+- `data-top-step occurrences: 1` is `grep -c` counting *lines*, and the served HTML is a single line
+  (0 newlines). Occurrence count is **10** by `grep -o | wc -l` — 5 in the rendered markup plus 5 in the
+  inlined RSC payload — and **5 distinct step values**, which is the number that matters.
+
+### DOM verification — this is the post-004 page, not a stale build
+
+The health check confirms the deployment is serving *this branch's* content, which is the specific trap
+this stage must not fall into (a 200 from a stale build is a failure, not a pass):
+
+- **New five-step structure present.** Five distinct `data-top-step` values, in rendered order:
+  `number` → `breakage` → `why` → `distance` → `meaning`.
+- **Retired markup absent.** `hero--band`, `class="band"`, and `band__` all occur **0** times.
+- **Visible content matches the five steps**, with the method section below the fold as designed.
+  Headings extracted from the served HTML:
+
+```
+La pensión que te espera en España
+El número
+Qué se rompe
+Por qué
+Qué parte del umbral
+Qué significa
+Cifras
+Gasto público en pensiones (% del PIB)
+Método
+Las 4 voces de esta página
+```
+
+- The page is real application output, not an error shell: `<title>2042: España llega a 50 mayores de 65
+  por cada 100 en edad de trabajar · pensiones · España</title>`, `lang="es"`.
+
+### Immutable deployment URL cross-check
+
+The deployment-specific URL was checked as well, so the pass does not rest on the branch alias alone:
+
+command: `curl <immutable-url>/` with the automation-bypass header, then `cmp` against the alias body
+exit: 0
+at: 2026-11-05T14:09:00Z
+
+```
+=== IMMUTABLE DEPLOYMENT URL ===
+http_code=200 time=0.258771s
+size=226311
+data-top-step count=1
+hero--band count=0
+=== identical to alias body? ===
+IDENTICAL
+```
+
+Both the branch alias and the immutable deployment URL serve byte-identical HTML (226,311 bytes) with the
+five-step structure and without the retired hero markup.
+
+---
+
+## E2E
+
+verdict: **SKIP** (recorded skip, not a failure)
+
+There is **no E2E suite in this repository to run against the preview URL**. Verified by inspection:
+
+command: `grep -iE '"(e2e|playwright|cypress|maestro|@testerarmy|detox|testcafe|webdriverio)' package.json` + directory/config scan
+exit: 0 (grep found no matches)
+at: 2026-11-05T14:08:00Z
+
+```
+=== e2e-ish deps ===
+NONE in package.json
+=== e2e-ish scripts ===
+NONE
+=== dirs ===
+tests
+=== find e2e configs ===
+(no matches)
+```
+
+Reason for the skip: `skills/e2e-testing/SKILL.md` scopes agentic E2E to repos running the TesterArmy `e2e`
+framework at the pinned version. That framework is not a dependency here, there is no `e2e/` directory, no
+`playwright.config.*` / `cypress.config.*` / `.maestro/` config, and `package.json` has no `e2e`-prefixed
+script. The repo's test layer is Vitest unit/acceptance tests under `tests/`, which are not a live-URL E2E
+suite and were already exercised by stage 4. Delegating to `e2e-runner` would have nothing to run.
+
+Consequence: no E2E exit code exists to route. The live-system signal for this round is the DOM-verified
+health check above, which does confirm the deployed build serves the new five-step structure.
+
+---
+
+## Findings for the human (not blocking this verdict)
+
+### F-1 — `VERCEL_TOKEN` is not configured on this machine (configuration defect)
+
+Recorded precisely, and **not** treated as "no Vercel project linked" — a Vercel project *is* linked and
+was queried successfully.
+
+command: `env` check + key-name scan of `config/agent.local.env`
+exit: 0
+at: 2026-11-05T14:02:00Z
+
+```
+=== VERCEL_TOKEN set? ===
+NOT SET
+=== agent.local.env keys (names only) ===
+VERCEL_AUTOMATION_BYPASS_SECRET
+```
+
+Per `docs/DEPLOYMENT.md` §Frontend: Vercel, `VERCEL_TOKEN` belongs in the gitignored per-machine
+`config/agent.local.env` (loaded via direnv). It is absent; the only Vercel key present is
+`VERCEL_AUTOMATION_BYPASS_SECRET`. There is also no `.vercel/` project link directory in the repo.
+
+However, this did **not** block verification: the Vercel CLI resolved authentication from its own stored
+operator session (`~/.local/share/com.vercel.cli/auth.json`), which is how the `vercel inspect`, `vercel ls`,
+and API reads above succeeded. So the deployment facts in this report are real, not fabricated — but the
+authentication path is **not reproducible in CI**, which cannot use a local login session.
+
+Action required before relying on the post-merge lane: set `VERCEL_TOKEN` (plus `VERCEL_ORG_ID` /
+`VERCEL_PROJECT_ID`) in `config/agent.local.env` for local runs, and as repository secret
+`VERCEL_TOKEN` for `.github/workflows/ci-vercel-production-verify.yml`. Without it, per
+`docs/DEPLOYMENT.md`, that post-merge lane will record a loud failure rather than a skip. This is a
+follow-up configuration task, not a defect in the 004 change.
+
+### F-2 — protected preview requires the bypass secret for any automated probe
+
+Any CI or agent health check against a preview URL must send the `x-vercel-protection-bypass` header, or it
+will see `302` → Vercel SSO and could misreport a healthy deployment as failing. Worth encoding in whatever
+automates future phase-3 checks.
+
+---
+
+## Phase-3 budget
+
+- Fix-and-redeploy rounds consumed: **0 of 3**.
+- This round needed no fix routing: build passed, health check passed, E2E skipped for a stated reason.
+- `Phase-3 budget exhausted` is **not** applicable.
+- Counter is independent of phase 1 and phase 2, per `docs/SPEC_PIPELINE.md §Remediation budget`.
 
 ## Verdict
 
-**PASS.** All terminal checks on head `a119be7` are green: `frontend-ci / Build`,
-`frontend-ci / Unit Tests`, `frontend-ci / Lint & Format`, `Vercel Preview Comments`, `Vercel`. The
-one `skipping` check is unreachable by design on a pull request.
+**Verdict: PASS**
 
-Phase 2 is green. Nothing is routed to the Coder or the Refactorer. Phase-2 budget: 1 of 3
-rounds consumed, 2 in reserve, no escalation.
-
-Per `docs/SPEC_PIPELINE.md §Deploy verification loop (phase 3)`, phase 3 (stage 5c, deploy
-verification) may now start — it requires a green phase-2 loop and does not run before it. This
-document is **uncommitted and needs committing by the PR Opener**; the Verifier commits nothing.
+Build PASS (deployment `READY` at head `a119be7`), health check PASS (HTTP 200 with the post-004 five-step
+DOM verified and the retired hero markup absent), E2E SKIPPED with a recorded reason. Stage 5d may proceed.
+The two findings above are configuration follow-ups for the human and do not gate this spec's deploy
+verification.
