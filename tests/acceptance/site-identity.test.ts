@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PublicPage } from '../../web/components/PublicPage';
 import { SiteFooter } from '../../web/components/public/SiteFooter';
-import { canonicalUrl, CONTACT_EMAIL, SITE_URL } from '../../web/content/site';
+import {
+  canonicalUrl,
+  CONTACT_EMAIL,
+  COOKIELESS_COUNTER_ENABLED,
+  SITE_URL,
+} from '../../web/content/site';
 import { citationRegistry } from '../../web/content/citations';
 import { LOCALES } from '../../web/content/types';
 import type { Locale } from '../../web/content/types';
@@ -23,7 +28,12 @@ import { countOccurrences, listSourceFiles, readSource } from '../helpers/source
  * rendering layer, so a metadata helper that is correct in isolation but never wired into a
  * route is still caught — see `tests/acceptance/served-document.test.ts`.
  */
-const DEPLOYED_ORIGIN = 'https://pensions-system-danielbueno76-4270s-projects.vercel.app';
+/**
+ * The origin the site is actually served from. Spec 006 T13 corrects the committed default from a
+ * Vercel project alias to this origin: the criterion ("the defaults are the deployed origin") is
+ * unchanged, the deployed origin moved (AC-006-34, AC-006-35).
+ */
+const DEPLOYED_ORIGIN = 'https://pensions-system-delta.vercel.app';
 const DEPLOYED_INBOX = 'info@rexi-ai.com';
 
 const ENV_KEYS = ['SITE_URL', 'CONTACT_EMAIL'] as const;
@@ -80,6 +90,53 @@ describe('AC-001-35: the canonical origin and the contact address are configurat
     expect(new URL(canonicalUrl('/fr')).origin).toBe(SITE_URL);
     // The path the canonical link, `og:url` and the footer share comes from one helper too.
     expect(LOCALES.map((locale) => publicPathFor(locale))).toEqual(['/', '/en', '/fr', '/de', '/it']);
+  });
+});
+
+/**
+ * The configuration's own edge cases. The shipped defaults and a single-slash override exercise
+ * the happy path only: every branch in `site.ts` that reads a value the deployment happens not to
+ * use is invisible to the assertions above, so a mutant can flatten it without turning the suite
+ * red. These are the inputs that reach each branch directly.
+ */
+describe('AC-001-35: the configuration branches the shipped defaults never reach', () => {
+  it('AC-001-35: every trailing slash is stripped, not only the last one', async () => {
+    process.env.SITE_URL = 'https://pensions-custom.es///';
+    const stripped = await reloadedSite();
+    expect(stripped.SITE_URL).toBe('https://pensions-custom.es');
+  });
+
+  it('AC-001-35: the inbox pattern is anchored at both ends and accepts a multi-label domain', async () => {
+    // A string that *contains* an address is not an address: the footer prints it as the mailto
+    // href and as visible text, so an unanchored match would ship surrounding prose.
+    process.env.CONTACT_EMAIL = 'write to info@rexi-ai.com';
+    await expect(reloadedSite()).rejects.toThrow(/CONTACT_EMAIL/);
+
+    process.env.CONTACT_EMAIL = 'info@mail.rexi-ai.com';
+    const multiLabel = await reloadedSite();
+    expect(multiLabel.CONTACT_EMAIL).toBe('info@mail.rexi-ai.com');
+  });
+
+  it('AC-001-35: the address length cap is 254, inclusive', async () => {
+    // 249 + '@x.co' = 254 characters: at the cap, accepted.
+    process.env.CONTACT_EMAIL = `${'a'.repeat(249)}@x.co`;
+    const atCap = await reloadedSite();
+    expect(atCap.CONTACT_EMAIL).toHaveLength(254);
+
+    // 250 + '@x.co' = 255: over the cap, rejected before it can reach a mail client.
+    process.env.CONTACT_EMAIL = `${'a'.repeat(250)}@x.co`;
+    await expect(reloadedSite()).rejects.toThrow(/CONTACT_EMAIL/);
+  });
+
+  it('AC-001-35: only a bare root collapses to the origin; a query or fragment is kept', () => {
+    expect(canonicalUrl('/?ref=share')).toBe(`${SITE_URL}/?ref=share`);
+    expect(canonicalUrl('/#empieza')).toBe(`${SITE_URL}/#empieza`);
+    expect(canonicalUrl('/en?ref=share')).toBe(`${SITE_URL}/en?ref=share`);
+  });
+
+  it('AC-001-35: the deployment ships no cookie-setting counter', () => {
+    // A counter that sets a cookie is a consent surface this site deliberately does not have.
+    expect(COOKIELESS_COUNTER_ENABLED).toBe(false);
   });
 });
 

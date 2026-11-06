@@ -9,7 +9,7 @@
  * site publishes derives from — the canonical `<link>`, `og:url`, the sitemap, `robots.txt` and
  * the footer's citation line.
  */
-const DEFAULT_SITE_URL = 'https://pensions-system-danielbueno76-4270s-projects.vercel.app';
+const DEFAULT_SITE_URL = 'https://pensions-system-delta.vercel.app';
 const DEFAULT_CONTACT_EMAIL = 'info@rexi-ai.com';
 
 /** An unset or blank variable is not an override: it falls back to the committed default. */

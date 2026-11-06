@@ -115,9 +115,18 @@ describe('AC-003-25: the share text computes days at click time from the approve
 });
 
 describe('AC-003-26: the shared URL is canonical and clean', () => {
+  it('AC-003-26: the committed default is the site’s own origin, not a project alias', () => {
+    // Re-pointed by spec 006 T13: comparing a control with the same constant that builds it is how
+    // the wrong host shipped, so the origin itself is what this criterion now bounds.
+    expect(SITE_URL).not.toContain('-projects.vercel.app');
+    expect(new URL(SITE_URL).origin).toBe(SITE_URL);
+    expect(readSource('web/content/site.ts')).toContain('process.env.SITE_URL');
+  });
+
   it('AC-003-26: every control shares the route’s canonicalUrl with no tracking parameter', () => {
     for (const locale of LOCALES) {
       const url = canonicalUrl(publicPathFor(locale));
+      expect(new URL(url).origin).toBe(SITE_URL);
       for (const network of SHARE_NETWORKS) {
         const href = shareHref(network, `text ${url}`, url);
         const params = new URL(href).searchParams;
