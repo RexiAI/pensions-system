@@ -69,6 +69,12 @@ svg {
 .skip-link {
   position: absolute;
   left: -9999px;
+  /* Spec 006 T4: a target by name and by measurement, even while parked off-canvas. */
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-min);
+  min-inline-size: var(--tap-min);
+  font-size: var(--text-small);
 }
 
 .skip-link:focus {
@@ -126,11 +132,16 @@ svg {
 
 .site-header__wordmark {
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: var(--text-small);
   text-transform: lowercase;
   max-inline-size: 88px;
   white-space: nowrap;
   overflow: hidden;
+  /* Spec 006 T4: the box grows inside the fixed 64/56px row; the type does not. */
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-min);
+  min-inline-size: var(--tap-min);
 }
 
 .site-header__iso,
@@ -156,12 +167,25 @@ svg {
   font-size: var(--text-meta);
 }
 
+/* Spec 006 T4: nav anchors reach 44 px on both axes. Without the inline minimum, `Cifras`
+   measures 43.1 × 44 and fails by 0.9 px. The row's type stays at `--text-meta`. */
+.site-header__nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--tap-min);
+  min-inline-size: var(--tap-min);
+}
+
 .site-header__theme,
 .site-header__index-trigger {
   display: grid;
   place-items: center;
   inline-size: 40px;
   block-size: 40px;
+  /* Spec 006 T4: `--locale-cell` is untouched; the floor is a minimum, not a redefinition. */
+  min-inline-size: var(--tap-min);
+  min-block-size: var(--tap-min);
   padding: 0;
   background: transparent;
   border: none;
@@ -269,6 +293,9 @@ svg {
   place-items: center;
   inline-size: var(--locale-cell);
   block-size: var(--locale-cell);
+  /* Spec 006 T4: the declared cell is still 36 px; the floor is added as a minimum. */
+  min-inline-size: var(--tap-min);
+  min-block-size: var(--tap-min);
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--ink-2);
@@ -297,7 +324,7 @@ svg {
   }
 
   .site-header__wordmark {
-    font-size: 1.0625rem;
+    font-size: var(--text-small);
     max-inline-size: 96px;
   }
 
