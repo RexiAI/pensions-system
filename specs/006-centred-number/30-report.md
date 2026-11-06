@@ -338,3 +338,16 @@ attempt. No gate threshold was changed, no test was weakened or deleted.
 
 **GREEN.** Mutation score 95.62 % (floor 80 %), all 19 survivors named as equivalent, final suite
 116 files / 1068 tests green, `tsc` exit 0. Nothing was committed or pushed — that is stage 5b.
+
+## PR
+
+PR: https://github.com/RexiAI/pensions-system/pull/18
+Commits: 16 (17 including this record)
+at: 2026-11-06T16:53:41Z
+
+Stage 5b, PR Opener. The branch was committed one task at a time — T1, T2,
+T4–T13 (T3 superseded by T11), plus the stage-5a kill tests, the harness fix
+from phase-1 BLOCK 1, and these spec artifacts — pushed to `spec/006-centred-number`,
+and opened as a draft PR against `main`. `specs/006-centred-number/` is still on
+the branch on purpose: stage 5c writes `40-deploy.md` into it and stage 5d is the
+stage that archives it.
