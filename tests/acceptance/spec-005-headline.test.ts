@@ -126,9 +126,15 @@ describe('AC-005-05: the sub-line stops promising an amount', () => {
     }
   });
 
-  it('AC-005-05: `hero.sub` still renders, on the metadata surface the design points at', () => {
+  it('AC-005-05: the description that ships carries no amount promise', () => {
     for (const locale of LOCALES) {
-      expect(pageMetadata(locale, null).description, locale).toBe(content(locale).t('hero.sub'));
+      // Production takes the non-null branch: committedThresholdYear() resolves the committed
+      // countdown to 2042, never null. `hero.sub` is only the year-free fallback, so it must not
+      // be the string a crawler reads; the scenario's clause is that the sub-line a user reaches
+      // stops promising an amount, and this is that surface.
+      const shipped = pageMetadata(locale).description;
+      expect(shipped, `${locale}: the fallback sub-line is not what ships`).not.toBe(content(locale).t('hero.sub'));
+      expect(shipped.toLocaleLowerCase(), `${locale}: "${shipped}"`).not.toContain(AMOUNT_WORDS[locale]);
     }
   });
 });
