@@ -129,36 +129,33 @@
   --chart-compact-w: 320;
   --figure-state-row-min: 48px;
 
-  /* Revision 4 §P1: warm paper, warmer ink, a present accent. Three hues, unchanged meanings.
-     Every value recomputed against its pairs (AC-001-117). The grounds lift +1.3 L* and gain
-     chroma at a hue 7 degrees less yellow than Revision 3's: warm paper, not beige. The L* ladder
-     keeps the Revision 3 ordering, measuring 2.75 / 3.04 apart (Revision 3: 2.79 / 3.08). */
-  --surface-1: #fdf2e1;
-  --surface-2: #f6ead7;
-  --surface-3: #f0e1c9;
-  /* Revision 4 §P2: the hero panel's own ground — a warmer, deeper sheet laid on the page, not
-     a second step of the same beige. It is the page's one large warm area. */
-  --surface-hero: #fee8d0;
-  --ink-1: #1e160d;
-  --ink-2: #47392a;
-  --ink-3: #645341;
-  --rule-1: #d6c8b7;
-  --rule-2: #b9a892;
-  --accent: #3b5512;   /* spec 002 §T2: same olive hue (H 122.1, drift −0.2°), chroma 29.6 → 40.0 */
-  --on-accent: #fdf2e1;
-  --data-deficit: #96472a;   /* byte-identical to Revision 2: its warmth is load-bearing */
+  /* Spec 006 T9: a neutral near-white page with one chromatic value, the accent. Every ground,
+     ink and rule below is measured neutral (CIELCh chroma ≤ 10; the ramp tops out at 3.80) and
+     the accent is the only value above 20. `--surface-hero` is retired with the panel it painted
+     (T8): the step no longer claims a region, so it needs no ground of its own. */
+  --surface-1: #fbfbfa;
+  --surface-2: #f3f3f1;
+  --surface-3: #e9e9e6;
+  --ink-1: #1a1a18;
+  --ink-2: #464643;
+  --ink-3: #686863;
+  --rule-1: #d0d0cb;
+  --rule-2: #aeaea7;
+  --accent: #7a1f2b;   /* the page's only chromatic value: oxblood, CIELCh hue 21.7° (spec 006 T9) */
+  --on-accent: #fbfbfa;
+  --data-deficit: #464643;   /* neutral ink: the negative series is encoded by form (spec 006 T10) */
 
-  --chart-series-1: var(--accent);
-  --chart-series-2: #6f6658;   /* comparison, the past as reference (dark: #aba192) */
+  --chart-series-1: var(--ink-2);   /* measured; neutral, so the charts carry one hue (spec 006 T10) */
+  --chart-series-2: #686863;   /* comparison, the past as reference (dark: #9a9a93) */
   --chart-ref: var(--ink-3);
   --chart-grid: var(--rule-1);
   --chart-hatch: repeating-linear-gradient(45deg, transparent 0 3px, color-mix(in srgb, var(--ink-1) 16%, transparent) 3px 4px);
 
-  /* Revision 2 — the alarm register. One hue, two aliases, layout only beyond that. */
-  --data-projection: #6b520a;   /* dark: #d8bf60. Projected extent, never a measurement. */
+  /* Revision 2 — the projection aliases. One neutral hue, layout only beyond that. */
+  --data-projection: #686863;   /* dark: #9a9a93. Projected extent, never a measurement. */
   --data-projection-ground: color-mix(in srgb, var(--data-projection) 12%, var(--surface-1));
   --data-projection-edge: color-mix(in srgb, var(--data-projection) 40%, transparent);
-  --chart-observed: var(--accent);          /* measured; aliased so the pair is symmetric */
+  --chart-observed: var(--chart-series-1);  /* measured; aliased so the pair is symmetric */
   --chart-projection: var(--data-projection); /* projected; never used without --dash-projection */
   --dash-projection: 6 4;                   /* stroke-dasharray on every projected line */
   --rule-projection: 3px;                   /* the countdown threshold rule */
@@ -188,20 +185,19 @@
 }
 
 [data-theme='dark'] {
-  --surface-1: #17110b;
-  --surface-2: #1f1810;
-  --surface-3: #292117;
-  --surface-hero: #201406;
-  --ink-1: #f5eddf;
-  --ink-2: #cbbead;
-  --ink-3: #a09180;
-  --rule-1: #312a22;
-  --rule-2: #473e34;
-  --accent: #91c46d;   /* spec 002 §T2: same olive hue (H 130.0, drift +0.4°), chroma 38.0 → 50.0 */
-  --on-accent: #17110b;
-  --data-deficit: #d08a63;   /* unchanged: byte-identical to Revision 2 */
-  --chart-series-2: #aba192;
-  --data-projection: #d8bf60;
+  --surface-1: #121211;
+  --surface-2: #1b1b1a;
+  --surface-3: #252524;
+  --ink-1: #f4f4f1;
+  --ink-2: #c4c4bd;
+  --ink-3: #9a9a93;
+  --rule-1: #343433;
+  --rule-2: #4a4a49;
+  --accent: #e3929a;   /* the dark theme's oxblood: chroma 32.74, CIELCh hue 15.2° (spec 006 T9) */
+  --on-accent: #121211;
+  --data-deficit: #c4c4bd;
+  --chart-series-2: #9a9a93;
+  --data-projection: #9a9a93;
   --state-pending: #e0b25c;
   --state-danger: #e7907e;
 }

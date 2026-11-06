@@ -22,8 +22,11 @@ body {
   margin: 0;
 }
 
+/* Spec 006 T9: the accent is reserved to the day numeral, so a link is ink. The existing
+   underline is the affordance; no hover colour is introduced. The primary action keeps its
+   filled accent ground (AC-002-31 stays in force) but paints `--on-accent` text, not the accent. */
 a {
-  color: var(--accent);
+  color: var(--ink-2);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
@@ -518,8 +521,8 @@ svg {
    radius, padding and type; the subordinate step is a text link, so the affordance never rests on
    colour alone. */
 .hero__cta {
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--ink-1);
+  color: var(--surface-1);
   font-size: var(--text-body);
   padding: var(--space-3) var(--space-5);
   border-radius: var(--radius);
@@ -1611,8 +1614,11 @@ svg {
   fill: var(--ink-3);
 }
 
+/* Spec 006 T9 (AC-003-22): the burnt segment is an ink, not the accent. The pair improves from
+   1.14:1 / 1.51:1 to 3.11:1 / 2.57:1, and the fuse keeps its value by its burnt length and its
+   label — the pair is a redundant cue, never the encoding (AC-006-37). */
 .fuse__burnt {
-  fill: var(--accent);
+  fill: var(--ink-1);
 }
 
 /* One measurement line, one string, one size: the percentage and the words that name its

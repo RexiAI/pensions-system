@@ -6,8 +6,8 @@
 export const BRAND = {
   letter: "p",
   wordmark: "pensiones",
-  ground: "#1e160d",
-  onGround: "#fdf2e1",
+  ground: "#1a1a18",
+  onGround: "#fbfbfa",
   font: "Instrument Sans, system-ui, -apple-system, Segoe UI, sans-serif",
   shareCard: { width: 1200, height: 630 },
 } as const;

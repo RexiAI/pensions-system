@@ -1,15 +1,18 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { chroma, contrast, hue, lab } from '../helpers/colour';
+import { chroma, contrast, lab } from '../helpers/colour';
 import { listSourceFiles, readSource, stripComments } from '../helpers/source-scan';
 
 /**
- * Revision 3 §P1 and §P3 F2, checked against the token file and the stylesheet as shipped.
+ * The palette, checked against the token file and the stylesheet as shipped.
  *
  * Everything here is computed from the declared values rather than restated beside them: the
- * contrast ratios are WCAG 2.1 relative-luminance arithmetic over the hexes in `tokens.css`,
- * and the hue count is CIELCh over the same values. A palette assertion that quoted the design's
+ * contrast ratios are WCAG 2.1 relative-luminance arithmetic over the hexes in `tokens.css`, and
+ * the chromatic count is CIELCh over the same values. A palette assertion that quoted the design's
  * table instead of recomputing it would pass while the file said something else.
+ *
+ * Re-pointed by spec 006 T9: the pair table is the new neutral palette's, the hero ground is
+ * retired, and the chromatic count is one value rather than three (AC-001-117, AC-006-24…26).
  */
 const TOKENS = readFileSync('web/styles/tokens.css', 'utf8');
 const CSS = readFileSync('web/styles/globals.css', 'utf8');
@@ -57,7 +60,6 @@ const PUBLIC_TOKENS = [
   'surface-1',
   'surface-2',
   'surface-3',
-  'surface-hero',
   'ink-1',
   'ink-2',
   'ink-3',
@@ -69,9 +71,6 @@ const PUBLIC_TOKENS = [
   'data-projection',
   'chart-series-2',
 ] as const;
-
-/** The three chromatic hues, and nothing else: `--chart-series-1` aliases `--accent`. */
-const CHROMATIC_TOKENS = ['accent', 'data-projection', 'data-deficit'] as const;
 
 /** Non-text graphics need 3:1; text needs 4.5:1; AAA statements need 7:1. */
 const NON_TEXT = 3;
@@ -85,38 +84,28 @@ interface Pair {
 }
 
 /**
- * Revision 4 §P1 "Contrast verification", every row that is a real pair on the page.
- *
- * `surface-hero` is the hero panel's own ground (Revision 4 §P2). It is a real ground, so it
- * carries the same rows as the others: the panel holds the countdown's projection rule, the
- * clock and the readings, all of which are painted in ink, accent or projection on it.
+ * Spec 006 T9's pair table, every row that is a real pair on the page. The hero panel's rows are
+ * gone with the ground they were measured against; the three surfaces carry the same four inks,
+ * the accent and its label, and the non-text series strokes.
  */
 const PAIRS: readonly Pair[] = [
   { foreground: 'ink-1', ground: 'surface-1', minimum: AAA },
   { foreground: 'ink-1', ground: 'surface-2', minimum: AAA },
   { foreground: 'ink-1', ground: 'surface-3', minimum: AAA },
-  { foreground: 'ink-1', ground: 'surface-hero', minimum: AAA },
   { foreground: 'ink-2', ground: 'surface-1', minimum: AA },
   { foreground: 'ink-2', ground: 'surface-2', minimum: AA },
   { foreground: 'ink-2', ground: 'surface-3', minimum: AA },
-  { foreground: 'ink-2', ground: 'surface-hero', minimum: AA },
   { foreground: 'ink-3', ground: 'surface-1', minimum: AA },
   { foreground: 'ink-3', ground: 'surface-2', minimum: AA },
   { foreground: 'ink-3', ground: 'surface-3', minimum: AA },
-  { foreground: 'ink-3', ground: 'surface-hero', minimum: AA },
   { foreground: 'accent', ground: 'surface-1', minimum: AA },
   { foreground: 'accent', ground: 'surface-2', minimum: AA },
   { foreground: 'accent', ground: 'surface-3', minimum: AA },
-  { foreground: 'accent', ground: 'surface-hero', minimum: AA },
-  { foreground: 'on-accent', ground: 'accent', minimum: AA },
-  { foreground: 'data-deficit', ground: 'surface-1', minimum: AA },
-  { foreground: 'data-deficit', ground: 'surface-2', minimum: AA },
-  { foreground: 'data-deficit', ground: 'surface-3', minimum: AA },
-  { foreground: 'data-projection', ground: 'surface-1', minimum: AA },
-  { foreground: 'data-projection', ground: 'surface-2', minimum: AA },
-  { foreground: 'data-projection', ground: 'surface-3', minimum: AA },
-  { foreground: 'data-projection', ground: 'surface-hero', minimum: AA },
-  // A stroke, never a label (§P1 watch item 3): `--chart-series-2` on `--surface-3` is 4.39.
+  { foreground: 'on-accent', ground: 'accent', minimum: AAA },
+  { foreground: 'on-accent', ground: 'ink-1', minimum: AAA },
+  // Non-text series strokes: `data-deficit` is a neutral ink, `data-projection` likewise.
+  { foreground: 'data-deficit', ground: 'surface-1', minimum: NON_TEXT },
+  { foreground: 'data-projection', ground: 'surface-1', minimum: NON_TEXT },
   { foreground: 'chart-series-2', ground: 'surface-1', minimum: NON_TEXT },
   { foreground: 'chart-series-2', ground: 'surface-2', minimum: NON_TEXT },
   { foreground: 'chart-series-2', ground: 'surface-3', minimum: NON_TEXT },
@@ -140,12 +129,11 @@ describe('AC-001-117: the palette meets its contrast minimums', () => {
     }
   });
 
-  it('AC-001-117: the projection ground is what the design says it is, and carries its pairs', () => {
-    expect(projectionGround('light')).toBe('#ebdfc7');
-    expect(projectionGround('dark')).toBe('#2e2615');
+  it('AC-001-117: the projection ground is neutral and carries its ink pairs', () => {
     for (const theme of ['light', 'dark'] as const) {
       const ground = projectionGround(theme);
-      expect(contrast(hex(theme, 'data-projection'), ground), `${theme} projection`).toBeGreaterThanOrEqual(AA);
+      expect(chroma(ground), `${theme} projection ground`).toBeLessThanOrEqual(10);
+      expect(contrast(hex(theme, 'data-projection'), ground), `${theme} projection`).toBeGreaterThanOrEqual(NON_TEXT);
       expect(contrast(hex(theme, 'ink-1'), ground), `${theme} ink-1`).toBeGreaterThanOrEqual(AAA);
       expect(contrast(hex(theme, 'ink-2'), ground), `${theme} ink-2`).toBeGreaterThanOrEqual(AA);
       expect(contrast(hex(theme, 'ink-3'), ground), `${theme} ink-3`).toBeGreaterThanOrEqual(AA);
@@ -154,82 +142,43 @@ describe('AC-001-117: the palette meets its contrast minimums', () => {
 
   it('AC-001-117: the two decorative rules stay below 3:1, so neither can carry a value', () => {
     for (const theme of ['light', 'dark'] as const) {
-      for (const rule of ['rule-1', 'rule-2']) {
+      for (const rule of ['rule-1', 'rule-2'] as const) {
         expect(contrast(hex(theme, rule), hex(theme, 'surface-1')), `${theme} ${rule}`).toBeLessThan(NON_TEXT);
       }
     }
   });
 
-  it('AC-001-117: exactly three chromatic hues, with distinct hues and no fourth', () => {
+  it('AC-001-117: exactly one chromatic value, the accent, and every neutral is at most 10', () => {
     for (const theme of ['light', 'dark'] as const) {
       const values = PUBLIC_TOKENS.map((name) => ({ name, chroma: chroma(hex(theme, name)) }));
       const chromatic = values.filter((entry) => entry.chroma > 20).map((entry) => entry.name);
-      expect(chromatic.sort(), theme).toEqual([...CHROMATIC_TOKENS].sort());
-
-      const hues = CHROMATIC_TOKENS.map((name) => hue(hex(theme, name)));
-      for (let index = 0; index < hues.length; index += 1) {
-        for (let other = index + 1; other < hues.length; other += 1) {
-          const gap = Math.abs((hues[index] as number) - (hues[other] as number));
-          expect(Math.min(gap, 360 - gap), `${theme} hue gap`).toBeGreaterThan(20);
-        }
+      expect(chromatic, theme).toEqual(['accent']);
+      for (const entry of values.filter((value) => value.name !== 'accent')) {
+        expect(entry.chroma, `${theme} ${entry.name}`).toBeLessThanOrEqual(10);
       }
-      // Warmth is the paper and the ink, never a fourth hue: the neutrals stay under 20 chroma.
-      // Every ground is a neutral by this measure, the hero's own sheet included — a panel that
-      // crossed 20 here would be the fourth chromatic hue by way of a background.
-      for (const neutral of [
-        'surface-1',
-        'surface-2',
-        'surface-3',
-        'surface-hero',
-        'ink-1',
-        'ink-2',
-        'ink-3',
-      ] as const) {
-        expect(chroma(hex(theme, neutral)), `${theme} ${neutral}`).toBeLessThan(20);
+      // The 10/20 band is forbidden: a token at chroma 15 is the peach defect in a new hue.
+      for (const entry of values.filter((value) => value.name !== 'accent')) {
+        expect(entry.chroma > 10, `${theme} ${entry.name} in the forbidden band`).toBe(false);
       }
     }
   });
 
-  it('AC-001-117: --data-deficit is byte-identical to Revision 2 and --data-projection is Revision 3', () => {
-    expect(declaration(LIGHT, 'data-deficit')).toBe('#96472a');
-    expect(declaration(DARK, 'data-deficit')).toBe('#d08a63');
-    expect(declaration(LIGHT, 'data-projection')).toBe('#6b520a');
-    expect(declaration(DARK, 'data-projection')).toBe('#d8bf60');
-  });
-
-  it('AC-001-117: no retired value string remains anywhere in web/', () => {
-    // Revision 1, then Revision 3's warm-paper palette. Revision 4 supersedes the latter: an
-    // edit that reintroduces one of these has reverted the palette a step, which is exactly the
-    // silent-drift failure this list exists to stop.
+  it('AC-001-117: the deficit series is a neutral ink, and no retired value survives', () => {
+    for (const theme of ['light', 'dark'] as const) {
+      expect(chroma(hex(theme, 'data-deficit')), `${theme} --data-deficit`).toBeLessThanOrEqual(10);
+    }
+    // Spec 006 T9's retired palette, plus Revision 4's before it. An edit that reintroduces one of
+    // these has reverted the palette a step, which is the silent-drift failure this list stops.
     const RETIRED = [
-      '#141a1b',
-      '#f4f5f2',
-      '#384446',
-      '#5a6769',
-      '#17564a',
-      '#6a5a12',
-      '#6e7a79',
-      '#e4e7df',
-      '#eceee8',
-      '#c9cfc7',
-      '#f5efe2',
-      '#eee7d7',
-      '#e7decb',
-      '#1b1610',
-      '#443b2f',
-      '#5f5544',
-      '#d3c9b6',
-      '#b5a992',
-      '#0e5c3c',
-      '#6b6759',
-      '#15110d',
-      '#1d1813',
-      '#27211a',
-      '#f2ede1',
-      '#c6bdae',
-      '#9b9182',
-      '#63c398',
-      '#a8a292',
+      '#141a1b', '#f4f5f2', '#384446', '#5a6769', '#17564a', '#6a5a12', '#6e7a79', '#e4e7df',
+      '#eceee8', '#c9cfc7', '#f5efe2', '#eee7d7', '#e7decb', '#1b1610', '#443b2f', '#5f5544',
+      '#d3c9b6', '#b5a992', '#0e5c3c', '#6b6759', '#15110d', '#1d1813', '#27211a', '#f2ede1',
+      '#c6bdae', '#9b9182', '#63c398', '#a8a292',
+      // spec 006 T9: the peach, the olive accent, the amber projection, the rust deficit.
+      '#fdf2e1', '#f6ead7', '#f0e1c9', '#fee8d0', '#1e160d', '#47392a', '#645341', '#d6c8b7',
+      '#b9a892', '#3b5512', '#96472a', '#6b520a', '#6f6658',
+      '#17110b', '#1f1810', '#292117', '#201406', '#f5eddf', '#cbbead', '#a09180', '#312a22',
+      '#473e34', '#91c46d', '#d08a63', '#d8bf60', '#aba192',
     ];
     for (const file of listSourceFiles('web')) {
       const source = readSource(file).toLowerCase();
@@ -253,47 +202,16 @@ describe('AC-001-117: the palette meets its contrast minimums', () => {
     }
   });
 
-  it('AC-001-117: the ground steps widen to the Revision 3 lightness spread', () => {
+  it('AC-001-117: the neutral ramp keeps a visible L* step between grounds', () => {
     const steps = (theme: Theme): number[] => {
       const [one, two, three] = ['surface-1', 'surface-2', 'surface-3'].map((name) => lab(hex(theme, name)).lightness);
       return [Math.abs((one as number) - (two as number)), Math.abs((two as number) - (three as number))];
     };
-    const [firstLight, secondLight] = steps('light');
-    const [firstDark, secondDark] = steps('dark');
-    expect(firstLight).toBeCloseTo(2.79, 1);
-    expect(secondLight).toBeCloseTo(3.08, 1);
-    expect(firstDark).toBeCloseTo(3.35, 1);
-    expect(secondDark).toBeCloseTo(4.52, 1);
-    // The light total spread widens from Revision 2's 5.17 to Revision 4's 5.79: more step, same
-    // paper. Revision 4 lifted the whole ladder ~1.3 L* without collapsing the steps, and the
-    // floor makes that explicit — a revision that re-tinted the grounds must keep the separation.
-    const total = (firstLight as number) + (secondLight as number);
-    expect(total).toBeCloseTo(5.79, 1);
-    expect(total).toBeGreaterThan(5.6);
-    expect(total).toBeGreaterThan(5.17);
-  });
-
-  it('AC-001-117: the hero panel has a ground of its own, warmer and deeper than the page', () => {
-    // Revision 4 §P2. The defect this closes: the panel used `--surface-2`, a second step of the
-    // same beige, so it read as a shaded region of the page rather than a sheet laid on it.
     for (const theme of ['light', 'dark'] as const) {
-      const hero = hex(theme, 'surface-hero');
-      for (const page of ['surface-1', 'surface-2', 'surface-3'] as const) {
-        expect(hero, `${theme}: surface-hero must not equal ${page}`).not.toBe(hex(theme, page));
+      for (const [index, step] of steps(theme).entries()) {
+        expect(step, `${theme} step ${index + 1}`).toBeGreaterThan(2);
       }
-      // Warmer: a lower Lab hue angle than the page ground carries. Chroma alone would be more
-      // yellow — the direction the owner rejected — so the assertion is on both.
-      expect(hue(hero), `${theme}: the hero sheet is warmer than the page`).toBeLessThan(
-        hue(hex(theme, 'surface-1')),
-      );
-      expect(chroma(hero), `${theme}: the hero sheet carries more chroma`).toBeGreaterThan(
-        chroma(hex(theme, 'surface-1')),
-      );
     }
-    // Light: laid on warm paper, a shade deeper than the page (the sheet sits below the ground).
-    expect(lab(hex('light', 'surface-hero')).lightness).toBeLessThan(lab(hex('light', 'surface-1')).lightness);
-    // Dark: a dark theme's sheet reads as laid *over*, so it sits above the ground.
-    expect(lab(hex('dark', 'surface-hero')).lightness).toBeGreaterThan(lab(hex('dark', 'surface-1')).lightness);
   });
 
   it('AC-001-117: no component or series module carries a literal colour', () => {
@@ -428,11 +346,10 @@ describe('AC-001-118: labels are not measurements', () => {
   });
 
   it('AC-001-118: the four non-colour surfaces of P3 F3 and F5 are migrated', () => {
-    // F3: the page's one ground is step 1's, and it is still `--surface-hero` with no border; the
-    // panel that carried it retires with the band (spec 004 T2, T12).
+    // F3: step 1 no longer claims a ground (spec 006 T8), and it gains no border in its place.
     const step = CSS.slice(CSS.indexOf('.step--number {'), CSS.indexOf('.step__label {'));
     expect(step).not.toContain('border-top');
-    expect(step).toContain('var(--surface-hero)');
+    expect(step).not.toContain('var(--surface-hero)');
     expect(step).not.toContain('var(--surface-2)');
     // F5: the ledger rows drop their rule and separate by space; the name rises a step.
     const row = CSS.slice(CSS.indexOf('.figure-row {'), CSS.indexOf('.figure-row__head {'));
