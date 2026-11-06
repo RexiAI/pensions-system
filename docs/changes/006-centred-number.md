@@ -3754,3 +3754,10 @@ Why: classifier: 16 named path(s) include 'AC-003-02/03', outside docs/, specs/,
 Reversibility: append a new entry with an explicit lite or full token
 At: 2026-11-06T10:40:22Z
 
+
+## Commits
+
+- Branch commits ahead of `main` at the archived head: **20** (this record is the 20th).
+- Stage 5d added: `docs(changes): record phase-2 CI and deploy verification for 006`,
+  `docs(changes): archive 006-centred-number`, and this record.
+- at: 2026-11-06T17:11:09Z
