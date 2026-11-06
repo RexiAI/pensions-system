@@ -4,6 +4,7 @@ import { PublicPage } from '../../web/components/PublicPage';
 import { citationRegistry } from '../../web/content/citations';
 import { content, dependencyFigure, renderComponent, shareFigure } from '../fixtures/figures';
 import { seriesFixtures } from '../fixtures/series';
+import { contrast } from '../helpers/colour';
 import { stripComments } from '../helpers/source-scan';
 
 /**
@@ -15,7 +16,15 @@ import { stripComments } from '../helpers/source-scan';
  */
 const CSS = readFileSync('web/styles/globals.css', 'utf8');
 const CODE = stripComments(CSS);
+const TOKENS = readFileSync('web/styles/tokens.css', 'utf8');
 const ES = content('es');
+
+/** One token's declared value in a theme block, or `null`. */
+function token(theme: 'light' | 'dark', name: string): string | null {
+  const block = theme === 'light' ? TOKENS.slice(0, TOKENS.indexOf("[data-theme='dark']")) : TOKENS;
+  const match = new RegExp(`--${name}:\\s*([^;]+);`).exec(block);
+  return match?.[1]?.trim() ?? null;
+}
 
 /**
  * The declarations of one class's own rule, as written. The search is anchored at a line start so
@@ -66,25 +75,29 @@ function actions(html: string): { className: string; href: string; text: string 
 const LITERAL = /#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\(|\b\d+(?:\.\d+)?px\b/i;
 
 describe('AC-002-31: one visually dominant primary action', () => {
-  it('AC-002-31: the primary is a filled accent block with `--on-accent` ink and no underline', () => {
+  it('AC-002-31: the primary is an ink block with surface ink, no underline and the same shape', () => {
+    // Re-pointed by spec 006 T9: the primary stays dominant but stops being the accent. The
+    // accent budget is now owned page-wide by AC-006-26.
     const cta = rule('.hero__cta');
-    expect(cta).toContain('background: var(--accent)');
-    expect(cta).toContain('color: var(--on-accent)');
+    expect(cta).toContain('background: var(--ink-1)');
+    expect(cta).toContain('color: var(--surface-1)');
     expect(cta).toContain('text-decoration: none');
+    // The pair the fill now carries clears AAA.
+    expect(contrast(token('light', 'surface-1') as string, token('light', 'ink-1') as string)).toBeGreaterThanOrEqual(7);
     // Sharp corners: the site's one radius token, which is 0.
     expect(cta).toContain('border-radius: var(--radius)');
     expect(cta).toContain('font-size: var(--text-body)');
     expect(cta).toContain('padding: var(--space-3) var(--space-5)');
   });
 
-  it('AC-002-31: it is the page’s only accent-filled action', () => {
-    // Read as "the page's only accent-filled action" (spec 004 T6 watch item d): the CTA is now
-    // the fifth step's, so the fold clause is vacuous and the hierarchy is what remains.
+  it('AC-002-31: no rule fills with the accent', () => {
+    // Inverted from "it is the page's only accent-filled action": the inverted form is stronger,
+    // because there must now be no accent-filled action at all.
     expect(rule('.hero__cta-secondary')).not.toContain('var(--accent)');
-    const filled = [...CODE.matchAll(/([^{}]+)\{([^}]*background:\s*var\(--accent\)[^}]*)\}/g)]
+    const filled = [...CODE.matchAll(/([^{}]+)\{([^{}]*background(?:-color)?:\s*var\(--accent\)[^{}]*)\}/g)]
       .map((match) => (match[1] ?? '').trim())
       .filter((selector) => !selector.startsWith('.admin-') && !selector.startsWith('.operator'));
-    expect(filled).toEqual(['.hero__cta']);
+    expect(filled).toEqual([]);
     expect(page().split('class="hero__cta"').length - 1).toBe(1);
   });
 });
@@ -140,9 +153,10 @@ describe('AC-002-34: the secondary no longer competes on hue', () => {
     const secondary = rule('.hero__cta-secondary');
     expect(secondary).not.toContain('var(--accent)');
     expect(secondary).toContain('var(--ink-2)');
-    // The global link colour is still the accent — the accent is still the site's link ink — so
-    // the secondary has to opt out of it explicitly rather than inherit it.
-    expect(CODE).toMatch(/^a \{[^}]*color: var\(--accent\)/m);
+    // Re-pointed by spec 006 T9/T5: the accent is reserved to the day numeral, so a link computes
+    // an ink and the underline carries the affordance (AC-006-11, AC-006-26). The secondary's own
+    // colour was already ink; what changes is the rule it used to opt out of.
+    expect(CODE).toMatch(/^a \{[^}]*color: var\(--ink-2\)/m);
   });
 });
 

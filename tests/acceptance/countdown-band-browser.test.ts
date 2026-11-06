@@ -23,7 +23,6 @@ const MEASURE = `(() => {
   const px = (el) => (el ? parseFloat(getComputedStyle(el).fontSize) : 0);
   const visible = (el) => !!el && el.getClientRects().length > 0;
   const days = document.querySelector('[data-top-step="number"] .clock__value--days');
-  const sub = document.querySelector('[data-top-step="number"] .clock__value--sub');
   const h1 = document.querySelector('[data-top-step="number"] h1');
   let maxNumeral = 0;
   for (const el of document.querySelectorAll('main *')) {
@@ -33,12 +32,11 @@ const MEASURE = `(() => {
   }
   const fuse = document.querySelector('[data-top-step="distance"] svg');
   const rects = fuse ? [...fuse.querySelectorAll('rect')].map((r) => r.getAttribute('width')) : [];
-  return { days: px(days), sub: px(sub), h1: px(h1), maxNumeral, rects };
+  return { days: px(days), h1: px(h1), maxNumeral, rects };
 })()`;
 
 interface Measurement {
   days: number;
-  sub: number;
   h1: number;
   maxNumeral: number;
   rects: string[];
@@ -77,13 +75,7 @@ describe.skipIf(!READY)('step 1 and step 4, measured', () => {
     }
   }, 120_000);
 
-  it('AC-003-04: the sub-day fields sit below the day count on the ladder', async () => {
-    const measured = await measure('es', VIEWPORTS[2]);
-    expect(measured.sub).toBeLessThan(measured.days);
-    expect(measured.sub).toBeLessThanOrEqual(14);
-  }, 60_000);
-
-  it('AC-003-21: the fuse geometry does not change while the clock ticks', async () => {
+  it('AC-003-21: the fuse geometry does not change after the page settles', async () => {
     const page = await browser.open(`${app.baseUrl}/`, VIEWPORTS[2]);
     pages.push(page);
     const first = await page.evaluate<Measurement>(MEASURE);

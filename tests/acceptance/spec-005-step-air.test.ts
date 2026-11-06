@@ -1,12 +1,12 @@
-import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const CSS = readFileSync('web/styles/globals.css', 'utf8');
 const TOKENS = readFileSync('web/styles/tokens.css', 'utf8');
 
-/** The token file this spec must not move: sha256 of the shipped `tokens.css`. */
-const TOKENS_SHA256 = '1b3e45150859b13373ee06f4a877e00f94d927f592fd019e2c1862a933c7f5b6';
+/* AC-005-16's byte-identity clause is superseded by spec 006 T9: the palette decision revalues the
+   colour tokens and retires `--surface-hero`, so the token file is no longer byte-identical. The
+   declared change set is AC-006-18's assertion; nothing here pins a hash. */
 
 function tokenValues(text: string): Map<string, number> {
   const values = new Map<string, number>();
@@ -117,16 +117,12 @@ describe('AC-005-16: the air is spent with tokens, and the ground is kept', () =
     }
   });
 
-  it('AC-005-16: step 1 keeps its ground, gains no border, and no surface-2 background', () => {
+  it('AC-005-16: step 1 keeps no ground, gains no border, and no surface-2 background', () => {
+    // Clause re-pointed by spec 006 T8: the panel's ground is retired, so the criterion asserts
+    // its absence rather than its presence. The border and surface-2 negatives are unchanged.
     const number = bodyOf('.step--number');
-    expect(number).toContain('background: var(--surface-hero)');
+    expect(number).not.toContain('background: var(--surface-hero)');
     expect(number).not.toContain('border-top');
     expect(number).not.toContain('var(--surface-2)');
-  });
-
-  it('AC-005-16: the token file is byte-identical to the shipped one', () => {
-    expect(createHash('sha256').update(TOKENS).digest('hex')).toBe(TOKENS_SHA256);
-    expect(TOKENS_BY_NAME.get('space-6')).toBe(32);
-    expect(TOKENS_BY_NAME.get('space-8')).toBe(64);
   });
 });

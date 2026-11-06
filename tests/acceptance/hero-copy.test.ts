@@ -180,9 +180,10 @@ describe('AC-002-26: the copy introduces no factual claim that requires a citati
 
   it('AC-002-26: the clock and figure strings are unchanged in every locale', () => {
     // Re-measured by spec 004 T7: `countdown.clock.a11y` is reworded in all five locales to state
-    // the target date in plain words and drop the "conventional date"/"threshold" phrasing
-    // (AC-004-31). Those are the only digests that moved, and the copy rule this test protects —
-    // no factual claim needing a citation — is unchanged. Recompute only with a stated reason.
+    // the target date in plain words and drop the "conventional date"/"threshold" phrasing. Those
+    // are the only digests that moved, and the copy rule this test protects — no factual claim
+    // needing a citation — is unchanged. Spec 006 T12 deletes the clock but keeps the content
+    // keys (AC-005-34 pins the key set), so these digests stand.
     const EXPECTED: Record<string, Record<Locale, string>> = {
       'countdown.clock.': {
         es: 'a5fe9d662b163974',

@@ -326,8 +326,8 @@ describe('the countdown step without a clock', () => {
     expect(html).not.toContain('class="share"');
   });
 
-  /** Kills the L37 survivor in `NumberStep`: the seconds field's label is the content model's. */
-  it('labels the seconds field from the content model', () => {
+  /** Kills the L37 survivor in `NumberStep`: the unit's label is the content model's. */
+  it('labels the one unit from the content model', () => {
     const html = renderComponent(PublicPage, {
       content: ES,
       figures: [],
@@ -337,7 +337,8 @@ describe('the countdown step without a clock', () => {
       series: seriesFixtures(),
       now: new Date(NOW),
     });
-    expect(html).toContain(`<span class="clock__label">${ES.t('countdown.clock.seconds')}</span>`);
+    expect(html).toContain(`<span class="clock__label">${ES.t('countdown.clock.days')}</span>`);
+    expect(html).not.toContain(`<span class="clock__label">${ES.t('countdown.clock.seconds')}</span>`);
   });
 });
 

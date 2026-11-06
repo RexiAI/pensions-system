@@ -22,8 +22,11 @@ body {
   margin: 0;
 }
 
+/* Spec 006 T9: the accent is reserved to the day numeral, so a link is ink. The existing
+   underline is the affordance; no hover colour is introduced. The primary action keeps its
+   filled accent ground (AC-002-31 stays in force) but paints `--on-accent` text, not the accent. */
 a {
-  color: var(--accent);
+  color: var(--ink-2);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
@@ -69,6 +72,12 @@ svg {
 .skip-link {
   position: absolute;
   left: -9999px;
+  /* Spec 006 T4: a target by name and by measurement, even while parked off-canvas. */
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-min);
+  min-inline-size: var(--tap-min);
+  font-size: var(--text-small);
 }
 
 .skip-link:focus {
@@ -126,11 +135,16 @@ svg {
 
 .site-header__wordmark {
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: var(--text-small);
   text-transform: lowercase;
   max-inline-size: 88px;
   white-space: nowrap;
   overflow: hidden;
+  /* Spec 006 T4: the box grows inside the fixed 64/56px row; the type does not. */
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-min);
+  min-inline-size: var(--tap-min);
 }
 
 .site-header__iso,
@@ -156,12 +170,25 @@ svg {
   font-size: var(--text-meta);
 }
 
+/* Spec 006 T4: nav anchors reach 44 px on both axes. Without the inline minimum, `Cifras`
+   measures 43.1 × 44 and fails by 0.9 px. The row's type stays at `--text-meta`. */
+.site-header__nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--tap-min);
+  min-inline-size: var(--tap-min);
+}
+
 .site-header__theme,
 .site-header__index-trigger {
   display: grid;
   place-items: center;
   inline-size: 40px;
   block-size: 40px;
+  /* Spec 006 T4: `--locale-cell` is untouched; the floor is a minimum, not a redefinition. */
+  min-inline-size: var(--tap-min);
+  min-block-size: var(--tap-min);
   padding: 0;
   background: transparent;
   border: none;
@@ -269,6 +296,9 @@ svg {
   place-items: center;
   inline-size: var(--locale-cell);
   block-size: var(--locale-cell);
+  /* Spec 006 T4: the declared cell is still 36 px; the floor is added as a minimum. */
+  min-inline-size: var(--tap-min);
+  min-block-size: var(--tap-min);
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--ink-2);
@@ -285,9 +315,10 @@ svg {
   background: var(--surface-2);
 }
 
+/* Spec 006 T5: the current locale is marked without a ground and without colour — weight is the
+   non-colour difference WCAG 1.4.1 asks for, and the chip that competed with the numeral is gone. */
 .locale-group__cell[aria-current='page'] {
-  background: var(--ink-1);
-  color: var(--surface-1);
+  font-weight: 600;
 }
 
 @media (min-width: 768px) {
@@ -297,7 +328,7 @@ svg {
   }
 
   .site-header__wordmark {
-    font-size: 1.0625rem;
+    font-size: var(--text-small);
     max-inline-size: 96px;
   }
 
@@ -351,10 +382,10 @@ svg {
   border-top: var(--border-hair);
 }
 
-/* Step 1 is the story's one ground (T2). It spans the content width with no inline inset, so its
-   text sits exactly on the axis every later step uses. */
+/* Spec 006 T8: no story step paints a rectangle behind its content. Step 1 is the number on the
+   page's own ground — the panel, its ground and its edge are gone; the header's hairline above and
+   the shared `.step + .step` hairline below are the only separations. */
 .step--number {
-  background: var(--surface-hero);
   padding-block: var(--space-8);
 }
 
@@ -460,11 +491,38 @@ svg {
   overflow-wrap: break-word;
 }
 
-/* Spec 002 §T7: the accent does exactly one job in the story — it is the primary's material.
-   The subordinate step is a text link, so the affordance never rests on colour alone. */
+/* Spec 006 T1: four units on the centre of step 1's content box — the `<h1>`, the step label, the
+   number and the sentence. Alignment only: no offsets, no `translate` optics, no unit widened to
+   force its offset to zero, and steps 2–5 keep 004's flush-left axis. The criterion measures ink
+   per text node, so each leaf's own `text-align` is what centres its glyphs. */
+.step--number .hero__title,
+.step--number .step__label,
+.step--number .step__sentence {
+  text-align: center;
+}
+
+/* `margin-inline: auto` follows the `margin` shorthand above and would be re-zeroed if it came
+   first (`margin-inline` is not in AC-005-16's token-resolving property list, so `auto` is
+   permitted). The sentence keeps `--measure`; the axis is not bought by widening. */
+.step--number .step__sentence {
+  margin-inline: auto;
+}
+
+/* The number line: the numeral and its unit on one centred baseline. */
+.step--number .clock__field--days {
+  justify-content: center;
+}
+
+/* Spec 002 §T7's hierarchy, re-pointed by spec 006 T9 (AC-002-31): the primary stays the page's
+   dominant action but stops being the accent — an ink ground with surface ink, 16.83:1 light /
+   17.01:1 dark. The accent is reserved to the day numeral (AC-006-26), and because the fill is now
+   near-black the focus ring is drawn outside it with `--focus-offset` (AC-006-36): the accent is
+   1.71:1 light / 2.15:1 dark against `--ink-1`, so a ring inside the fill would fail 3:1. Same
+   radius, padding and type; the subordinate step is a text link, so the affordance never rests on
+   colour alone. */
 .hero__cta {
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--ink-1);
+  color: var(--surface-1);
   font-size: var(--text-body);
   padding: var(--space-3) var(--space-5);
   border-radius: var(--radius);
@@ -1317,21 +1375,33 @@ svg {
   height: auto;
 }
 
-/* One hue per panel. Sex is encoded by side and by the column header, never by hue. */
+/* Spec 006 T10: one hue for all three panels. The observed/projected distinction survives by form
+   (a hatch and a dash) plus the printed state word, not by a second colour. */
 .demography__panel--reference {
-  --demography-hue: var(--chart-series-2);
+  --demography-hue: var(--ink-2);
 }
 
 .demography__panel--measured {
-  --demography-hue: var(--chart-series-1);
+  --demography-hue: var(--ink-2);
 }
 
 .demography__panel--projected {
-  --demography-hue: var(--chart-projection);
+  --demography-hue: var(--ink-2);
 }
 
 .demography__bar {
   fill: var(--demography-hue);
+}
+
+/* The projected series carries an SVG `<pattern>` the observed series does not. `fill: url(#…)`
+   is a valid paint in Chromium; a CSS gradient function is not, which is why `--chart-hatch` was
+   never the mechanism here (spec 006 T10, AC-006-28). */
+.demography__panel--projected .demography__bar {
+  fill: url(#projection-hatch);
+}
+
+.demography__hatch-ink {
+  stroke: var(--ink-2);
 }
 
 .demography__baseline,
@@ -1406,40 +1476,20 @@ svg {
   }
 }
 
-/* ---------- The number group: the clock as step 1's measurement (spec 004 T2) ---------- */
+/* ---------- The number group: step 1's one measurement (spec 006 T2, T11) ---------- */
 
-/* Flush left, on the page's one axis. The centred face of Revision 4 was the panel's geometry and
-   does not survive the move into the story: centring is what made the block read as a card. */
+/* One line on the centred axis: the day numeral and its unit, and nothing else. The old
+   `.clock__fields` three-column grid, its sub-day cells and the years line are gone from the DOM,
+   not hidden — so no rule leaves a track or a `grid-column` pin with nothing to place. */
 .clock {
   margin: 0;
-  text-align: start;
-}
-
-/* Three fixed, equal columns for the three sub-day fields; the day count spans them. Fixed rather
-   than `auto` so no numeral can size a track, and every track has a child. */
-.clock__fields {
-  display: grid;
-  grid-template-columns: repeat(3, var(--clock-sub-col));
-  justify-content: start;
-  justify-items: start;
-  column-gap: var(--clock-gap);
-  row-gap: var(--space-2);
-  margin-top: var(--space-4);
 }
 
 .clock__field--days {
-  grid-column: 1 / -1;
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
-}
-
-.clock__field {
-  display: grid;
-  justify-items: start;
-  gap: var(--space-1);
   margin: 0;
-  text-align: start;
 }
 
 .clock__value {
@@ -1447,20 +1497,17 @@ svg {
   font-variant-numeric: tabular-nums;
 }
 
-/* The page's largest numeral, and the only one at this step of the ladder. */
+/* The page's largest numeral, and the page's only chromatic value (spec 006 T5, T9). The `5ch`
+   reservation is dropped: with it the numeral's box is wider than its glyphs and the unit-beside
+   gap measures 40.23 px with the numeral's ink union 14.11 px off the axis (design measurement);
+   without it the rendered ink gap measures 12.0 px at 1440×900, which AC-006-03 requires and
+   `spec-006-centred-axis` re-measures. The token keeps its value for any future sub-day return
+   (AC-003-02's clause-level re-point). */
 .clock__value--days {
   font-size: var(--text-num-xl);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
-  color: var(--ink-1);
-  min-inline-size: var(--clock-days-min);
-}
-
-/* The sub-day fields step down to meta: four numerals at 32px become one measured quantity. */
-.clock__value--sub {
-  font-size: var(--text-meta);
-  color: var(--ink-2);
-  min-inline-size: var(--clock-unit-min);
+  color: var(--accent);
 }
 
 .clock__label {
@@ -1469,40 +1516,21 @@ svg {
   color: var(--ink-3);
 }
 
-/* The day's own label sits beside its numeral, on the baseline, at reading size (T2): at 80px the
-   unit was a caption the reader had to hunt for under the number. */
+/* The day's own label sits beside its numeral, on the baseline, at reading size: at 80px the unit
+   would be a caption the reader had to hunt for under the number. */
 .clock__field--days .clock__label {
   font-size: var(--text-body-lg);
   color: var(--ink-2);
 }
 
-/* The years numeral: the group's first quantity, one step below the day count on the ladder. */
-.countdown__value {
-  margin: 0;
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-}
-
+/* The years numeral's rule survives with no renderer: the numeral left step 1 for `#metodo`
+   (spec 006 T11), and AC-001-118's mono selector list still names the class. */
 .countdown__numeral {
   font-family: var(--font-mono);
   font-size: var(--text-num-l);
   font-variant-numeric: tabular-nums;
   line-height: var(--leading-tight);
   color: var(--ink-1);
-}
-
-.countdown__unit {
-  font-size: var(--text-num-m);
-  color: var(--ink-2);
-}
-
-/* The sub-day fields are hidden, never frozen: a seconds field that never changes is a stopped
-   clock, and the day count is complete without them (AC-001-112). */
-@media (prefers-reduced-motion: reduce) {
-  .clock__field--sub {
-    display: none;
-  }
 }
 
 /* ---------- The method region (spec 004 T8) ---------- */
@@ -1579,8 +1607,11 @@ svg {
   fill: var(--ink-3);
 }
 
+/* Spec 006 T9 (AC-003-22): the burnt segment is an ink, not the accent. The pair improves from
+   1.14:1 / 1.51:1 to 3.11:1 / 2.57:1, and the fuse keeps its value by its burnt length and its
+   label — the pair is a redundant cue, never the encoding (AC-006-37). */
 .fuse__burnt {
-  fill: var(--accent);
+  fill: var(--ink-1);
 }
 
 /* One measurement line, one string, one size: the percentage and the words that name its

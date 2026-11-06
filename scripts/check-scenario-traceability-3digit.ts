@@ -87,6 +87,18 @@ export function citedScenarios(root: string): Map<string, string> {
  */
 export const RETIRED_SCENARIOS: readonly string[] = [
   'AC-001-107',
+  // Spec 006 T8/T11/T12 retires the clock and the step-1 band; the list is the union of 004's and
+  // 006's retirements (AC-006-21, AC-005-38).
+  'AC-001-109',
+  'AC-001-111',
+  'AC-001-112',
+  'AC-001-113',
+  'AC-001-114',
+  'AC-001-116',
+  'AC-002-04',
+  'AC-002-05',
+  'AC-002-06',
+  'AC-002-07',
   'AC-002-09',
   'AC-002-10',
   'AC-002-11',
@@ -101,7 +113,10 @@ export const RETIRED_SCENARIOS: readonly string[] = [
   'AC-002-30',
   'AC-002-36',
   'AC-003-01',
+  'AC-003-04',
   'AC-003-06',
+  'AC-003-07',
+  'AC-003-09',
   'AC-003-10',
   'AC-003-39',
   'AC-003-40',
@@ -110,6 +125,8 @@ export const RETIRED_SCENARIOS: readonly string[] = [
   'AC-003-49',
   'AC-003-50',
   'AC-003-51',
+  'AC-004-31',
+  'AC-004-64',
 ];
 
 /**

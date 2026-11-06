@@ -1,5 +1,6 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync, mkdtempSync } from 'node:fs';
+import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -51,7 +52,7 @@ function requestUrl(params: Record<string, unknown> | undefined): string {
 }
 
 async function versionOf(port: number): Promise<{ webSocketDebuggerUrl: string }> {
-  for (let attempt = 0; attempt < 100; attempt += 1) {
+  for (let attempt = 0; attempt < 600; attempt += 1) {
     try {
       return (await (await fetch(`http://127.0.0.1:${port}/json/version`)).json()) as { webSocketDebuggerUrl: string };
     } catch {
@@ -59,6 +60,24 @@ async function versionOf(port: number): Promise<{ webSocketDebuggerUrl: string }
     }
   }
   throw new Error('Chromium did not expose its DevTools endpoint');
+}
+
+/**
+ * An OS-allocated free port. The old default was `9400 + random(400)`: with 13 browser files
+ * booting at once, two instances could land on the same debugging port, and the second would
+ * attach to the first browser's endpoint — a non-deterministic hang that the 10 s hook timeout
+ * then reported as a timeout. Asking the OS removes the collision.
+ */
+async function freePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const server = createServer();
+    server.on('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      const port = typeof address === 'object' && address !== null ? address.port : 0;
+      server.close(() => resolve(port));
+    });
+  });
 }
 
 function connect(socket: WebSocket) {
@@ -98,15 +117,16 @@ async function preparePage(send: ReturnType<typeof connect>['send'], sessionId: 
   if (options.preload) await send('Page.addScriptToEvaluateOnNewDocument', { source: options.preload }, sessionId);
 }
 
-export async function launchBrowser(port = 9400 + Math.floor(Math.random() * 400)): Promise<Browser> {
+export async function launchBrowser(port?: number): Promise<Browser> {
   if (!CHROME_PATH) throw new Error('no Chromium binary');
+  const debuggingPort = port ?? (await freePort());
   const profile = mkdtempSync(join(tmpdir(), 'cdp-'));
   const child: ChildProcess = spawn(
     CHROME_PATH,
-    ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, '--no-first-run', 'about:blank'],
+    ['--headless=new', `--remote-debugging-port=${debuggingPort}`, `--user-data-dir=${profile}`, '--no-first-run', 'about:blank'],
     { stdio: 'ignore' },
   );
-  const socket = new WebSocket((await versionOf(port)).webSocketDebuggerUrl);
+  const socket = new WebSocket((await versionOf(debuggingPort)).webSocketDebuggerUrl);
   await new Promise((resolve) => socket.addEventListener('open', resolve, { once: true }));
   const { send, listeners } = connect(socket);
   return {
@@ -123,7 +143,7 @@ export async function launchBrowser(port = 9400 + Math.floor(Math.random() * 400
       listeners.add(listener);
       await preparePage(send, sessionId, options);
       await send('Page.navigate', { url }, sessionId);
-      for (let waited = 0; !loaded && waited < 20_000; waited += 50) await sleep(50);
+      for (let waited = 0; !loaded && waited < 60_000; waited += 50) await sleep(50);
       // Web fonts can swap in after `load` and reflow a label row; measure after they settle.
       await send('Runtime.evaluate', { expression: 'document.fonts.ready.then(() => true)', awaitPromise: true }, sessionId);
       // Hydration and the clock's pre-paint correction run after `load`.

@@ -311,19 +311,23 @@ describe('AC-003-21: the fuse implies no date and does not move with the clock',
 });
 
 describe('AC-003-22: the fuse carries no alarm hue and no new hue', () => {
-  it('AC-003-22: burnt is --accent, the cord is --ink-3, nothing resolves --data-deficit or --rule-*', () => {
+  it('AC-003-22: burnt is --ink-1, the cord is --ink-3, nothing resolves an accent or alarm token', () => {
+    // Re-pointed by spec 006 T9: the burnt segment is an ink and the pair improves. No chromatic
+    // value at all is on the fuse now, so "no alarm hue" is stronger than it was.
     expect(CSS).toMatch(/\.fuse__cord\s*\{\s*fill:\s*var\(--ink-3\);\s*\}/);
-    expect(CSS).toMatch(/\.fuse__burnt\s*\{\s*fill:\s*var\(--accent\);\s*\}/);
+    expect(CSS).toMatch(/\.fuse__burnt\s*\{\s*fill:\s*var\(--ink-1\);\s*\}/);
     const fuseCss = CSS.slice(CSS.indexOf('\n.fuse {'), CSS.indexOf('\n.share {'));
-    expect(fuseCss).not.toMatch(/--data-deficit|--data-projection|--rule-|#[0-9a-f]{3,8}\b/i);
+    expect(fuseCss).not.toMatch(/--accent|--data-deficit|--data-projection|--rule-|#[0-9a-f]{3,8}\b/i);
   });
 
-  it('AC-003-22: the fuse is never inside the clock subtree', () => {
+  it('AC-003-22: the fuse renders inside step 4, not step 1', () => {
     const html = page(seriesFixtures());
-    const clockAt = html.indexOf('class="clock"');
-    const clock = html.slice(clockAt, html.indexOf('</section>', clockAt));
-    expect(clock).not.toContain('fuse');
-    // Step 4 is a different step from step 1: the fuse follows the number group.
-    expect(html.indexOf('class="fuse"')).toBeGreaterThan(clockAt);
+    // The clock subtree this clause used to be measured against does not exist; what replaces it
+    // is the step boundary: step 4 carries the fuse, step 1 does not.
+    const distance = html.slice(html.indexOf('data-top-step="distance"'), html.indexOf('data-top-step="meaning"'));
+    const number = html.slice(html.indexOf('data-top-step="number"'), html.indexOf('data-top-step="breakage"'));
+    expect(distance).toContain('class="fuse"');
+    expect(number).not.toContain('fuse');
+    expect(html.indexOf('class="fuse"')).toBeGreaterThan(html.indexOf('data-top-step="distance"'));
   });
 });

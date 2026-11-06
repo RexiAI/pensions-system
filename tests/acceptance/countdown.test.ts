@@ -19,6 +19,7 @@ import {
 import { citationRegistry } from '../../web/content/citations';
 import { PublicPage } from '../../web/components/PublicPage';
 import { stripOperatorSubtrees } from '../../web/build/public-vocabulary';
+import { decodeText } from '../helpers/render-document';
 
 const ES = content('es');
 const projected = committedPayload('eurostat-proj-23np-ratio');
@@ -122,48 +123,37 @@ describe('AC-001-99: the countdown is the difference of two printed integers', (
     expect(Number.isInteger(value.thresholdYear)).toBe(true);
   });
 
-  it('AC-001-99: both integers are printed beside the number, and the years quantity carries no sub-annual unit', () => {
-    const html = renderPage(value);
-    const step = numberStepOf(html);
-    expect(html).toContain('2042');
-    expect(html).toContain('2026');
-    expect(html).toContain('16');
+  it('AC-001-99: both integers are printed with the years quantity in #metodo, and it carries no sub-annual unit', () => {
+    // Re-pointed by spec 006 T11: the years numeral leaves step 1, and the detail it carried —
+    // the quantity and the two integers it is the difference of — survives as visible text in
+    // `#metodo` (AC-006-31). The invariant itself is unchanged.
+    const method = decodeText(methodOf(renderPage(value)));
+    const arithmetic = /class="clock__arithmetic">([^<]*)</.exec(method)?.[1] ?? '';
+    expect(arithmetic.length).toBeGreaterThan(0);
+    expect(arithmetic).toContain('16');
+    expect(arithmetic).toContain('2042');
+    expect(arithmetic).toContain('2026');
+    expect(arithmetic).toContain(ES.t('countdown.unit'));
 
-    // The rule is scoped as Revision 3 rewrote it: the years quantity carries no sub-annual
-    // unit, and the clock is a separate quantity with its own anchor, definition and scenarios
-    // (AC-001-108…AC-001-119). Spec 002 §T3 moved the numeral into the clock's own centred
-    // group, so the assertion is made on the numeral wherever it now renders — no longer on a
-    // slice that ends at `class="clock"` — and, as before, on the whole block above the clock.
-    const numeralAt = step.indexOf('class="countdown__value"');
-    expect(numeralAt).toBeGreaterThan(-1);
-    const numeral = step.slice(numeralAt, step.indexOf('</p>', numeralAt));
-    expect(numeral).toContain('16');
+    // The years clause is the arithmetic's first sentence; it is the phrase that must carry no
+    // sub-annual unit. The sentence's own "the days are counted to …" clause is separate.
+    const yearsClause = arithmetic.split('.')[0] ?? '';
     for (const unit of ['día', 'dias', 'días', 'mes', 'meses', 'hora', 'horas', 'minuto', 'minutos', 'segundo']) {
-      expect(numeral.toLowerCase(), unit).not.toContain(unit);
+      expect(yearsClause.toLowerCase(), unit).not.toContain(unit);
     }
   });
 
-  it('AC-002-17: AC-001-99 keeps its invariant while the years numeral relocates', () => {
+  it('AC-002-17: AC-001-99 keeps its invariant while the years quantity relocates to #metodo', () => {
     // The authorized rewrite (`docs/TESTING.md §Tests That Encode a Defect`): the slice the old
-    // assertion used located the numeral in the projection block above the rail, which is the
-    // structure spec 002 reverts. The invariant — no sub-annual unit on the years quantity — is
-    // re-pointed, not relaxed.
+    // assertion used located the numeral in step 1, which spec 006 T11 removes. The invariant —
+    // the years quantity and its two integers, with no sub-annual unit — is re-pointed at
+    // `#metodo`, not relaxed.
     const source = readFileSync('tests/acceptance/countdown.test.ts', 'utf8');
-    const body = source.slice(
-      source.indexOf("it('AC-001-99: both integers are printed beside the number"),
-      source.indexOf("\n  });", source.indexOf("it('AC-001-99: both integers are printed beside the number")),
-    );
-    expect(body).not.toContain("projectionGroup.indexOf('class=\"countdown__value\"')");
-    expect(body).toContain("step.indexOf('class=\"countdown__value\"')");
-
-    // And it still holds on the rendered block: neither the numeral nor the prose above the clock
-    // has acquired an annual-or-shorter unit.
-    const step = numberStepOf(renderPage(value));
-    const numeralAt = step.indexOf('class="countdown__value"');
-    expect(step.slice(numeralAt, step.indexOf('</p>', numeralAt))).toContain('16');
-    for (const unit of ['día', 'dias', 'días', 'mes', 'meses', 'hora', 'horas', 'minuto', 'minutos', 'segundo']) {
-      expect(step.slice(numeralAt, step.indexOf('</p>', numeralAt)).toLowerCase(), unit).not.toContain(unit);
-    }
+    const start = source.indexOf("it('AC-001-99: both integers are printed with the years quantity");
+    const body = source.slice(start, source.indexOf('\n  });', start));
+    expect(body).not.toContain('step.indexOf(\'class="countdown__value"\')');
+    expect(body).toContain('class="clock__arithmetic"');
+    expect(body).toContain('methodOf');
     expect(body).toContain('AC-001-99');
   });
 

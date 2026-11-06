@@ -5,8 +5,15 @@ import { MethodRegion } from '../../web/components/public/MethodRegion';
 import { content, renderComponent } from '../fixtures/figures';
 import { countdownValue, pyramidSeries } from '../fixtures/series';
 
+/**
+ * AC-001-106, re-pointed by spec 006 T10.
+ *
+ * The criterion used to encode the projected value with a dash, a position, a printed word **and**
+ * an amber hue literal. The hue clauses are dropped: the form encoding is the *only* encoding now,
+ * and what must hold is that the form paints — `CSS.supports('fill','url(#…)')` is true while a
+ * CSS gradient function is false in Chromium (AC-006-27, AC-006-28).
+ */
 const ES = content('es');
-const TOKENS = readFileSync('web/styles/tokens.css', 'utf8');
 const CSS = readFileSync('web/styles/globals.css', 'utf8');
 
 function renderPyramid(): string {
@@ -24,35 +31,30 @@ function renderCountdown(): string {
   });
 }
 
-describe('AC-001-106: a projected value is encoded by dash, position and a printed word, not hue alone', () => {
-  it('AC-001-106: the projection hue and its dash alias are declared, light and dark', () => {
-    // Revision 3 P1 moved the projection hue for contrast on the warmer ground: 85.2 deg, a
-    // lightness correction, not a hue change. The dash and the printed word are what encode it.
-    expect(TOKENS).toMatch(/--data-projection:\s*#6b520a/);
-    expect(TOKENS).toMatch(/--chart-projection:\s*var\(--data-projection\)/);
-    expect(TOKENS).toMatch(/--dash-projection:\s*6 4/);
-    expect(TOKENS).toMatch(/--rule-projection:\s*3px/);
-    const dark = TOKENS.slice(TOKENS.indexOf("[data-theme='dark']"));
-    expect(dark).toMatch(/--data-projection:\s*#d8bf60/i);
+describe('AC-001-106: a projected value is encoded by form and a printed word, not hue alone', () => {
+  it('AC-001-106: the projected series carries a valid paint the observed series does not', () => {
+    const html = renderPyramid();
+    // The mechanism is an SVG `<pattern>` referenced by `url(#…)` — the one form Chromium accepts
+    // as a `fill`. A CSS gradient function is not, which is why `--chart-hatch` never painted.
+    expect(html).toContain('<pattern');
+    expect(html).toContain('id="projection-hatch"');
+    expect(CSS).toMatch(/\.demography__panel--projected \.demography__bar\s*\{[^}]*fill:\s*url\(#projection-hatch\)/s);
+    expect(CSS).not.toMatch(/\.demography__panel--projected \.demography__bar\s*\{[^}]*fill:\s*repeating-linear-gradient/s);
   });
 
-  it('AC-001-106: the projected panel is its own panel, dash-encoded and word-labelled', () => {
-    const html = renderPyramid();
-    expect(html).toContain('data-projection="projected"');
-    expect(html).toContain(ES.t('demography.year.projected'));
-    // The dash is bound to the projected panel's frame in CSS, not left to the hue.
+  it('AC-001-106: one hue for the three panels, and the dash bound to the projected frame', () => {
+    const hues = [...CSS.matchAll(/--demography-hue:\s*var\(--([a-z0-9-]+)\)/g)].map((match) => match[1]);
+    expect(hues).toEqual(['ink-2', 'ink-2', 'ink-2']);
     expect(CSS).toContain('.demography__panel--projected .demography__baseline');
     expect(CSS).toMatch(/stroke-dasharray:\s*var\(--dash-projection\)/);
+    expect(readFileSync('web/styles/tokens.css', 'utf8')).toMatch(/--dash-projection:\s*6 4/);
   });
 
   it('AC-001-106: the threshold year is printed beside the label that names it', () => {
     const html = renderCountdown();
     expect(html).toContain(ES.t('countdown.yearLabel'));
     expect(html).toContain('countdown__year');
-    // The 3px accent rule retires with the band (spec 004 T2); the amber is still the projection
-    // encoding, declared for the panels and for the printed year.
-    expect(CSS).not.toContain('.countdown__rule');
-    expect(CSS).toMatch(/\.countdown__year\s*\{[^}]*color:\s*var\(--data-projection\)/s);
+    expect(html).toContain('2042');
   });
 
   it('AC-001-106: every panel is named in words, so no panel is distinguished by colour', () => {
@@ -76,8 +78,7 @@ describe('AC-001-106: a projected value is encoded by dash, position and a print
     expect(html).not.toMatch(/demography__bar--male|demography__bar--female/);
   });
 
-  it('AC-001-106: colour is never the primary encoding of a value', () => {
-    // Every plotted value is also printed: the table carries all 21 × 6 shares.
+  it('AC-001-106: every plotted value is still printed in the table', () => {
     const html = renderPyramid();
     expect(html.split('<td>').length - 1).toBe(21 * 6);
   });
