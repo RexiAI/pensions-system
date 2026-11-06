@@ -312,9 +312,10 @@ svg {
   background: var(--surface-2);
 }
 
+/* Spec 006 T5: the current locale is marked without a ground and without colour — weight is the
+   non-colour difference WCAG 1.4.1 asks for, and the chip that competed with the numeral is gone. */
 .locale-group__cell[aria-current='page'] {
-  background: var(--ink-1);
-  color: var(--surface-1);
+  font-weight: 600;
 }
 
 @media (min-width: 768px) {
@@ -1481,20 +1482,17 @@ svg {
   font-variant-numeric: tabular-nums;
 }
 
-/* The page's largest numeral, and the only one at this step of the ladder. */
+/* The page's largest numeral, and the page's only chromatic value (spec 006 T5, T9). The `5ch`
+   reservation is dropped: with it the numeral's box is wider than its glyphs and the unit-beside
+   gap measures 40.23 px with the numeral's ink union 14.11 px off the axis (design measurement);
+   without it the rendered ink gap measures 12.0 px at 1440×900, which AC-006-03 requires and
+   `spec-006-centred-axis` re-measures. The token keeps its value for any future sub-day return
+   (AC-003-02's clause-level re-point). */
 .clock__value--days {
   font-size: var(--text-num-xl);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
-  color: var(--ink-1);
-  min-inline-size: var(--clock-days-min);
-}
-
-/* The sub-day fields step down to meta: four numerals at 32px become one measured quantity. */
-.clock__value--sub {
-  font-size: var(--text-meta);
-  color: var(--ink-2);
-  min-inline-size: var(--clock-unit-min);
+  color: var(--accent);
 }
 
 .clock__label {
