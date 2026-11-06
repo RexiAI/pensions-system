@@ -48,7 +48,9 @@ describe('AC-004-77: the retired first-viewport geometry is gone from the suite'
 
   it('AC-004-77: the centring measure is no longer a fold pin', () => {
     // `--measure-face` still exists as a token (T15 freezes the token values), but no rule and no
-    // test uses it to place a centred face: the story is flush left on one axis.
+    // test uses it to place a centred face: spec 006 T1 composes step 1 on a centred axis again,
+    // on the step's own content box — not on the retired 001–003 centred-face geometry this
+    // measure belonged to. The declaration survives; nothing places with it.
     expect(CSS).not.toContain('var(--measure-face)');
     expect(bodyOf('tests/acceptance/clock.test.ts')).not.toContain('--measure-face');
     expect(TOKENS).toMatch(/--measure-face:\s*17\.5rem;/);

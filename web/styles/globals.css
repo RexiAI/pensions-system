@@ -460,8 +460,35 @@ svg {
   overflow-wrap: break-word;
 }
 
-/* Spec 002 §T7: the accent does exactly one job in the story — it is the primary's material.
-   The subordinate step is a text link, so the affordance never rests on colour alone. */
+/* Spec 006 T1: four units on the centre of step 1's content box — the `<h1>`, the step label, the
+   number and the sentence. Alignment only: no offsets, no `translate` optics, no unit widened to
+   force its offset to zero, and steps 2–5 keep 004's flush-left axis. The criterion measures ink
+   per text node, so each leaf's own `text-align` is what centres its glyphs. */
+.step--number .hero__title,
+.step--number .step__label,
+.step--number .step__sentence {
+  text-align: center;
+}
+
+/* `margin-inline: auto` follows the `margin` shorthand above and would be re-zeroed if it came
+   first (`margin-inline` is not in AC-005-16's token-resolving property list, so `auto` is
+   permitted). The sentence keeps `--measure`; the axis is not bought by widening. */
+.step--number .step__sentence {
+  margin-inline: auto;
+}
+
+/* The number line: the numeral and its unit on one centred baseline. */
+.step--number .clock__field--days {
+  justify-content: center;
+}
+
+/* Spec 002 §T7's hierarchy, re-pointed by spec 006 T9 (AC-002-31): the primary stays the page's
+   dominant action but stops being the accent — an ink ground with surface ink, 16.83:1 light /
+   17.01:1 dark. The accent is reserved to the day numeral (AC-006-26), and because the fill is now
+   near-black the focus ring is drawn outside it with `--focus-offset` (AC-006-36): the accent is
+   1.71:1 light / 2.15:1 dark against `--ink-1`, so a ring inside the fill would fail 3:1. Same
+   radius, padding and type; the subordinate step is a text link, so the affordance never rests on
+   colour alone. */
 .hero__cta {
   background: var(--accent);
   color: var(--on-accent);
