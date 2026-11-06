@@ -1404,3 +1404,265 @@ fixes are unchanged; this run adds no production change to destabilise them.
 
 Attempt 4 is a scoped re-verification; attempts 1–3 above are unchanged. No production code
 was written, nothing was committed or pushed. The scratch copy was removed after the runs.
+
+---
+
+# Phase 2 — post-PR CI (round 0)
+
+**Verifier:** spec-verifier (phase 2 — post-PR CI check, `docs/spec-pipeline/post-pr-loops.md`)
+**Attempt:** round 0 of max 3 — phase-2 counter, **independent of phase 1** (phase 1 is exhausted at 3/3; attempts 1–4 above stand)
+**PR:** [#18](https://github.com/RexiAI/pensions-system/pull/18) · branch `spec/006-centred-number` · base `main` · **draft** · 17 commits · head `d86ce528daf113d1825fadb56f7205fcf9f609a8`
+**Workflow:** `CI` (`.github/workflows/ci.yml` → reusable `ci-nextjs.yml` @ `21046d9`), run **42256625219**, conclusion `success`
+**Scope:** CI checks only. No production code, no fix, no commit, no push. `gh` queries throughout.
+
+## Phase 2 round-0 verdict
+
+**PASS.** Every CI check reached a terminal state; none failed. Three jobs ran and passed
+(Unit Tests, Lint & Format, Build), two Vercel contexts are `SUCCESS`, and one job is `SKIPPED`
+by design (`deploy-on-main: false`, no Dockerfile). The pipeline may proceed to **stage 5c**.
+
+| Check | Workflow | Job / check id | Bucket | State |
+|---|---|---|---|---|
+| `frontend-ci / Unit Tests` | CI | 128025418475 | **pass** | SUCCESS |
+| `frontend-ci / Lint & Format` | CI | 128025418901 | **pass** | SUCCESS |
+| `frontend-ci / Build` | CI | 128026061623 | **pass** | SUCCESS |
+| `frontend-ci / Docker Build & Push` | CI | 128026679723 | **skipping** | SKIPPED (by design) |
+| `Vercel Preview Comments` | — | 128025571388 | **pass** | SUCCESS |
+| `Vercel` (deployment context) | — | 7605747526 (deploy) | **pass** | SUCCESS |
+
+`skipping` is a fourth bucket, not `pending` and not `fail`. Pending was polled to zero before
+this verdict was written (`poll 1 16:54:26Z pending=1` … `poll 7 16:56:34Z pending=0`). Nothing
+was treated as green while pending.
+
+**Nothing is red, so nothing is routed.** No fix goes to `spec-coder` or `spec-refactorer`.
+
+## Evidence: phase 2 CI status query
+
+command: gh pr checks 18 --json name,state,bucket,workflow,link; gh api repos/RexiAI/pensions-system/commits/d86ce528daf113d1825fadb56f7205fcf9f609a8/check-runs; gh run list --branch spec/006-centred-number --workflow "CI" --limit 3 --json databaseId,conclusion,headSha,event
+exit: 0 (checks 0, check-runs 0, run list 0)
+at: 2026-11-06T16:58:28Z
+
+```
+### 1. gh pr checks 18 --json name,state,bucket,workflow,link
+[{"bucket":"skipping","link":"https://github.com/RexiAI/pensions-system/actions/runs/42256625219/job/128026679723","name":"frontend-ci / Docker Build & Push","state":"SKIPPED","workflow":"CI"},{"bucket":"pass","link":"https://github.com/RexiAI/pensions-system/actions/runs/42256625219/job/128026061623","name":"frontend-ci / Build","state":"SUCCESS","workflow":"CI"},{"bucket":"pass","link":"https://github.com/RexiAI/pensions-system/actions/runs/42256625219/job/128025418475","name":"frontend-ci / Unit Tests","state":"SUCCESS","workflow":"CI"},{"bucket":"pass","link":"https://github.com/RexiAI/pensions-system/actions/runs/42256625219/job/128025418901","name":"frontend-ci / Lint & Format","state":"SUCCESS","workflow":"CI"},{"bucket":"pass","link":"https://vercel.com/github","name":"Vercel Preview Comments","state":"SUCCESS","workflow":""},{"bucket":"pass","link":"https://vercel.com/danielbueno76-4270s-projects/pensions-system/8Vykw89Yx8xbiNK1XebYvbrmaYYw","name":"Vercel","state":"SUCCESS","workflow":""}]
+checks_exit=0
+
+### 2. gh api .../commits/d86ce52.../check-runs
+skipped  128026679723  frontend-ci / Docker Build & Push
+success  128026061623  frontend-ci / Build
+success  128025571388  Vercel Preview Comments
+success  128025418901  frontend-ci / Lint & Format
+success  128025418475  frontend-ci / Unit Tests
+checkruns_exit=0
+
+### 3. gh run list --branch spec/006-centred-number --workflow CI
+42256625219 success d86ce52 pull_request
+42256573875 cancelled 7e01001 pull_request
+runlist_exit=0
+```
+
+`42256573875` (head `7e01001`) is `cancelled`, not failed: it was superseded by the push of
+`d86ce52` under the workflow's `concurrency: cancel-in-progress`. Cancelled-superseded is not a
+finding — the run that counts for this head is `42256625219`.
+
+## Evidence: Unit Tests — totals and every skip accounted for
+
+command: gh run view 42256625219 --log  (Unit Tests job 128025418475); per-file skip tally; guard scan across tests/
+exit: 0
+at: 2026-11-06T16:58:36Z
+
+```
+ Test Files  107 passed | 9 skipped (116)
+      Tests  1022 passed | 46 skipped (1068)
+   Duration  19.12s (tests 56%, import 32%, transform 7%, environment 4%, worker 1%)
+
+tests/acceptance/spec-006-palette.test.ts            2
+tests/acceptance/spec-006-supersessions.test.ts      1
+tests/acceptance/no-empty-columns.test.ts            4
+tests/acceptance/spec-006-von-restorff.test.ts       4
+tests/acceptance/spec-006-canonical-share.test.ts    1
+tests/acceptance/served-document.test.ts             6
+tests/acceptance/spec-006-number-group.test.ts       1
+tests/acceptance/spec-006-static-html.test.ts        1
+tests/acceptance/spec-006-projection-form.test.ts    2
+tests/acceptance/spec-006-centred-axis.test.ts       3
+tests/acceptance/spec-005-step-air-browser.test.ts   3
+tests/acceptance/spec-006-fitts.test.ts              3
+tests/acceptance/one-screen-per-step.test.ts         3
+tests/acceptance/spec-006-subday-legibility.test.ts  2
+tests/acceptance/countdown-band-browser.test.ts      4
+tests/acceptance/invariants-003.test.ts              1
+tests/acceptance/spec-006-box.test.ts                2
+tests/acceptance/spec-005-locale-parity.test.ts      1
+tests/acceptance/spec-006-type-scale.test.ts         2
+SKIPPED_TOTAL=46
+```
+
+CI total is **1068 tests**, the same number the local suite runs (orchestrator-reported local
+1068 passed). So no test is *missing* from CI — 46 of the same 1068 are environment-gated and
+run locally instead. The skip count is larger than the phase-1 local run for exactly the reason
+this spec grew browser coverage: 19 files now carry browser or build guards.
+
+## Evidence: every skip is an environment guard, no parked criterion
+
+command: grep -rnE "^\s*(it|test|describe)\.skip\(" tests/ ; guard idiom per skipping file; guard definitions
+exit: 1 for the unconditional-skip scan (no matches — none exist); 0 for the guard scan
+at: 2026-11-06T16:58:43Z
+
+```
+### 5. no unconditional .skip( in tests/ (exit 1 = no match, i.e. none)
+unconditional_skip_grep_exit=1
+
+### 5b. guard idiom per skipping file
+tests/acceptance/spec-006-palette.test.ts          describe.skipIf(!BROWSER_READY) describe.skipIf(!BROWSER_READY)
+tests/acceptance/spec-006-supersessions.test.ts    describe.skipIf(!BROWSER_READY)
+tests/acceptance/no-empty-columns.test.ts          describe.skipIf(!READY)
+tests/acceptance/spec-006-von-restorff.test.ts     describe.skipIf(!BROWSER_READY)
+tests/acceptance/spec-006-canonical-share.test.ts  describe.skipIf(!BROWSER_READY)
+tests/acceptance/served-document.test.ts           describe.skipIf(!BUILD_PRESENT)
+tests/acceptance/spec-006-number-group.test.ts     describe.skipIf(!BROWSER_READY)
+tests/acceptance/spec-006-static-html.test.ts      describe.skipIf(!BROWSER_READY)
+tests/acceptance/spec-006-projection-form.test.ts  describe.skipIf(!BROWSER_READY)
+tests/acceptance/spec-006-centred-axis.test.ts     describe.skipIf(!BROWSER_READY)
+tests/acceptance/spec-005-step-air-browser.test.ts describe.skipIf(!READY)
+tests/acceptance/spec-006-fitts.test.ts            describe.skipIf(!BROWSER_READY)
+tests/acceptance/one-screen-per-step.test.ts       describe.skipIf(!READY)
+tests/acceptance/spec-006-subday-legibility.test.ts describe.skipIf(!BROWSER_READY)
+tests/acceptance/countdown-band-browser.test.ts    describe.skipIf(!READY)
+tests/acceptance/invariants-003.test.ts            it.skipIf(!BUILD_PRESENT)
+tests/acceptance/spec-006-box.test.ts              describe.skipIf(!BROWSER_READY)
+tests/acceptance/spec-005-locale-parity.test.ts    describe.skipIf(!BUILD_PRESENT)
+tests/acceptance/spec-006-type-scale.test.ts       describe.skipIf(!BROWSER_READY)
+
+### 5c. guard definitions
+14:export const BUILD_PRESENT = existsSync('.next/server/app');
+15:export const CHROME_PATH = CANDIDATES.find((path): path is string => typeof path === 'string' && existsSync(path));
+13:export const BROWSER_READY = BUILD_PRESENT && CHROME_PATH !== undefined;
+16:const READY = BUILD_PRESENT && CHROME_PATH !== undefined;
+```
+
+Every one of the 46 skips sits inside a `skipIf` keyed on `.next/server/app` existing
+(`BUILD_PRESENT`) and/or a Chromium binary being installed (`CHROME_PATH`) — neither of which the
+CI `unit-test` job has: the jobs are separate, `Build` does not publish `.next` to `Unit Tests`,
+and no browser is installed. There is **no unconditional `.skip(` anywhere in `tests/`**, so no
+acceptance criterion was parked to make CI green. The three `BUILD_PRESENT`-only files
+(`served-document`, `invariants-003` AC-003-44, `spec-005-locale-parity` AC-005-35) are served-HTML
+checks that need a real `next start`; they run locally where the build exists.
+
+## Evidence: Lint & Format and Build really ran
+
+command: gh run view 42256625219 --log  (Lint & Format job 128025418901, Build job 128026061623)
+exit: 0
+at: 2026-11-06T16:56:40Z
+
+```
+> pensions-system@0.0.0 lint
+> eslint .
+
+> next build
+ ✓ Running next.config.ts took 32ms
+  ✓ globalNotFound
+✓ Compiled successfully in 4.7s
+✓ Generating static pages using 3 workers (17/17) in 809ms
+Route (app)                                             Revalidate  Expire
+```
+
+`lint` is `eslint .` (the reusable workflow also runs `npm run format:check --if-present`);
+`next build` succeeded and type-checks the tree — it produced the ISR route table, so the
+`revalidate = 3600` work is present in the compiled output. No `tsc --noEmit` step exists in this
+CI (local `tsc` was 0 at phase 1); `next build` is the type gate here.
+
+## Evidence: Docker job skip cause and absent spec gates
+
+command: grep -n "if: github.event_name" .standards/.github/workflows/ci-nextjs.yml; grep -n "deploy-on-main" .github/workflows/ci.yml; gh run view 42256625219 (job list)
+exit: 0
+at: 2026-11-06T16:58:36Z
+
+```
+84:    if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch && inputs.deploy-on-main
+34:      deploy-on-main: false
+
+JOBS
+✓ frontend-ci / Unit Tests in 54s (ID 128025418475)
+✓ frontend-ci / Lint & Format in 50s (ID 128025418901)
+✓ frontend-ci / Build in 1m7s (ID 128026061623)
+- frontend-ci / Docker Build & Push in 0s (ID 128026679723)
+```
+
+`Docker Build & Push` can only run on a push to the default branch **and** with
+`deploy-on-main: true`; this caller sets `false` (no Dockerfile, GHCR_TOKEN unset, deployment is
+Vercel via Git integration — commented in `.github/workflows/ci.yml`). On a PR it is unconditionally
+skipped. **By design, not a red.**
+
+The run has exactly four jobs. **`check-specs-archived.sh` is absent from CI** — as expected for
+this repo (no such job, no such workflow): it cannot be a CI signal here and its absence is not
+this branch's defect. **`check-code-principles.sh` exit 141 does not appear** — the script is not
+invoked by this CI at all (`self-ci`/standards-side only), and no job failed with 141 in this run.
+
+## Evidence: 5c handoff — the preview belongs to this head
+
+command: gh api "repos/RexiAI/pensions-system/deployments?sha=d86ce52…&per_page=5"; gh api repos/RexiAI/pensions-system/commits/d86ce52…/status
+exit: 0
+at: 2026-11-06T16:58:58Z
+
+```
+7605747526 Preview 2026-11-06T16:54:16Z d86ce528daf113d1825fadb56f7205fcf9f609a8
+Vercel success https://vercel.com/danielbueno76-4270s-projects/pensions-system/8Vykw89Yx8xbiNK1XebYvbrmaYYw
+```
+
+Deployment `7605747526` is recorded against **`d86ce52`**, the PR head — not a stale branch alias.
+Branch alias for 5c: `https://pensions-system-git-spec-00-af5e9e-danielbueno76-4270s-projects.vercel.app`
+(Vercel "Ready"). 5c must still match `githubCommitSha == d86ce52` before trusting a 200.
+
+## Phase 2 round-0 findings
+
+No gate failed. Recorded for the Architect, none of which blocks:
+
+- **P2-0-W1 (carried, W-1):** `AC-006-35` is skipped **entirely** in CI — the test lives inside
+  `describe.skipIf(!BROWSER_READY)`, and its live half additionally requires `PRODUCTION_URL`,
+  which no workflow sets. CI therefore exercises neither half. The committed-origin half runs
+  locally (build + Chromium present); the **live serving-origin equality is stage 5c's job**.
+  Do **not** route this to the Coder.
+- **P2-0-W2 (reconciliation, informational):** phase-1 attempt 4 recorded 113 files / 1056 tests;
+  the head now has 116 files / 1068 tests (+3 files, +12 tests, added while phase 1's budget was
+  already at 3/3). CI executes all 1068 and they pass, so the delta is covered by this run rather
+  than by a fifth local attempt — but no Verifier attempt ever ran against this exact tree locally.
+- **P2-0-W3 (upstream, not this branch):** the reusable `ci-nextjs.yml` gates `build` on
+  `needs: [unit-test, lint]`, which contradicts `docs/CODING_CONVENTIONS.md §CI Job Orchestration —
+  Clean Feedback` (a lint failure would hide the build signal). It is a `.standards/` submodule
+  defect, unchanged by this spec; report only.
+- **P2-0-W4 (info):** annotations are deprecation notices only — Node.js 20 actions forced onto
+  Node 24, and the `ubuntu-latest` → Ubuntu 26 migration notice. Nothing branch-specific.
+
+## Phase 2 round-0 outcome
+
+| Item | Value |
+|---|---|
+| Checks queried / terminal | 6 / 6 |
+| pass / fail / skipping(pending) | **4 / 0 / 1 (Docker, by design)** (+1 Vercel deployment context) |
+| Run conclusion | `success` (42256625219) |
+| Unit tests | 1022 passed, 46 skipped (1068) — every skip an environment guard |
+| Lint & Format / Build | pass / pass |
+| Failing check IDs | none |
+| Routed owner | none |
+| Verdict | **PASS** |
+| Next stage | **5c may proceed** (Deploy Verifier) |
+
+
+## Phase 2 round-0 addendum (write hygiene, same round)
+
+Two tree-state observations, recorded because a downstream stage performs working-tree checks.
+Neither is a CI finding and neither is mine to fix:
+
+- **P2-0-W5:** two untracked scratch files sit at the repo root — `live-005-top.png`,
+  `live-006box.png` — not in any of the PR's 17 commits. They are verifier-side artifacts from an
+  earlier round; the orchestrator/Architect should decide whether they are discarded before
+  stage 5d's clean-tree check. Left untouched here.
+- **P2-0-W6:** `.standards` is checked out at `5de28c9` while the child's recorded gitlink is
+  `6eb2c99` (`git submodule status` → `+`). Pre-existing, unrelated to this spec, and the source of
+  the ` M .standards` line in `git status`. Left untouched.
+
+**Telemetry:** `record-gate-run.sh` resolves its repo root to the `.standards` submodule when
+invoked by that path, so the first append landed in `.standards/runs.jsonl`. That stray line was
+reverted (`git -C .standards checkout -- runs.jsonl`, submodule working tree clean again) and the
+record was written once to this repo's `runs.jsonl` with `-f`. Verdict unchanged: `outcome: pass`.
