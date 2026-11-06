@@ -8,6 +8,10 @@ import '../../../web/styles/globals.css';
 export const metadata: Metadata = siteMetadata;
 export const viewport: Viewport = siteViewport;
 
+/* Spec 006 T12 (D17): one-hour ISR, declared on the segment's layout (Next folds every segment's
+   route config into one policy). The build's route table lists `/` as ISR `1h`. */
+export const revalidate = 3600;
+
 /**
  * The root layout of the Spanish-only branch (`/`). The `<html lang>` is this route's own
  * locale, stated here because a shared root layout above both branches could not know it —

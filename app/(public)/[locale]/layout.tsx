@@ -18,6 +18,12 @@ import '../../../web/styles/globals.css';
  */
 export const dynamicParams = false;
 
+/* Spec 006 T12 (D17): the generated HTML is revalidated at most hourly. The window is declared
+   on the segment's layout because Next collects route segment config from every segment of the
+   route; the page keeps its `dynamic = 'force-static'` and the two fold into one policy. The
+   build's route table lists these routes as ISR `1h`. */
+export const revalidate = 3600;
+
 export const metadata: Metadata = siteMetadata;
 export const viewport: Viewport = siteViewport;
 
