@@ -1375,21 +1375,33 @@ svg {
   height: auto;
 }
 
-/* One hue per panel. Sex is encoded by side and by the column header, never by hue. */
+/* Spec 006 T10: one hue for all three panels. The observed/projected distinction survives by form
+   (a hatch and a dash) plus the printed state word, not by a second colour. */
 .demography__panel--reference {
-  --demography-hue: var(--chart-series-2);
+  --demography-hue: var(--ink-2);
 }
 
 .demography__panel--measured {
-  --demography-hue: var(--chart-series-1);
+  --demography-hue: var(--ink-2);
 }
 
 .demography__panel--projected {
-  --demography-hue: var(--chart-projection);
+  --demography-hue: var(--ink-2);
 }
 
 .demography__bar {
   fill: var(--demography-hue);
+}
+
+/* The projected series carries an SVG `<pattern>` the observed series does not. `fill: url(#…)`
+   is a valid paint in Chromium; a CSS gradient function is not, which is why `--chart-hatch` was
+   never the mechanism here (spec 006 T10, AC-006-28). */
+.demography__panel--projected .demography__bar {
+  fill: url(#projection-hatch);
+}
+
+.demography__hatch-ink {
+  stroke: var(--ink-2);
 }
 
 .demography__baseline,
