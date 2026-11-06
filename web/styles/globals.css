@@ -1433,40 +1433,20 @@ svg {
   }
 }
 
-/* ---------- The number group: the clock as step 1's measurement (spec 004 T2) ---------- */
+/* ---------- The number group: step 1's one measurement (spec 006 T2, T11) ---------- */
 
-/* Flush left, on the page's one axis. The centred face of Revision 4 was the panel's geometry and
-   does not survive the move into the story: centring is what made the block read as a card. */
+/* One line on the centred axis: the day numeral and its unit, and nothing else. The old
+   `.clock__fields` three-column grid, its sub-day cells and the years line are gone from the DOM,
+   not hidden — so no rule leaves a track or a `grid-column` pin with nothing to place. */
 .clock {
   margin: 0;
-  text-align: start;
-}
-
-/* Three fixed, equal columns for the three sub-day fields; the day count spans them. Fixed rather
-   than `auto` so no numeral can size a track, and every track has a child. */
-.clock__fields {
-  display: grid;
-  grid-template-columns: repeat(3, var(--clock-sub-col));
-  justify-content: start;
-  justify-items: start;
-  column-gap: var(--clock-gap);
-  row-gap: var(--space-2);
-  margin-top: var(--space-4);
 }
 
 .clock__field--days {
-  grid-column: 1 / -1;
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
-}
-
-.clock__field {
-  display: grid;
-  justify-items: start;
-  gap: var(--space-1);
   margin: 0;
-  text-align: start;
 }
 
 .clock__value {
@@ -1496,8 +1476,8 @@ svg {
   color: var(--ink-3);
 }
 
-/* The day's own label sits beside its numeral, on the baseline, at reading size (T2): at 80px the
-   unit was a caption the reader had to hunt for under the number. */
+/* The day's own label sits beside its numeral, on the baseline, at reading size: at 80px the unit
+   would be a caption the reader had to hunt for under the number. */
 .clock__field--days .clock__label {
   font-size: var(--text-body-lg);
   color: var(--ink-2);
