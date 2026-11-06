@@ -117,9 +117,11 @@ describe('AC-005-16: the air is spent with tokens, and the ground is kept', () =
     }
   });
 
-  it('AC-005-16: step 1 keeps its ground, gains no border, and no surface-2 background', () => {
+  it('AC-005-16: step 1 keeps no ground, gains no border, and no surface-2 background', () => {
+    // Clause re-pointed by spec 006 T8: the panel's ground is retired, so the criterion asserts
+    // its absence rather than its presence. The border and surface-2 negatives are unchanged.
     const number = bodyOf('.step--number');
-    expect(number).toContain('background: var(--surface-hero)');
+    expect(number).not.toContain('background: var(--surface-hero)');
     expect(number).not.toContain('border-top');
     expect(number).not.toContain('var(--surface-2)');
   });

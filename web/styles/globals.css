@@ -379,10 +379,10 @@ svg {
   border-top: var(--border-hair);
 }
 
-/* Step 1 is the story's one ground (T2). It spans the content width with no inline inset, so its
-   text sits exactly on the axis every later step uses. */
+/* Spec 006 T8: no story step paints a rectangle behind its content. Step 1 is the number on the
+   page's own ground — the panel, its ground and its edge are gone; the header's hairline above and
+   the shared `.step + .step` hairline below are the only separations. */
 .step--number {
-  background: var(--surface-hero);
   padding-block: var(--space-8);
 }
 
