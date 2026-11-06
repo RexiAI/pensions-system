@@ -1,13 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { NumberStep } from '../../web/components/public/NumberStep';
 import { MethodRegion } from '../../web/components/public/MethodRegion';
 import { PublicPage } from '../../web/components/PublicPage';
 import { citationRegistry } from '../../web/content/citations';
 import { LOCALES } from '../../web/content/types';
 import type { Locale } from '../../web/content/types';
 import type { DerivedSeries } from '../../web/ingest/series-types';
-import { TOP_STEPS } from '../../web/components/public/top-steps';
 import { content, dependencyFigure, renderComponent, shareFigure } from '../fixtures/figures';
 import {
   countdownAt,
@@ -23,9 +21,6 @@ import { decodeText } from '../helpers/render-document';
 const CSS = readFileSync('web/styles/globals.css', 'utf8');
 const TOKENS = readFileSync('web/styles/tokens.css', 'utf8');
 const NOW = Date.parse('2026-10-31T10:00:00Z');
-const NUMBER_STEP = TOP_STEPS[0];
-
-if (NUMBER_STEP === undefined) throw new Error('TOP_STEPS has no first step');
 
 function page(series: readonly DerivedSeries[] = seriesFixtures(), locale: Locale = 'es', nowMs = NOW): string {
   return renderComponent(PublicPage, {
@@ -64,38 +59,23 @@ describe('AC-003-02: the day numeral is larger than the h1 on the numeral ladder
   it('AC-003-02: the day count is the story’s only numeral at the ladder’s top step', () => {
     const step = numberStepOf(page());
     expect(step).toContain('clock__value--days');
-    expect(CSS).toMatch(/\.clock__value--days\s*\{[^}]*min-inline-size:\s*var\(--clock-days-min\)/s);
-    // Two numerals above 20px in the whole story: the day count and the years quantity.
-    expect(CSS).toMatch(/\.countdown__numeral\s*\{[^}]*font-size:\s*var\(--text-num-l\)/s);
+    // Clause-level re-point (spec 006 T10, §4.2): the `5ch` reservation is dropped because with the
+    // unit on the same line it measures 40.23 px of ink gap and pushes the numeral's union 14.11 px
+    // off the axis. The token keeps its value; nothing places with it (AC-006-01, AC-006-03).
+    expect(CSS).not.toMatch(/\.clock__value--days\s*\{[^}]*min-inline-size:\s*var\(--clock-days-min\)/s);
+    expect(TOKENS).toMatch(/--clock-days-min:\s*5ch;/);
   });
 });
 
 describe('AC-003-03: the day numeral is the largest numeral on the page', () => {
-  it('AC-003-03: the years numeral steps down to --text-num-l and no plate numeral competes', () => {
-    expect(TOKENS).toMatch(/--text-num-l:\s*2rem;/);
-    expect(CSS).toMatch(/\.countdown__numeral\s*\{[^}]*font-size:\s*var\(--text-num-l\)/s);
-    // The hero's headline figure (the old `--text-num-xl` competitor) left the page with T12.
+  it('AC-003-03: no plate numeral competes with the day count', () => {
+    // Clause-level re-point (spec 006 T11, §4.2): the years numeral leaves the story, so its
+    // step-down rule on the ladder has no user and is asserted by nothing. The invariant — no
+    // numeral larger than the day count — is AC-006-12's and the browser measurement's.
     const html = page();
     expect(html).not.toContain('hero__value');
     expect(CSS).not.toContain('.hero__value');
-  });
-});
-
-describe('AC-003-04: the numeral hierarchy is the story’s, and few things occupy the top', () => {
-  it('AC-003-04: the sub-day fields step down to --text-meta, so one measured quantity remains', () => {
-    // Recorded override (spec 004 T2): the sub-day values were at `--text-clock-sub` (32px). The
-    // hierarchy criterion — few numerals at the top of the ladder — stands; the value it names is
-    // now `--text-meta`, because four 32px numerals were the four-numerals defect this removed.
-    expect(CSS).toMatch(/\.clock__value--sub\s*\{[^}]*font-size:\s*var\(--text-meta\)/s);
-    expect(CSS).not.toMatch(/\.clock__value--sub\s*\{[^}]*--text-clock-sub/s);
-    expect(TOKENS).toMatch(/--text-meta:\s*0\.8125rem;/);
-  });
-
-  it('AC-003-04: the digits are fixed-width and nothing animates or blinks', () => {
-    expect(CSS).not.toMatch(/@keyframes/);
-    const clock = CSS.slice(CSS.indexOf('.clock {'), CSS.indexOf('.clock__fields {'));
-    expect(clock).not.toMatch(/transition|animation|blink/);
-    expect(CSS).toMatch(/\.clock__value\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
+    expect(html).not.toContain('countdown__numeral');
   });
 });
 
@@ -111,20 +91,6 @@ describe('AC-003-05: the anchor and both disclosures are retained, in the method
       expect(outsideDetails, locale).not.toContain('class="clock__definition" aria-hidden');
       expect(method, locale).not.toMatch(/\stitle="/);
     }
-  });
-});
-
-describe('AC-003-07: reduced motion hides the tick and does not freeze it', () => {
-  it('AC-003-07: no story rule sets a display on the sub-day fields', () => {
-    const story = CSS.slice(CSS.indexOf('.step {'), CSS.indexOf('@media (prefers-reduced-motion'));
-    expect(story).not.toMatch(/clock__field--sub[^{]*\{[^}]*display/);
-    expect(CSS).toMatch(/@media \(prefers-reduced-motion: reduce\) \{\s*\.clock__field--sub \{\s*display: none;/);
-  });
-
-  it('AC-003-07: the server-rendered day count is the render instant’s', () => {
-    const html = page(seriesFixtures(), 'es', NOW);
-    const expected = Math.floor((Date.parse('2042-01-01T00:00:00+01:00') - NOW) / 86_400_000);
-    expect(html).toContain(`>${expected}<`);
   });
 });
 
@@ -147,22 +113,6 @@ describe('AC-003-08: no clock without a threshold year, step 1 included', () => 
   });
 });
 
-describe('AC-003-09: clock behaviour is unchanged by the recomposition', () => {
-  it('AC-003-09: the archived clock scenarios run unedited in their behaviour assertions', () => {
-    const bandTestSource = readFileSync('tests/acceptance/clock.test.ts', 'utf8');
-    // The clock's behavioural criteria (AC-001-108…-116) still live there and still pass; this
-    // file only asserts the composition around them.
-    expect(bandTestSource).toContain('AC-001-114');
-    expect(bandTestSource).toContain('AC-001-115');
-  });
-
-  it('AC-003-09: the page renders exactly one clock, and it is step 1’s', () => {
-    const html = page();
-    expect(html.split('class="clock"').length - 1).toBe(1);
-    expect(numberStepOf(html)).toContain('class="clock"');
-  });
-});
-
 describe('the number group’s own copy', () => {
   it('names the target date once, in step 1’s sentence', () => {
     for (const locale of LOCALES) {
@@ -176,12 +126,6 @@ describe('the number group’s own copy', () => {
     for (const marker of ['countdown__definition', 'countdown__range', 'countdown__source', 'countdown__backcast', 'countdown__year-line']) {
       expect(step, marker).not.toContain(marker);
     }
-  });
-
-  it('renders the years numeral and the unit from the content model', () => {
-    const html = renderComponent(NumberStep, { step: NUMBER_STEP, content: content('es'), countdown: countdownValue(), nowMs: NOW });
-    expect(html).toContain('countdown__numeral');
-    expect(html).toContain(`class="countdown__unit">${content('es').t('countdown.unit')}<`);
   });
 
   it('the method region renders the countdown precision for the same value', () => {

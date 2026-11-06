@@ -15,18 +15,11 @@
  * passed; the projection above it continues to say whatever the data says.
  */
 
-/** The one place the tick frequency exists (§P2 Performance: a custom property could not be read by JS). */
-export const CLOCK_TICK_MS = 1000;
-
 /** The anchor's timezone. A constant with this comment, deliberately not a layout token. */
 export const CLOCK_TIME_ZONE = 'Europe/Madrid';
 
 /** January in Madrid is CET: a fixed offset, so the ISO string needs no DST rule. */
 export const CLOCK_UTC_OFFSET = '+01:00';
-
-export const CLOCK_FIELDS = ['days', 'hours', 'minutes', 'seconds'] as const;
-
-export type ClockField = (typeof CLOCK_FIELDS)[number];
 
 export interface ClockReading {
   days: number;

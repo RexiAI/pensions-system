@@ -1,8 +1,7 @@
 import { formatDate, formatValue } from '../../content/format';
 import type { CountryLocaleContent } from '../../content/types';
-import { CLOCK_TIME_ZONE } from '../../series/clock';
+import { CLOCK_TIME_ZONE, readClock } from '../../series/clock';
 import type { CountdownValue } from '../../series/countdown';
-import { CountdownClock } from '../series/CountdownClock';
 import { TopStepSection } from './TopStepSection';
 import { thresholdNumerals } from './step-numerals';
 import type { StepProps } from './top-steps';
@@ -19,40 +18,50 @@ function anchorDate(countdown: CountdownValue, content: CountryLocaleContent): s
 }
 
 /**
- * The number group: the years numeral, the day count and the three sub-day fields, one measured
- * quantity. It renders only where an anchor exists — no threshold year, no clock (AC-001-110) —
- * and it carries no footnote of any kind (spec 004 T2: no definition, range, source, back-cast,
- * year label, conventional-date line or arithmetic inside the step).
+ * The number group: the day numeral and its unit, one measured quantity (spec 006 T2, T11). The
+ * years numeral and the three sub-day fields are absent from the DOM, not hidden. The group
+ * carries the render instant it was computed at (D16), so a stale value is attributable rather
+ * than invisible, and it carries no accessible name restating the date: the sentence is the
+ * date's only accessible path (AC-004-29, AC-005-09).
  */
-function NumberGroup({ content, countdown, nowMs }: { content: CountryLocaleContent; countdown: CountdownValue; nowMs: number }) {
+function NumberGroup({
+  content,
+  countdown,
+  nowMs,
+}: {
+  content: CountryLocaleContent;
+  countdown: CountdownValue;
+  nowMs: number;
+}) {
+  const reading = readClock(countdown.anchor ?? '', nowMs);
+  const days = formatValue(reading.days, 'integer', content.locale, '');
   return (
-    <CountdownClock
-      anchor={countdown.anchor ?? ''}
-      nowMs={nowMs}
-      locale={content.locale}
-      strings={{
-        a11y: content.t('countdown.clock.a11y', { date: anchorDate(countdown, content) }),
-        days: content.t('countdown.clock.days'),
-        hours: content.t('countdown.clock.hours'),
-        minutes: content.t('countdown.clock.minutes'),
-        seconds: content.t('countdown.clock.seconds'),
-      }}
-      years={formatValue(countdown.years, 'integer', content.locale, '')}
-      yearsUnit={content.t('countdown.unit')}
-    />
+    <div className="clock" data-rendered-at={new Date(nowMs).toISOString()}>
+      <p className="clock__field--days">
+        <span className="clock__value clock__value--days">{days}</span>{' '}
+        <span className="clock__label">{content.t('countdown.clock.days')}</span>
+      </p>
+    </div>
   );
 }
 
-/** The countdown the number group can measure: computed, and carrying an anchor to count to. */
-function measured(countdown: CountdownValue): CountdownValue | undefined {
-  return countdown.state === 'computed' && countdown.anchor !== null ? countdown : undefined;
+/** The countdown the number group can measure: computed, carrying an anchor, and still ahead. */
+function measured(countdown: CountdownValue, nowMs: number): CountdownValue | undefined {
+  if (countdown.state !== 'computed' || countdown.anchor === null) return undefined;
+  return readClock(countdown.anchor, nowMs).elapsed ? undefined : countdown;
 }
 
 /**
  * Step 1's one sentence: the target date, then the two numerals the story states as one fact.
  * The date is stated here and nowhere else in the story.
  */
-function NumberSentence({ content, countdown }: { content: CountryLocaleContent; countdown: CountdownValue }) {
+function NumberSentence({
+  content,
+  countdown,
+}: {
+  content: CountryLocaleContent;
+  countdown: CountdownValue;
+}) {
   return (
     <p className="step__sentence">
       {content.t('steps.number.sentence', {
@@ -63,14 +72,28 @@ function NumberSentence({ content, countdown }: { content: CountryLocaleContent;
   );
 }
 
-/** The step's body: the measurement and one sentence, or the projection's own fallback. */
-function NumberBody({ content, countdown, nowMs }: { content: CountryLocaleContent; countdown?: CountdownValue; nowMs: number }) {
+/** The step's body: the one measurement and one sentence, or the projection's own fallback. */
+function NumberBody({
+  content,
+  countdown,
+  nowMs,
+}: {
+  content: CountryLocaleContent;
+  countdown?: CountdownValue;
+  nowMs: number;
+}) {
   if (countdown?.state === 'not-crossed') {
-    return <p className="step__sentence">{content.t('countdown.notCrossed', { year: countdown.horizonEnd })}</p>;
+    return (
+      <p className="step__sentence">
+        {content.t('countdown.notCrossed', { year: countdown.horizonEnd })}
+      </p>
+    );
   }
   if (countdown === undefined) return null;
-  const value = measured(countdown);
-  if (value === undefined) return null;
+  const value = measured(countdown, nowMs);
+  // The elapsed state renders the sentence and no numeral: the date has passed, and nothing more
+  // (AC-001-115). Zero days would be a reading, not a statement.
+  if (value === undefined) return <NumberSentence content={content} countdown={countdown} />;
   return (
     <>
       <NumberGroup content={content} countdown={value} nowMs={nowMs} />
@@ -80,15 +103,13 @@ function NumberBody({ content, countdown, nowMs }: { content: CountryLocaleConte
 }
 
 /**
- * Step 1 — the number, in plain words (spec 004 T2, T7). The `<h1>` opens the page, the step's
- * label follows it, then the measurement, then one sentence.
+ * Step 1 — the number, in plain words (spec 004 T2, spec 006 T11). The `<h1>` opens the page, the
+ * step's label follows it, then the one measured quantity, then one sentence.
  *
- * The sentence is where the target date appears in the story, and where it appears only once:
- * the three paraphrases the band carried are gone, and the clock's accessible name — an
- * attribute, not a text node — states the same date for assistive technology. Without an anchor
- * there is no date to state, so the projection's own not-crossed sentence takes its place
- * (AC-001-101, AC-001-110), and without a countdown at all the step is its title, its label and
- * nothing that claims a number.
+ * The numeral is server-rendered and final: there is no client clock, no timer and no placeholder
+ * to correct (spec 006 T12). Without a threshold year there is no numeral and the projection's own
+ * not-crossed sentence takes its place (AC-001-110); without a countdown at all the step is its
+ * title, its label and nothing that claims a number.
  */
 export function NumberStep({ step, content, countdown, nowMs }: NumberStepProps) {
   return (

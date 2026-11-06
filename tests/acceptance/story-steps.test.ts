@@ -40,18 +40,20 @@ describe('AC-004-06: the day count comes from the committed countdown', () => {
 });
 
 describe('AC-004-07: step 1 carries the number and one plain sentence, nothing else', () => {
-  it('AC-004-07: the step’s visible text is the number group, one sentence and the label', () => {
+  it('AC-004-07: the step’s visible text is the one number, one sentence and the label', () => {
     for (const locale of LOCALES) {
       const local = content(locale);
       const step = stepOf(storyPage(locale), 'number');
       const classes = classesOf(step);
-      expect(classes, locale).toContain('countdown__numeral');
+      // Re-pointed by spec 006 T11: one quantity, its unit, the label and the sentence.
       expect(classes, locale).toContain('clock__value--days');
-      expect(classes, locale).toContain('clock__value--sub');
+      expect(classes, locale).toContain('clock__label');
+      expect(classes, locale).not.toContain('clock__value--sub');
+      expect(classes, locale).not.toContain('countdown__numeral');
       const text = storyText(step);
       expect(text, locale).toContain(numberSentence(locale));
       expect(text, locale).toContain(local.t('steps.number.label'));
-      expect(text, locale).toContain(local.t('countdown.unit'));
+      expect(text, locale).toContain(local.t('countdown.clock.days'));
     }
   });
 
@@ -79,7 +81,7 @@ describe('AC-004-08: the h1 is step 1’s heading and still names the country', 
       expect(html.split('<h1').length - 1, locale).toBe(1);
       const step = stepOf(html, 'number');
       expect(step, locale).toContain('<h1');
-      expect(step.indexOf('<h1'), locale).toBeLessThan(step.indexOf('clock__fields'));
+      expect(step.indexOf('<h1'), locale).toBeLessThan(step.indexOf('clock__value--days'));
       expect(textOf(step.slice(step.indexOf('<h1'), step.indexOf('</h1>'))), locale).toContain(
         content(locale).country.name,
       );
@@ -292,30 +294,6 @@ describe('AC-004-30: the three paraphrases are gone from the top', () => {
       ]) {
         expect(story, `${locale}: ${text.slice(0, 24)}`).not.toContain(text);
       }
-    }
-  });
-});
-
-describe('AC-004-31: the clock’s accessible name is plain', () => {
-  const CONVENTIONAL = ['fecha convencional', 'conventional date', 'date conventionnelle', 'konventionelles datum', 'data convenzionale'];
-  const THRESHOLD = ['umbral', 'threshold', 'seuil', 'schwelle', 'soglia'];
-
-  it('AC-004-31: it carries the date, no conventional-date phrase and no threshold word', () => {
-    for (const locale of LOCALES) {
-      const step = stepOf(storyPage(locale), 'number');
-      const label = /<div class="clock" role="group" aria-label="([^"]*)"/.exec(step)?.[1] ?? '';
-      expect(label.length, locale).toBeGreaterThan(0);
-      expect(label, locale).toContain(anchorDate(locale));
-      for (const phrase of [...CONVENTIONAL, ...THRESHOLD]) {
-        expect(label.toLowerCase(), `${locale}: ${phrase}`).not.toContain(phrase);
-      }
-    }
-  });
-
-  it('AC-004-31: the copy is the content model’s, and it is non-empty in all five locales', () => {
-    for (const locale of LOCALES) {
-      const verdict = content(locale).t('countdown.clock.a11y', { date: anchorDate(locale) });
-      expect(verdict.trim().length, locale).toBeGreaterThan(0);
     }
   });
 });

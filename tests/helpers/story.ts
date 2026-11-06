@@ -125,6 +125,11 @@ export function textOf(markup: string): string {
     .trim();
 }
 
+/** Every rendered `.clock__label`'s text, in document order: the number group's field labels. */
+export function clockLabels(markup: string): string[] {
+  return [...markup.matchAll(/class="clock__label">([^<]*)</g)].map((match) => (match[1] ?? '').trim());
+}
+
 /** Every `class="…"` token in a fragment, deduplicated. */
 export function classesOf(markup: string): string[] {
   return [...new Set([...markup.matchAll(/class="([^"]*)"/g)].flatMap((match) => (match[1] ?? '').split(/\s+/)))].filter(

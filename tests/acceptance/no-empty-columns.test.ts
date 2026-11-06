@@ -207,8 +207,9 @@ describe('AC-004-59: the retired shape cannot return structurally', () => {
         expect(match[1]?.trim(), `line ${rule.line}: ${rule.selectors.join(', ')}`).toBe('auto');
       }
     }
-    // The retired shape was a per-child pin, so the assertion is on every pin in the sheet.
-    expect(placements.sort()).toEqual(['.clock__field--days', '.demography__panel-head'].sort());
+    // The retired shape was a per-child pin, so the assertion is on every pin in the sheet. Spec
+    // 006 T11 deletes `.clock__field--days` with its row, so one pin remains (AC-004-59 re-point).
+    expect(placements.sort()).toEqual(['.demography__panel-head']);
   });
 
   /** The selector/track/child-count record for one rule, for the multi-track grids only. */

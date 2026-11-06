@@ -1523,33 +1523,14 @@ svg {
   color: var(--ink-2);
 }
 
-/* The years numeral: the group's first quantity, one step below the day count on the ladder. */
-.countdown__value {
-  margin: 0;
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-}
-
+/* The years numeral's rule survives with no renderer: the numeral left step 1 for `#metodo`
+   (spec 006 T11), and AC-001-118's mono selector list still names the class. */
 .countdown__numeral {
   font-family: var(--font-mono);
   font-size: var(--text-num-l);
   font-variant-numeric: tabular-nums;
   line-height: var(--leading-tight);
   color: var(--ink-1);
-}
-
-.countdown__unit {
-  font-size: var(--text-num-m);
-  color: var(--ink-2);
-}
-
-/* The sub-day fields are hidden, never frozen: a seconds field that never changes is a stopped
-   clock, and the day count is complete without them (AC-001-112). */
-@media (prefers-reduced-motion: reduce) {
-  .clock__field--sub {
-    display: none;
-  }
 }
 
 /* ---------- The method region (spec 004 T8) ---------- */
