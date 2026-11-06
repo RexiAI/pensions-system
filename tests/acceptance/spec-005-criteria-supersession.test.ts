@@ -64,16 +64,18 @@ describe('AC-005-37: the editorial digest is recomputed, with the reason recorde
   });
 });
 
-describe('AC-005-38: nothing else is retired, and every preserved id still passes', () => {
-  it('AC-005-38: the retired list is unchanged and every preserved id still has a test', () => {
+describe('AC-005-38: the retired list is the union, and every preserved id still passes', () => {
+  it('AC-005-38: the retired list is 004’s plus 006’s, and every preserved id still has a test', () => {
     const path = 'tests/acceptance/retired-criteria.test.ts';
     const retired = bracketedList(path, 'RETIRED');
     const entries = [...retired.matchAll(/id\('(\d{3}-\d{2,3})'\)/g)].map((match) => match[1]);
-    expect(entries).toHaveLength(24);
+    // Re-pointed by spec 006 §4.5: 24 + the 15 this spec retires.
+    expect(entries).toHaveLength(39);
     expect(retired).not.toContain('005-');
 
-    const preserved = [...bracketedList(path, 'PRESERVED').matchAll(/'(AC-\d{3}-\d{2})'/g)].map((match) => match[1]);
-    expect(preserved.length).toBeGreaterThan(0);
+    const preserved = [...bracketedList(path, 'PRESERVED').matchAll(/'(AC-\d{3}-\d{2,3})'/g)].map((match) => match[1]);
+    // 25 minus the four spec 006 retires with the clock.
+    expect(preserved).toHaveLength(21);
     const allTests = testFiles().map((file) => source(file)).join('\n');
     for (const id of preserved) expect(allTests, id).toContain(id);
 
