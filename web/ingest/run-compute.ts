@@ -58,8 +58,15 @@ interface ResolvedSources {
  * while its `definitionId` stays exactly what it was.
  */
 function resolveSources(def: FigureDefinition, options: ComputeOptions): ResolvedSources {
-  if (def.geography === 'national') return { sourceIds: def.requirementSources, missingForCountry: null };
   const geo = options.geo ?? PUBLISHED_GEO;
+  if (def.geography === 'national') {
+    // A national definition is published only for the country that owns its sources
+    // (AC-001-81). Without this guard, resolving a Spanish series would make the figure
+    // compute under every other locale with Spanish numbers in it — the previous
+    // `unavailable` state masked that, because every national source was unresolved.
+    if (geo !== PUBLISHED_GEO) return { sourceIds: [], missingForCountry: geo };
+    return { sourceIds: def.requirementSources, missingForCountry: null };
+  }
   const sourceIds = sourcesForDefinition(geo, def.definitionId, options.countries);
   if (sourceIds) return { sourceIds, missingForCountry: null };
   return { sourceIds: [], missingForCountry: geo };
