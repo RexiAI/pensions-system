@@ -25,14 +25,14 @@ const unavailable = FIGURES.filter((figure) => figure.availability === 'unavaila
 describe('AC-001-105: only computed figures and series are advertised as reproducible', () => {
   it('AC-001-105: a row exists only for a computed figure or series', () => {
     const html = render(FIGURES);
-    expect(computed.length).toBe(2);
-    expect(unavailable.length).toBe(5);
+    // Derived from the data, not hardcoded: this test is the count line's own claim.
+    expect(computed.length + unavailable.length).toBe(FIGURES.length);
     expect(rowCount(html)).toBe(computed.length + SERIES.filter((entry) => entry.availability === 'computed').length);
   });
 
   it('AC-001-105: the count line matches reality, from the data', () => {
     const html = render(FIGURES);
-    expect(html).toContain(ES.t('reproduce.count.figures', { count: 2 }));
+    expect(html).toContain(ES.t('reproduce.count.figures', { count: computed.length }));
     // Spec 003 T2 publishes a third series, the fuse (AC-003-16): the count follows the data.
     expect(html).toContain(ES.t('reproduce.count.series', { count: 3 }));
   });
@@ -51,7 +51,10 @@ describe('AC-001-105: only computed figures and series are advertised as reprodu
 
   it('AC-001-105: the omitted line counts the unavailable figures and disappears at zero', () => {
     const html = render(FIGURES);
-    const expected = ES.t('reproduce.omitted', { unavailable: '5', total: '7' });
+    const expected = ES.t('reproduce.omitted', {
+      unavailable: String(unavailable.length),
+      total: String(FIGURES.length),
+    });
     expect(html).toContain(expected);
 
     const allComputed = render(computed);

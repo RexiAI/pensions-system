@@ -352,7 +352,17 @@ function nationalCoverFigure(): FigureDefinition {
           expenditure: expenditure.get(entry.year) as number,
         }));
       if (points.length === 0) throw new Error('contributions and expenditure share no observed year');
-      return { value: contributionCoverSeries(points), assumptions: { unit: 'EUR minor units' } };
+      // The committed series are transcribed in cents of constant 2021 euros (millions of
+      // 2021 euros from the FEDEA SSA series, scaled by 1e8): the readout formatter treats
+      // every monetary figure as minor units. The cover ratio is invariant to that scale
+      // because numerator and denominator share it; the euro gap is not, so it is labelled.
+      return {
+        value: contributionCoverSeries(points),
+        assumptions: {
+          unit: 'céntimos de euro constantes de 2021',
+          basis: 'IGSS, vía series SSA (de la Fuente 2026)',
+        },
+      };
     },
   });
 }

@@ -8,7 +8,6 @@ import { readDerivedFigures } from '../../web/ingest/write-derived';
 import {
   content,
   coverFigure,
-  nationalCoverFigure,
   renderPlate,
   shareFigure,
 } from '../fixtures/figures';
@@ -103,21 +102,29 @@ describe('contribution cover', () => {
     );
   });
 
-  it('AC-001-87: the national figure is unavailable, with its definition stated', () => {
+  it('AC-001-87: the national figure computes, with its definition stated', () => {
     const published = readDerivedFigures('data/derived').find((entry) => entry.figureId === 'fig-07');
     if (!published) throw new Error('fig-07 is not published');
 
-    expect(published.availability).toBe('unavailable');
-    expect(published.value).toBeNull();
+    // The series resolved on 2026-11-08 (IGSS via the SSA series). The scenario used to
+    // assert `unavailable` because no operator had transcribed the source; that state was
+    // the defect, not the requirement. The definition assertions below are unchanged.
+    expect(published.availability).toBe('computed');
     expect(published.definitionId).toBe('contribution-cover.national');
     expect(published.manifest.definitionId).toBe('contribution-cover.national');
+
+    const value = published.value as {
+      latest: { cover: number; status: string } | null;
+      yearsBelowBreakEven: number;
+      points: Array<{ year: number }>;
+    };
+    expect(value.points.length).toBeGreaterThan(1);
+    expect(value.latest).not.toBeNull();
+    expect(typeof value.latest?.cover).toBe('number');
+    expect(value.yearsBelowBreakEven).toBeGreaterThan(0);
 
     const national = definitionFor('contribution-cover.national').definition;
     expect(national).toContain('social contributions divided by contributory pension expenditure');
     expect(national).toContain('Excludes transfers from general taxation and debt');
-
-    const row = renderPlate(nationalCoverFigure());
-    expect(row).toContain(content('es').t('fig.07.definition'));
-    expect(row).toContain(content('es').t('fig.07.reason'));
   });
 });

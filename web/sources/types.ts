@@ -113,22 +113,27 @@ export const SOURCE_DECLARATIONS: readonly SourceDeclaration[] = [
       'Cotización mensual media y pensión mensual media de la cohorte, con la tabla y la fecha exactas. Código de serie sin resolver (10-tasks.md, pregunta abierta 1).',
   },
   {
+    // IGSS (not IGAE) publishes the Social Security system's own accounts; IGAE
+    // publishes the State's. The previous attribution pointed at the wrong body,
+    // which is why this series never resolved.
     sourceId: 'igae-social-contributions',
-    publisher: 'Intervención General de la Administración del Estado (IGAE)',
-    dataset: 'Cuentas del sistema de la Seguridad Social, cotizaciones sociales',
+    publisher:
+      'Intervención General de la Seguridad Social (IGSS) — Ministerio de Inclusión, Seguridad Social y Migraciones',
+    dataset:
+      'Cotizaciones sociales del sistema de la Seguridad Social, sin Clases Pasivas ni ISS, euros constantes de 2021',
     sourceClass: 'document',
-    publisherUrl: 'https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Paginas/Inicio.aspx',
-    requiresManualSnapshot:
-      'Cotizaciones sociales del sistema de la Seguridad Social (cuentas de la IGAE) con la línea y la fecha exactas. Código sin resolver (10-tasks.md, pregunta abierta 1).',
+    publisherUrl:
+      'https://www.seg-social.es/wps/portal/wss/internet/InformacionEconomicoFinanciera',
   },
   {
     sourceId: 'igae-pension-expenditure',
-    publisher: 'Intervención General de la Administración del Estado (IGAE)',
-    dataset: 'Cuentas del sistema de la Seguridad Social, gasto en pensiones contributivas',
+    publisher:
+      'Intervención General de la Seguridad Social (IGSS) — Ministerio de Inclusión, Seguridad Social y Migraciones',
+    dataset:
+      'Pensiones contributivas del sistema de la Seguridad Social, con complemento de mínimos, euros constantes de 2021',
     sourceClass: 'document',
-    publisherUrl: 'https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Paginas/Inicio.aspx',
-    requiresManualSnapshot:
-      'Gasto en pensiones contributivas (cuentas de la IGAE) con la línea y la fecha exactas. Código sin resolver (10-tasks.md, pregunta abierta 1).',
+    publisherUrl:
+      'https://www.seg-social.es/wps/portal/wss/internet/InformacionEconomicoFinanciera',
   },
   {
     sourceId: 'airef-obligations',

@@ -374,7 +374,10 @@ describe('every figure computes from resolved sources', () => {
       expect.objectContaining(contributionCoverSeriesFor([{ year: 2025, contributions: 130_000, expenditure: 150_000 }])),
     );
     expect(value.yearsBelowBreakEven).toBe(1);
-    expect(figure.assumptions).toEqual({ unit: 'EUR minor units' });
+    expect(figure.assumptions).toEqual({
+      unit: 'céntimos de euro constantes de 2021',
+      basis: 'IGSS, vía series SSA (de la Fuente 2026)',
+    });
   });
 });
 

@@ -1,25 +1,226 @@
 {
-  "assumptions": {},
-  "availability": "unavailable",
+  "assumptions": {
+    "basis": "IGSS, vía series SSA (de la Fuente 2026)",
+    "unit": "céntimos de euro constantes de 2021"
+  },
+  "availability": "computed",
   "definition": "Counts social contributions divided by contributory pension expenditure. Excludes transfers from general taxation and debt.",
   "definitionId": "contribution-cover.national",
   "figureId": "fig-07",
   "formulaId": "contribution-cover.v1",
   "manifest": {
     "definitionId": "contribution-cover.national",
-    "fetchedAt": "2026-10-25T00:00:00Z",
+    "fetchedAt": "2026-11-08T00:00:00Z",
     "formulaId": "contribution-cover.v1",
-    "inputHash": "ca5c6d861678550cf8d9ba3a3d403f6cf2f20bc69a9e7fa67e40b5227c68d691",
+    "inputHash": "969288db195943f360b40ec17ee4778ac6206581f52fa81bc0fcc7a44eefdd6d",
     "reproducePath": "scripts/compute.ts",
     "sourceUrl": [
-      "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Paginas/Inicio.aspx"
+      "https://www.seg-social.es/wps/portal/wss/internet/InformacionEconomicoFinanciera"
     ]
   },
   "unit": "ratio",
-  "unresolvedReason": "igae-social-contributions: Cotizaciones sociales del sistema (cuentas de la IGAE): la línea no está resuelta (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con línea y fecha exactas.; igae-pension-expenditure: Gasto en pensiones contributivas (cuentas de la IGAE): la línea no está resuelta (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con línea y fecha exactas.",
-  "unresolvedSources": [
-    "igae-social-contributions",
-    "igae-pension-expenditure"
-  ],
-  "value": null
+  "unresolvedSources": [],
+  "value": {
+    "latest": {
+      "contributions": 14485395430716,
+      "cover": 0.89,
+      "expenditure": 16295772798934,
+      "gap": 1810377368218,
+      "raw": 0.8889050927160431,
+      "status": "gap",
+      "year": 2025
+    },
+    "points": [
+      {
+        "contributions": 10304796411651,
+        "cover": 1.24,
+        "expenditure": 8331016681967,
+        "gap": -1973779729684,
+        "raw": 1.2369194307288292,
+        "status": "surplus",
+        "year": 2005
+      },
+      {
+        "contributions": 10746217325617,
+        "cover": 1.26,
+        "expenditure": 8558773789230,
+        "gap": -2187443536387,
+        "raw": 1.2555790806318057,
+        "status": "surplus",
+        "year": 2006
+      },
+      {
+        "contributions": 11240944851636,
+        "cover": 1.26,
+        "expenditure": 8945722954154,
+        "gap": -2295221897482,
+        "raw": 1.2565719852095576,
+        "status": "surplus",
+        "year": 2007
+      },
+      {
+        "contributions": 11532964032807,
+        "cover": 1.24,
+        "expenditure": 9270697239305,
+        "gap": -2262266793502,
+        "raw": 1.2440233711775919,
+        "status": "surplus",
+        "year": 2008
+      },
+      {
+        "contributions": 11394697017527,
+        "cover": 1.16,
+        "expenditure": 9821638942154,
+        "gap": -1573058075373,
+        "raw": 1.160162482518219,
+        "status": "surplus",
+        "year": 2009
+      },
+      {
+        "contributions": 11312804402819,
+        "cover": 1.09,
+        "expenditure": 10424211631609,
+        "gap": -888592771210,
+        "raw": 1.0852431629952282,
+        "status": "surplus",
+        "year": 2010
+      },
+      {
+        "contributions": 11186420702137,
+        "cover": 1.03,
+        "expenditure": 10846928099679,
+        "gap": -339492602458,
+        "raw": 1.0312985021508576,
+        "status": "surplus",
+        "year": 2011
+      },
+      {
+        "contributions": 10783275475525,
+        "cover": 0.95,
+        "expenditure": 11301090529930,
+        "gap": 517815054405,
+        "raw": 0.9541800808485155,
+        "status": "gap",
+        "year": 2012
+      },
+      {
+        "contributions": 10402947870456,
+        "cover": 0.88,
+        "expenditure": 11801196444967,
+        "gap": 1398248574511,
+        "raw": 0.8815163715788048,
+        "status": "gap",
+        "year": 2013
+      },
+      {
+        "contributions": 10454242463941,
+        "cover": 0.86,
+        "expenditure": 12219140843103,
+        "gap": 1764898379162,
+        "raw": 0.8555628090531272,
+        "status": "gap",
+        "year": 2014
+      },
+      {
+        "contributions": 10509285383941,
+        "cover": 0.84,
+        "expenditure": 12514052883288,
+        "gap": 2004767499347,
+        "raw": 0.8397987032622913,
+        "status": "gap",
+        "year": 2015
+      },
+      {
+        "contributions": 10762143997223,
+        "cover": 0.84,
+        "expenditure": 12850656889898,
+        "gap": 2088512892675,
+        "raw": 0.8374781218914346,
+        "status": "gap",
+        "year": 2016
+      },
+      {
+        "contributions": 11172305421466,
+        "cover": 0.85,
+        "expenditure": 13077411662917,
+        "gap": 1905106241451,
+        "raw": 0.8543208479967622,
+        "status": "gap",
+        "year": 2017
+      },
+      {
+        "contributions": 11644881222892,
+        "cover": 0.86,
+        "expenditure": 13523739039278,
+        "gap": 1878857816386,
+        "raw": 0.8610696486430939,
+        "status": "gap",
+        "year": 2018
+      },
+      {
+        "contributions": 12363319912581,
+        "cover": 0.88,
+        "expenditure": 14042604977787,
+        "gap": 1679285065206,
+        "raw": 0.8804149893938951,
+        "status": "gap",
+        "year": 2019
+      },
+      {
+        "contributions": 11882231249307,
+        "cover": 0.83,
+        "expenditure": 14258422452359,
+        "gap": 2376191203052,
+        "raw": 0.8333482395411234,
+        "status": "gap",
+        "year": 2020
+      },
+      {
+        "contributions": 12695475328036,
+        "cover": 0.87,
+        "expenditure": 14547838000000,
+        "gap": 1852362671964,
+        "raw": 0.872670930762083,
+        "status": "gap",
+        "year": 2021
+      },
+      {
+        "contributions": 12895340265934,
+        "cover": 0.89,
+        "expenditure": 14550050670155,
+        "gap": 1654710404221,
+        "raw": 0.8862745950696148,
+        "status": "gap",
+        "year": 2022
+      },
+      {
+        "contributions": 13369722516059,
+        "cover": 0.88,
+        "expenditure": 15149339768289,
+        "gap": 1779617252230,
+        "raw": 0.8825283953327694,
+        "status": "gap",
+        "year": 2023
+      },
+      {
+        "contributions": 13916813492647,
+        "cover": 0.88,
+        "expenditure": 15788115719463,
+        "gap": 1871302226816,
+        "raw": 0.8814739985399823,
+        "status": "gap",
+        "year": 2024
+      },
+      {
+        "contributions": 14485395430716,
+        "cover": 0.89,
+        "expenditure": 16295772798934,
+        "gap": 1810377368218,
+        "raw": 0.8889050927160431,
+        "status": "gap",
+        "year": 2025
+      }
+    ],
+    "yearsBelowBreakEven": 14
+  }
 }
