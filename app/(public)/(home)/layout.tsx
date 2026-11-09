@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { RootShell } from '../../../web/shell/root-shell';
@@ -18,5 +19,10 @@ export const revalidate = 3600;
  * see `web/shell/root-shell.tsx`.
  */
 export default function HomeRootLayout({ children }: { children: ReactNode }) {
-  return <RootShell lang={DEFAULT_LOCALE}>{children}</RootShell>;
+  return (
+    <RootShell lang={DEFAULT_LOCALE}>
+      {children}
+      <Analytics />
+    </RootShell>
+  );
 }
