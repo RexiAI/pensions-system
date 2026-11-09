@@ -6,6 +6,7 @@
   "strings": {
     "site.wordmark": "pensiones",
     "site.skipLink": "Ir al contenido",
+    "nav.historia": "Historia",
     "nav.figures": "Cifras",
     "nav.method": "Método",
     "nav.debate": "Debate",
@@ -24,6 +25,7 @@
     "theme.dark": "Oscuro",
     "hero.statement": "Los días de tu España que envejece",
     "hero.sub": "Cuándo llega y qué cambia. Compruébalo tú.",
+    "kicker.mechanism": "Sistema de pensiones: esquema de reparto",
     "hero.ctaPrimary": "Ver cuánto te queda",
     "hero.ctaSecondary": "Cómo se calcula",
     "hero.comparisonFirst": "1996",
@@ -276,10 +278,16 @@
     "share.copied": "Enlace copiado",
     "share.linkLabel": "Enlace de esta página",
     "share.newWindow": "(se abre en una ventana nueva)",
-    "meta.title": "{year}: España llega a 50 mayores de 65 por cada 100 en edad de trabajar",
     "meta.description": "{year}, según la proyección de Eurostat (variante base): España llega a 50 mayores de 65 por cada 100 personas en edad de trabajar. El año, la fuente y el cálculo, reproducibles con un comando.",
     "card.eyebrow": "Proyección · Eurostat",
-    "card.sentence": "España llega a 50 mayores de 65 por cada 100 en edad de trabajar"
+    "card.sentence": "España llega a 50 mayores de 65 por cada 100 en edad de trabajar",
+    "meta.title": "Sistema de pensiones: la promesa que no se sostiene · {year}",
+    "meta.cifras.title": "Cifras · {year}",
+    "meta.metodo.title": "Método · {year}",
+    "meta.debate.title": "Debate · {year}",
+    "pager.label": "Paginación",
+    "pager.previous": "Anterior",
+    "pager.next": "Siguiente"
   },
   "editorial": {
     "agreement": [

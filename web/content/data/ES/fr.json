@@ -6,6 +6,7 @@
   "strings": {
     "site.wordmark": "retraites",
     "site.skipLink": "Aller au contenu",
+    "nav.historia": "Récit",
     "nav.figures": "Chiffres",
     "nav.method": "Méthode",
     "nav.debate": "Débat",
@@ -24,6 +25,7 @@
     "theme.dark": "Sombre",
     "hero.statement": "Le compte à rebours de la population âgée en Espagne",
     "hero.sub": "Quand elle arrive et ce qui change. Vérifiez-le vous-même.",
+    "kicker.mechanism": "Système de retraites : répartition",
     "hero.ctaPrimary": "Voir votre montant",
     "hero.ctaSecondary": "Comment on calcule",
     "hero.comparisonFirst": "1996",
@@ -276,10 +278,16 @@
     "share.copied": "Lien copié",
     "share.linkLabel": "Lien de cette page",
     "share.newWindow": "(s'ouvre dans une nouvelle fenêtre)",
-    "meta.title": "{year} : l'Espagne atteint 50 personnes de 65 ans ou plus pour 100 en âge de travailler",
     "meta.description": "{year}, selon la projection d'Eurostat (scénario de référence) : l'Espagne atteint 50 personnes de 65 ans ou plus pour 100 personnes en âge de travailler. L'année, la source et le calcul, reproductibles avec une commande.",
     "card.eyebrow": "Projection · Eurostat",
-    "card.sentence": "L'Espagne atteint 50 personnes de 65 ans ou plus pour 100 en âge de travailler"
+    "card.sentence": "L'Espagne atteint 50 personnes de 65 ans ou plus pour 100 en âge de travailler",
+    "meta.title": "Système de retraites : la promesse qui ne tient pas · {year}",
+    "meta.cifras.title": "Chiffres · {year}",
+    "meta.metodo.title": "Méthode · {year}",
+    "meta.debate.title": "Le débat · {year}",
+    "pager.label": "Pagination",
+    "pager.previous": "Précédent",
+    "pager.next": "Suivant"
   },
   "editorial": {
     "agreement": [

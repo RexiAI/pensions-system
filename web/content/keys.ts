@@ -1,3 +1,5 @@
+import type { PageKind } from './types';
+
 /**
  * Every user-facing string on the public surface resolves through one of these keys.
  * The list is the contract: a locale document missing any key is incomplete and is
@@ -6,6 +8,8 @@
 export const REQUIRED_KEYS = [
   'site.wordmark',
   'site.skipLink',
+  // Spec 007: the header nav becomes four page links; Historia is the one name without a key.
+  'nav.historia',
   'nav.figures',
   'nav.method',
   'nav.debate',
@@ -24,6 +28,8 @@ export const REQUIRED_KEYS = [
   'theme.dark',
   'hero.statement',
   'hero.sub',
+  // Spec 007 T8: the mechanism kicker above the h1, verbatim from the operator's copy.
+  'kicker.mechanism',
   'hero.ctaPrimary',
   'hero.ctaSecondary',
   'hero.comparisonFirst',
@@ -282,6 +288,14 @@ export const REQUIRED_KEYS = [
   'share.linkLabel',
   'share.newWindow',
   'meta.title',
+  // Spec 007 T8/T9: one leading string per sub-page title; the scope suffix is appended by
+  // `pageMetadata`, so the shape stays `page-name · {year} · wordmark · country`.
+  'meta.cifras.title',
+  'meta.metodo.title',
+  'meta.debate.title',
+  'pager.label',
+  'pager.previous',
+  'pager.next',
   'meta.description',
   'card.eyebrow',
   'card.sentence',
@@ -405,4 +419,26 @@ export const SERIES_TITLE_KEYS: Readonly<Record<string, LocaleKey>> = {
   pyramid: 'series.pyramid.title',
   countdown: 'series.countdown.title',
   fuse: 'series.fuse.title',
+};
+
+/**
+ * The four page names, in reading order. The header nav, the pager and each sub-page's `<h1>`
+ * all read this one map, so a page cannot be called two things on two surfaces.
+ */
+export const PAGE_NAME_KEYS: Readonly<Record<PageKind, LocaleKey>> = {
+  historia: 'nav.historia',
+  cifras: 'nav.figures',
+  metodo: 'nav.method',
+  debate: 'nav.debate',
+};
+
+/**
+ * The leading string of each page's `<title>`. Historia keeps the existing `meta.title` (the
+ * promise framing); the three sub-pages take their own page-name-plus-year template.
+ */
+export const PAGE_TITLE_KEYS: Readonly<Record<PageKind, LocaleKey>> = {
+  historia: 'meta.title',
+  cifras: 'meta.cifras.title',
+  metodo: 'meta.metodo.title',
+  debate: 'meta.debate.title',
 };

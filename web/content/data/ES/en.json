@@ -6,6 +6,7 @@
   "strings": {
     "site.wordmark": "pensions",
     "site.skipLink": "Skip to content",
+    "nav.historia": "Story",
     "nav.figures": "Figures",
     "nav.method": "Method",
     "nav.debate": "Debate",
@@ -24,6 +25,7 @@
     "theme.dark": "Dark",
     "hero.statement": "Countdown for Spain as its population ages",
     "hero.sub": "When it arrives and what changes. Check it for yourself.",
+    "kicker.mechanism": "Pension system: pay-as-you-go",
     "hero.ctaPrimary": "See your figure",
     "hero.ctaSecondary": "How it is calculated",
     "hero.comparisonFirst": "1996",
@@ -276,10 +278,16 @@
     "share.copied": "Link copied",
     "share.linkLabel": "Link to this page",
     "share.newWindow": "(opens in a new window)",
-    "meta.title": "{year}: Spain reaches 50 people aged 65 and over per 100 of working age",
     "meta.description": "{year}, according to the Eurostat projection (baseline): Spain reaches 50 people aged 65 and over per 100 people of working age. The year, the source and the calculation, reproducible with one command.",
     "card.eyebrow": "Projection · Eurostat",
-    "card.sentence": "Spain reaches 50 people aged 65 and over per 100 of working age"
+    "card.sentence": "Spain reaches 50 people aged 65 and over per 100 of working age",
+    "meta.title": "Pension system: the promise that does not hold · {year}",
+    "meta.cifras.title": "Figures · {year}",
+    "meta.metodo.title": "Method · {year}",
+    "meta.debate.title": "The debate · {year}",
+    "pager.label": "Pagination",
+    "pager.previous": "Previous",
+    "pager.next": "Next"
   },
   "editorial": {
     "agreement": [

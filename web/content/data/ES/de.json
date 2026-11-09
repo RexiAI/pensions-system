@@ -6,6 +6,7 @@
   "strings": {
     "site.wordmark": "renten",
     "site.skipLink": "Zum Inhalt",
+    "nav.historia": "Geschichte",
     "nav.figures": "Zahlen",
     "nav.method": "Methode",
     "nav.debate": "Debatte",
@@ -24,6 +25,7 @@
     "theme.dark": "Dunkel",
     "hero.statement": "Der Countdown für ein alterndes Spanien",
     "hero.sub": "Wann er kommt und was sich ändert. Prüf es selbst.",
+    "kicker.mechanism": "Rentensystem: Umlageverfahren",
     "hero.ctaPrimary": "Deinen Betrag sehen",
     "hero.ctaSecondary": "Wie gerechnet wird",
     "hero.comparisonFirst": "1996",
@@ -276,10 +278,16 @@
     "share.copied": "Link kopiert",
     "share.linkLabel": "Link zu dieser Seite",
     "share.newWindow": "(öffnet in einem neuen Fenster)",
-    "meta.title": "{year}: Spanien erreicht 50 Menschen ab 65 je 100 im Erwerbsalter",
     "meta.description": "{year}, laut der Eurostat-Projektion (Basisszenario): Spanien erreicht 50 Menschen ab 65 je 100 Personen im Erwerbsalter. Jahr, Quelle und Berechnung, mit einem Befehl reproduzierbar.",
     "card.eyebrow": "Projektion · Eurostat",
-    "card.sentence": "Spanien erreicht 50 Menschen ab 65 je 100 im Erwerbsalter"
+    "card.sentence": "Spanien erreicht 50 Menschen ab 65 je 100 im Erwerbsalter",
+    "meta.title": "Rentensystem: das Versprechen, das nicht trägt · {year}",
+    "meta.cifras.title": "Zahlen · {year}",
+    "meta.metodo.title": "Methode · {year}",
+    "meta.debate.title": "Die Debatte · {year}",
+    "pager.label": "Seitennavigation",
+    "pager.previous": "Vorherige",
+    "pager.next": "Nächste"
   },
   "editorial": {
     "agreement": [
