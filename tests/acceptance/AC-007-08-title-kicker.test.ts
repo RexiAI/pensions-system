@@ -1,46 +1,37 @@
 import { describe, expect, it } from 'vitest';
+import { AgreementSection } from '../../web/components/registers/AgreementSection';
 import { BRAND } from '../../web/brand/generated';
+import { citationRegistry } from '../../web/content/citations';
 import { PAGE_NAME_KEYS } from '../../web/content/keys';
-import { findThesisTerms } from '../../web/content/registers';
+import {
+  THESIS_CLAIM_KEYS,
+  findThesisTerms,
+  thesisVocabularyOutsideThesis,
+} from '../../web/content/registers';
 import { LOCALES } from '../../web/content/types';
 import { metadataFor, pageMetadata } from '../../web/seo/metadata';
 import { committedThresholdYear } from '../../web/seo/threshold-year';
-import { content } from '../fixtures/figures';
+import { content, renderComponent } from '../fixtures/figures';
 import { historiaPage } from '../helpers/story';
 
 const YEAR = committedThresholdYear();
 if (YEAR === null) throw new Error('the committed countdown has no threshold year');
 
 const PROMISE: Record<string, string> = {
-  es: 'Sistema de pensiones: la promesa que no se sostiene · {year}',
-  en: 'Pension system: the promise that does not hold · {year}',
-  de: 'Rentensystem: das Versprechen, das nicht trägt · {year}',
-  fr: 'Système de retraites : la promesse qui ne tient pas · {year}',
-  it: 'Sistema pensionistico: la promessa che non regge · {year}',
+  es: 'Sistema de pensiones: Estafa piramidal · {year}',
+  en: 'Pension system: Pyramid scam · {year}',
+  de: 'Rentensystem: Schneeball-Betrug · {year}',
+  fr: 'Système de retraites : Fraude pyramidale · {year}',
+  it: 'Sistema pensionistico: Frode piramidale · {year}',
 };
 
 const KICKER: Record<string, string> = {
-  es: 'Sistema de pensiones: esquema de reparto',
-  en: 'Pension system: pay-as-you-go',
-  de: 'Rentensystem: Umlageverfahren',
-  fr: 'Système de retraites : répartition',
-  it: 'Sistema pensionistico: ripartizione',
+  es: 'Estafa piramidal',
+  en: 'Pyramid scam',
+  de: 'Schneeball-Betrug',
+  fr: 'Fraude pyramidale',
+  it: 'Frode piramidale',
 };
-
-const BANNED_TERMS = [
-  'estafa',
-  'fraud',
-  'fraude',
-  'frode',
-  'betrug',
-  'pirámide',
-  'piramide',
-  'pyramid',
-  'pyramide',
-  'cadena',
-  'chain letter',
-  'kette',
-];
 
 /**
  * AC-007-14…17 — the promise title and the mechanism kicker (spec 007 T8).
@@ -90,22 +81,24 @@ describe('AC-007-16: sub-page titles follow the same shape and end in the countr
   });
 });
 
-describe('AC-007-17: the promise title and kicker stay inside the thesis-vocabulary boundary', () => {
-  it('AC-007-17: findThesisTerms returns no hit and no explicit term appears', () => {
+/**
+ * Revision 1 (2026-11-09): the operator authorized thesis vocabulary in exactly two content
+ * keys, `meta.title` and `kicker.mechanism` (see THESIS_CLAIM_KEYS). The claim is now present
+ * in every locale's title and kicker; the vocabulary boundary everywhere else is unchanged.
+ */
+describe('AC-007-17: the revised title and kicker state the claim under the recorded exemption', () => {
+  it('AC-007-17: every locale states a thesis term in the title and kicker, and the exemption covers exactly those keys', () => {
     for (const locale of LOCALES) {
-      const strings = [
-        PROMISE[locale].replace('{year}', String(YEAR)),
-        KICKER[locale],
-        pageMetadata(locale).title,
-        pageMetadata(locale, YEAR, 'cifras').title,
-        pageMetadata(locale, YEAR, 'metodo').title,
-        pageMetadata(locale, YEAR, 'debate').title,
-      ];
-      for (const text of strings) {
-        expect(findThesisTerms(text), `${locale}: ${text}`).toEqual([]);
-        const lower = text.toLowerCase();
-        for (const term of BANNED_TERMS) expect(lower, `${locale}: ${term}`).not.toContain(term);
-      }
+      const local = content(locale);
+      const title = PROMISE[locale].replace('{year}', String(YEAR));
+      expect(findThesisTerms(title).length, `${locale}: ${title}`).toBeGreaterThan(0);
+      expect(findThesisTerms(KICKER[locale]).length, `${locale}: ${KICKER[locale]}`).toBeGreaterThan(0);
+      expect(findThesisTerms(pageMetadata(locale).title).length, locale).toBeGreaterThan(0);
+      // The exemption is exactly the two authorized keys, not a widening of the boundary.
+      expect([...THESIS_CLAIM_KEYS].sort(), locale).toEqual(['kicker.mechanism', 'meta.title']);
+      expect(thesisVocabularyOutsideThesis(local.strings, local.editorial), locale).toEqual([]);
+      const agreement = renderComponent(AgreementSection, { content: local, citations: citationRegistry });
+      expect(findThesisTerms(agreement), locale).toEqual([]);
     }
   });
 
@@ -114,6 +107,7 @@ describe('AC-007-17: the promise title and kicker stay inside the thesis-vocabul
       const meta = pageMetadata(locale, null);
       expect(meta.title, locale).toBe(`${BRAND.wordmark} · ${content(locale).country.name}`);
       expect(meta.title, locale).not.toMatch(/\b(19|20)\d\d\b/);
+      expect(findThesisTerms(meta.title), locale).toEqual([]);
       expect(historiaPage(locale), locale).toContain(KICKER[locale]);
     }
   });

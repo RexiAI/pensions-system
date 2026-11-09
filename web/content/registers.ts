@@ -43,12 +43,27 @@ export function isThesisLocation(location: string): boolean {
   return location.startsWith('thesis.') || location.startsWith('editorial.thesis');
 }
 
+/**
+ * Content keys the operator explicitly authorized to carry thesis vocabulary outside the
+ * thesis register (operator instruction 2026-11-09): the home page title and the mechanism
+ * kicker. This is a deliberate, recorded exception to AC-005-21 / AC-007-17, limited to
+ * exactly these two keys in five locales. Legal/editorial risk accepted by the operator;
+ * the thesis body's "no es una acusación" now contradicts the title (flagged, not edited).
+ */
+export const THESIS_CLAIM_KEYS = ['kicker.mechanism', 'meta.title'] as const;
+
+const THESIS_CLAIM_KEY_SET: ReadonlySet<string> = new Set(THESIS_CLAIM_KEYS);
+
+/** A location the operator authorized to state the claim outside the thesis register. */
+export function isThesisClaimLocation(location: string): boolean {
+  return THESIS_CLAIM_KEY_SET.has(location);
+}
+
 function hitsInStrings(strings: Readonly<Record<string, string>>): VocabularyHit[] {
-  return Object.entries(strings).flatMap(([key, value]) =>
-    findThesisTerms(value)
-      .filter(() => !isThesisLocation(key))
-      .map((term) => ({ location: key, term })),
-  );
+  return Object.entries(strings).flatMap(([key, value]) => {
+    if (isThesisLocation(key) || isThesisClaimLocation(key)) return [];
+    return findThesisTerms(value).map((term) => ({ location: key, term }));
+  });
 }
 
 function hitsInText(text: string, location: string): VocabularyHit[] {

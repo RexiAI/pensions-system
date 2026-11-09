@@ -457,7 +457,7 @@ Flagged gaps (not requirements; do not invent a change without the operator):
 ## AC-007-14 — the home title is the promise framing, per locale, ending in the country
 ## AC-007-15 — the kicker names the mechanism above the h1, exact per locale
 ## AC-007-16 — sub-page titles follow the same shape and end in the country
-## AC-007-17 — the promise title and kicker stay inside the thesis-vocabulary boundary
+## AC-007-17 — the revised title and kicker state the claim under the recorded two-key exemption (spec 007 revision 1, 2026-11-09)
 ## AC-007-18 — one canonical URL per route, in the link, og:url and the footer
 ## AC-007-19 — every route advertises the reciprocal per-page alternate set
 ## AC-007-20 — the sitemap lists all 20 routes, robots still points at it
@@ -2302,3 +2302,347 @@ received, per `specs/007-four-page-story/10-tasks.md` §Task 12.
 
 No scenario ID is left dangling: the traceability gate reads this record's disposition and the
 tests that own each ID.
+
+---
+
+## Revision 1 — operator title claim (2026-11-09)
+
+The operator revised spec 007 after the archive and explicitly overrode the earlier CMO
+recommendation. The original ask declined the literal "Estafa piramidal" because it failed
+AC-005-21's thesis-vocabulary boundary in all five locales and contradicted the thesis body's
+published sentence. That disposition is superseded by this revision for exactly two content
+keys.
+
+**Operator instruction (verbatim intent):** authorize the thesis vocabulary in the tab title
+and the kicker. This is a deliberate, recorded exception to AC-005-21 / AC-007-17, limited to
+`meta.title` (the home page title) and `kicker.mechanism`.
+
+**Authorized copy, five locales:**
+
+| Locale | `meta.title` | `kicker.mechanism` |
+|---|---|---|
+| es | `Sistema de pensiones: Estafa piramidal · {year}` | `Estafa piramidal` |
+| en | `Pension system: Pyramid scam · {year}` | `Pyramid scam` |
+| de | `Rentensystem: Schneeball-Betrug · {year}` | `Schneeball-Betrug` |
+| fr | `Système de retraites : Fraude pyramidale · {year}` | `Fraude pyramidale` |
+| it | `Sistema pensionistico: Frode piramidale · {year}` | `Frode piramidale` |
+
+`{year}` stays in `meta.title` because AC-003-34 requires the derived year in the title and
+`og:title`.
+
+**Scope.** Exactly two content keys (`meta.title`, `kicker.mechanism`) in exactly five locales.
+Everything else keeps the original boundary: the agreement and dispute registers carry no
+thesis term, the sub-page titles carry no thesis term, and the thesis register remains the only
+place the site makes the claim in prose. `web/content/registers.ts` exports
+`THESIS_CLAIM_KEYS = ['kicker.mechanism', 'meta.title']` and `isThesisClaimLocation`; only
+those locations are skipped by `hitsInStrings`. The exemption is a location allowlist, not a
+relaxation of `THESIS_TERMS` or of any gate.
+
+**Risk accepted.** The operator accepted the legal and editorial risk of placing the claim in
+the title and kicker. The thesis body's published sentence "No es una acusación ni una
+predicción" now contradicts the title. The contradiction is flagged here, not edited: the
+thesis copy is unchanged.
+
+**Scenario revision.**
+
+- AC-007-17 (same ID) is rewritten: every locale's title and kicker must contain at least one
+  `THESIS_TERMS` entry; `thesisVocabularyOutsideThesis` must still return `[]` because the
+  exemption covers exactly those two keys; the agreement-section HTML must still contain no
+  thesis term.
+- AC-005-21 is unchanged as a scenario and still passes: its assertion reads
+  `thesisVocabularyOutsideThesis`, which now applies the two-key exemption. Its separate
+  agreement-section assertion is untouched.
+- AC-007-14 and AC-007-15 keep their IDs and assertions; their expected strings are the revised
+  copy above.
+
+---
+
+## Revision 1 — verification (2026-11-09)
+
+- **Attempt:** revision 1, phase 1 — scoped re-verification of the operator-authorized post-archive revision (`SPEC_LOOP_COUNT=1`, `SPEC_PHASE1_RETRIES=2`, `SPEC_PHASE2_RETRIES=1`). This is a revision verification; it does not add a phase-1 attempt to the earlier count.
+- **Branch:** `spec/007-four-page-story` (HEAD `cda4c79`; base ref `main`).
+- **Declared surface:** `web/content/data/ES/{es,en,de,fr,it}.json`, `web/content/registers.ts`, `web/content/keys.ts`, `tests/acceptance/AC-007-08-title-kicker.test.ts`, `docs/changes/007-four-page-story.md`.
+- **Actual working tree:** the surface above plus pre-existing drift — `.standards` pointer `5de28c9 → 78d2adc` (submodule work tree clean) and untracked `live-005-top.png` / `live-006box.png`.
+- **Verification window:** 2026-11-09T13:57:02Z → 2026-11-09T14:02:20Z.
+- **Verdict: PASS** — every gate ran to completion and exited 0; no FAIL, no BLOCK, no tooling failure. The findings below are carried notes, not gate failures. Nothing blocks the push.
+
+### Result
+
+| # | Check | Verdict | Exit |
+|---|---|---|---|
+| 1 | Scenario traceability (`.standards` script + repo 3-digit gate) | **PASS** | 0 / 0 |
+| 2 | Full test suite (130 files / 1153 tests) | **PASS** | 0 |
+| 3 | Complexity gate (ESLint, 335 files, 0 errors / 0 warnings) | **PASS** | 0 |
+| 3.5 | Design-principles gate (`-BaseRef main`) | **PASS** — 0 FAIL / 23 WARN | 0 |
+| 4 | Scenario-to-behaviour spot check (AC-007-14/15/17) | **PASS** | n/a |
+| 5 | No unaccounted behaviour | findings recorded, not a stop | n/a |
+| — | Typecheck + build gates (`tsc`, `prebuild`, `build`, `sitemap:check`) | **PASS** | 0 |
+
+### Revision checks
+
+1. **Served HTML carries the claim, exact per locale.** Built (`next build`) and served (`next start -p 3077`, `curl`) HTML:
+   - `es` — `<title>Sistema de pensiones: Estafa piramidal · 2042 · pensiones · España</title>`, `<p class="hero__kicker">Estafa piramidal</p>`
+   - `en` — `Pension system: Pyramid scam · 2042 · pensiones · Spain` / `Pyramid scam`
+   - `de` — `Rentensystem: Schneeball-Betrug · 2042 · pensiones · Spanien` / `Schneeball-Betrug`
+   - `fr` — `Système de retraites : Fraude pyramidale · 2042 · pensiones · Espagne` / `Fraude pyramidale`
+   - `it` — `Sistema pensionistico: Frode piramidale · 2042 · pensiones · Spagna` / `Frode piramidale`
+
+   In all five, the `hero__kicker` node precedes `<h1>` in document order, and `og:title` equals the `<title>` (`es` verified verbatim). The year is the committed threshold year (`committedThresholdYear()` = 2042), not a literal.
+2. **Exemption is exactly two keys.** `THESIS_CLAIM_KEYS` = `['kicker.mechanism', 'meta.title']`. `thesisVocabularyOutsideThesis` is empty in all five locales; replaying the pre-revision rule (no exemption) yields 14 hits, **all 14** in those two keys and **0** anywhere else. The exemption is a location allowlist; `THESIS_TERMS` and every gate are unchanged.
+3. **AC-007-17 rewritten, ID preserved.** The test now asserts the claim is *present* in the title and kicker, that the key list is exactly the two authorized keys, that `thesisVocabularyOutsideThesis` is empty, and that the rendered `AgreementSection` carries no thesis term. The agreement-section boundary assertion is untouched. No other test file changed. One assertion shape moved: the old explicit loop over the three composed sub-page titles is now covered indirectly by the `local.strings` sweep (the `meta.*.title` keys are in it) — coverage retained, explicitness reduced. The yearless-title test gained an assertion (strengthened, not weakened).
+4. **Carried risk confirmed.** The thesis body still reads "No es una acusación ni una predicción" (es), "neither an accusation nor a forecast" (en), "weder Anklage noch Prognose" (de), "Ce n'est ni une accusation ni une prévision" (fr), "Non è un'accusa né una previsione" (it) — now contradicted by the title. Recorded as an operator-accepted risk, not a defect; the thesis copy is unchanged, as instructed.
+
+### Notes carried to the Architect (not gate findings)
+
+1. **`.standards` pointer moved again.** HEAD records `5de28c9`; the work tree is at `78d2adc` (v1.7.0-190-g78d2adc), clean. This is outside the declared revision surface. `check-code-principles.sh` and `check-scenario-traceability.sh` are byte-identical between the two commits, so no gate behaviour changed. Must not be swept into the revision commit.
+2. **Design-principles WARNs 20 → 23.** The three extra WARNs are pre-existing `return null` sites in `web/content/registers.ts` (lines 125, 143, 145). Under `-BaseRef` blame scoping a finding in a *touched* file is always WARN; the revision touches that file for the first time, so its pre-existing debt surfaces. No new code produces a finding; still 0 FAIL.
+3. **Stale archived heading.** Line 460 still reads "AC-007-17 — the promise title and kicker stay inside the thesis-vocabulary boundary", which the revision supersedes. The revision section above is the current disposition; the heading was left untouched (this verification writes only this section).
+4. **Untracked screenshots** `live-005-top.png` / `live-006box.png` remain, unchanged in character from earlier attempts.
+5. **Hash helper anomaly.** `test-run-reuse.sh --print-hash` prints `fatal: Unable to hash .standards` and exits 128, yet emits a stable hash. Not a gate; the hash is recorded below. The stderr is in the shared submodule, not in this repo's diff.
+
+## Evidence: scenario traceability
+
+command: bash .standards/scripts/check-scenario-traceability.sh --json
+exit: 0
+at: 2026-11-09T13:57:02Z
+
+[note: specs/ is archived at this HEAD, so the script has no spec folder to trace and returns an empty clean result. The live traceability gate is scripts/check-scenario-traceability-3digit.ts, exercised in the prebuild block below (389 scenarios, all cited, all citations resolve).]
+
+{
+  "checks": [1, 2],
+  "passes": [],
+  "fails": []
+}
+
+## Evidence: full test suite
+
+command: bash .standards/scripts/agent-test-summary.sh --run /tmp/opencode/verify007/vitest.log -- npx vitest run
+exit: 0
+at: 2026-11-09T13:57:20Z
+Test-run hash: a6f76247599536c2f6d8f9debcd0699e61365ad6db15eb3b276a77dc2cb8feae
+
+SUMMARY: mode=run exit=0 signal=0 log_lines=12 log=/tmp/opencode/verify007/vitest.log
+
+ Test Files  130 passed (130)
+      Tests  1153 passed (1153)
+   Start at  14:57:21
+   Duration  46.77s (tests 91%, import 7%, transform 1%, environment 1%)
+
+    Isolate  130 workers spawned · ~217ms startup each (spawn + environment, per file)
+             at least ~2.34s faster with isolate: false — reuses workers across files instead of one per file
+
+
+## Evidence: complexity gate
+
+command: npx eslint .
+exit: 0
+at: 2026-11-09T13:57:04Z
+
+(no output — no lint error and no lint warning)
+
+## Evidence: complexity gate (scope)
+
+command: npx eslint . --format json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print('files:', len(d)); print('errors:', sum(x['errorCount'] for x in d)); print('warnings:', sum(x['warningCount'] for x in d))"
+exit: 0
+at: 2026-11-09T14:01:54Z
+
+files: 335
+errors: 0
+warnings: 0
+
+## Evidence: design-principles gate
+
+command: bash .standards/scripts/check-code-principles.sh -BaseRef main --json
+exit: 0
+at: 2026-11-09T13:58:10Z
+
+{
+  "tier": "mvp",
+  "gates": ["complexity", "dry", "yagni", "solid", "component-per-file", "property-tests", "comments", "naming", "null-discipline"],
+  "fails": [],
+  "warns": [{ "message": "Method body >20 lines (node): ./web/seo/share-card.tsx:41:62:Mark:KISS_LINES=23", "file": "./web/seo/share-card.tsx", "line": "41" }, { "message": "Possible duplication (4x identical 4-line block, first at ./app/(public)/[locale]/cifras/page.tsx:10): return NON_DEFAULT_LOCALES.map((locale) => ({ locale })); /export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> { /const { locale } = await params; /export function generateStaticParams() {", "file": "./app/(public)/[locale]/cifras/page.tsx", "line": "10" }, { "message": "Possible duplication (4x identical 4-line block, first at ./app/(public)/[locale]/cifras/page.tsx:9): export function generateStaticParams() { /return NON_DEFAULT_LOCALES.map((locale) => ({ locale })); /export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> { /export const dynamic = 'force-static';", "file": "./app/(public)/[locale]/cifras/page.tsx", "line": "9" }, { "message": "Possible duplication (3x identical 4-line block, first at ./app/(public)/[locale]/cifras/page.tsx:1): import { renderPublicPage } from '../../../../web/components/render-public-page'; /import { metadataFor } from '../../../../web/seo/metadata'; /import { NON_DEFAULT_LOCALES } from '../../../../web/content/types'; /import type { Metadata } from 'next';", "file": "./app/(public)/[locale]/cifras/page.tsx", "line": "1" }, { "message": "Possible duplication (3x identical 4-line block, first at ./app/(public)/(home)/cifras/page.tsx:2): import { renderPublicPage } from '../../../../web/components/render-public-page'; /import { metadataFor } from '../../../../web/seo/metadata'; /export const dynamic = 'force-static'; /import type { Metadata } from 'next';", "file": "./app/(public)/(home)/cifras/page.tsx", "line": "2" }, { "message": "Possible duplication (3x identical 4-line block, first at ./app/(public)/[locale]/cifras/page.tsx:3): import { metadataFor } from '../../../../web/seo/metadata'; /import { NON_DEFAULT_LOCALES } from '../../../../web/content/types'; /export const dynamic = 'force-static'; /import { renderPublicPage } from '../../../../web/components/render-public-page';", "file": "./app/(public)/[locale]/cifras/page.tsx", "line": "3" }, { "message": "Possible duplication (3x identical 4-line block, first at ./app/(public)/(home)/cifras/page.tsx:4): import { metadataFor } from '../../../../web/seo/metadata'; /export const dynamic = 'force-static'; /export function generateMetadata(): Metadata { /import { renderPublicPage } from '../../../../web/components/render-public-page';", "file": "./app/(public)/(home)/cifras/page.tsx", "line": "4" }, { "message": "SRP: possible god file (node) — ./web/content/keys.ts: 446 lines, 0 methods (split by responsibility)", "file": "./web/content/keys.ts", "line": "" }, { "message": "Comments: commented-out code (./scripts/check-sitemap.ts:20)", "file": "./scripts/check-sitemap.ts", "line": "20" }, { "message": "Naming: noise word in type name (PublicPageData) (./web/components/PublicPage.tsx:19)", "file": "./web/components/PublicPage.tsx", "line": "19" }, { "message": "Naming: more than three parameters (formatValue) (./web/components/public/NumberStep.tsx:37)", "file": "./web/components/public/NumberStep.tsx", "line": "37" }, { "message": "Naming: more than three parameters (unfinishedOutcome) (./web/ingest/run-compute.ts:310)", "file": "./web/ingest/run-compute.ts", "line": "310" }, { "message": "Null-discipline: return null (./scripts/check-sitemap.ts:177)", "file": "./scripts/check-sitemap.ts", "line": "177" }, { "message": "Null-discipline: return null (./web/ingest/run-compute.ts:287)", "file": "./web/ingest/run-compute.ts", "line": "287" }, { "message": "Null-discipline: return null (./web/seo/share-card.tsx:108)", "file": "./web/seo/share-card.tsx", "line": "108" }, { "message": "Null-discipline: return null (./web/content/registers.ts:125)", "file": "./web/content/registers.ts", "line": "125" }, { "message": "Null-discipline: return null (./web/content/registers.ts:143)", "file": "./web/content/registers.ts", "line": "143" }, { "message": "Null-discipline: return null (./web/content/registers.ts:145)", "file": "./web/content/registers.ts", "line": "145" }, { "message": "Null-discipline: return null (./web/components/public-page-props.ts:54)", "file": "./web/components/public-page-props.ts", "line": "54" }, { "message": "Null-discipline: return null (./web/components/public-page-props.ts:57)", "file": "./web/components/public-page-props.ts", "line": "57" }, { "message": "Null-discipline: return null (./web/components/public/MethodRegion.tsx:37)", "file": "./web/components/public/MethodRegion.tsx", "line": "37" }, { "message": "Null-discipline: return null (./web/components/public/MethodRegion.tsx:50)", "file": "./web/components/public/MethodRegion.tsx", "line": "50" }, { "message": "Null-discipline: return null (./web/components/public/NumberStep.tsx:92)", "file": "./web/components/public/NumberStep.tsx", "line": "92" }]
+}
+
+## Evidence: scenario-to-behaviour spot check
+
+command: python3 /tmp/opencode/verify007/spotcheck.py
+exit: 0
+at: 2026-11-09T14:01:27Z
+
+== AC-007-14 ==
+describe('AC-007-14: the home title is the promise framing, per locale, ending in the country', () => {
+  it('AC-007-14: title and og:title start with the promise and end with the country', () => {
+    for (const locale of LOCALES) {
+      const promise = PROMISE[locale].replace('{year}', String(YEAR));
+      const country = content(locale).country.name;
+      const meta = pageMetadata(locale);
+      expect(meta.title, locale).toContain(promise);
+      expect(meta.title.endsWith(` · ${country}`), locale).toBe(true);
+      const resolved = metadataFor(locale);
+      expect(String(resolved.title), locale).toBe(meta.title);
+      expect(String((resolved.openGraph as { title?: string }).title), locale).toBe(meta.ogTitle);
+    }
+  });
+})
+
+== AC-007-15 ==
+describe('AC-007-15: the kicker names the mechanism above the h1, exact per locale', () => {
+  it('AC-007-15: the kicker is the locale’s exact string, above the h1 and not a heading', () => {
+    for (const locale of LOCALES) {
+      const html = historiaPage(locale);
+      expect(html, locale).toContain(`<p class="hero__kicker">${KICKER[locale]}</p>`);
+      const kicker = html.indexOf(`<p class="hero__kicker">${KICKER[locale]}</p>`);
+      expect(kicker, locale).toBeLessThan(html.indexOf('<h1'));
+      const kickerElement = html.slice(kicker, html.indexOf('</p>', kicker));
+      expect(kickerElement, locale).not.toContain('<h1');
+      expect(kickerElement, locale).not.toContain('<h2');
+    }
+  });
+})
+
+== AC-007-17 ==
+describe('AC-007-17: the revised title and kicker state the claim under the recorded exemption', () => {
+  it('AC-007-17: every locale states a thesis term in the title and kicker, and the exemption covers exactly those keys', () => {
+    for (const locale of LOCALES) {
+      const local = content(locale);
+      const title = PROMISE[locale].replace('{year}', String(YEAR));
+      expect(findThesisTerms(title).length, `${locale}: ${title}`).toBeGreaterThan(0);
+      expect(findThesisTerms(KICKER[locale]).length, `${locale}: ${KICKER[locale]}`).toBeGreaterThan(0);
+      expect(findThesisTerms(pageMetadata(locale).title).length, locale).toBeGreaterThan(0);
+      // The exemption is exactly the two authorized keys, not a widening of the boundary.
+      expect([...THESIS_CLAIM_KEYS].sort(), locale).toEqual(['kicker.mechanism', 'meta.title']);
+      expect(thesisVocabularyOutsideThesis(local.strings, local.editorial), locale).toEqual([]);
+      const agreement = renderComponent(AgreementSection, { content: local, citations: citationRegistry });
+      expect(findThesisTerms(agreement), locale).toEqual([]);
+    }
+  });
+
+es: title='Sistema de pensiones: Estafa piramidal · 2042 · pensiones · España' kicker='Estafa piramidal' kicker_before_h1=True
+en: title='Pension system: Pyramid scam · 2042 · pensiones · Spain' kicker='Pyramid scam' kicker_before_h1=True
+de: title='Rentensystem: Schneeball-Betrug · 2042 · pensiones · Spanien' kicker='Schneeball-Betrug' kicker_before_h1=True
+fr: title='Système de retraites : Fraude pyramidale · 2042 · pensiones · Espagne' kicker='Fraude pyramidale' kicker_before_h1=True
+it: title='Sistema pensionistico: Frode piramidale · 2042 · pensiones · Spagna' kicker='Frode piramidale' kicker_before_h1=True
+
+Finding: the assertions match their Given/When/Then. AC-007-14 checks the revised promise string with the committed year, the country suffix and `og:title`; the served HTML confirms the same string. AC-007-15 checks the exact per-locale kicker, its position before `<h1>` and its non-heading role; served HTML confirms the node order in all five locales. AC-007-17 (revision) checks that the claim is present in title and kicker, that the exempt key list is exactly the two authorized keys, that the strings sweep is empty, and that the rendered agreement section carries no thesis term. No false green found.
+
+## Evidence: typecheck
+
+command: npx tsc --noEmit
+exit: 0
+at: 2026-11-09T13:57:02Z
+
+(no output)
+
+## Evidence: build gate — prebuild
+
+command: npm run prebuild
+exit: 0
+at: 2026-11-09T13:58:10Z
+
+
+> pensions-system@0.0.0 prebuild
+> tsx scripts/verify-derived.ts && tsx scripts/check-content-scope.ts && tsx scripts/check-public-vocabulary.ts && tsx scripts/check-scenario-traceability-3digit.ts && tsx scripts/check-plain-language.ts
+
+derived figures verified: 7 (3 computed, 4 unavailable)
+derived series verified: 3
+country scope gate: clean (5 locales)
+public vocabulary gate: clean (5 locales)
+scenario traceability (2-3 digit ids): 389 scenarios, all cited, all citations resolve
+plain-language gate: clean (5 locales)
+
+## Evidence: build gate — build
+
+command: npm run build
+exit: 0
+at: 2026-11-09T13:58:33Z
+
+▲ Next.js 16.4.3 (Turbopack)
+⚠ Warning: Next.js ignored package-lock.json in /home/dbueno because it is outside the current Git repository (/home/dbueno/projects/pensions-system).
+ To use this directory, set `turbopack.root` in your Next.js config.
+
+✓ Running next.config.ts took 29ms
+- Experiments (use with caution):
+  ✓ globalNotFound
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+
+  To migrate automatically, run:
+  npx @next/codemod@canary middleware-to-proxy .
+
+  Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 218ms
+  Running TypeScript ...
+  Finished TypeScript in 1876ms ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/32) ...
+  Generating static pages using 11 workers (8/32) 
+  Generating static pages using 11 workers (16/32) 
+  Generating static pages using 11 workers (24/32) 
+✓ Generating static pages using 11 workers (32/32) in 852ms
+
+[...]
+
+├ ○ /opengraph-image-1i7gor
+├ ○ /robots.txt
+└ ○ /sitemap.xml
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+
+
+## Evidence: build gate — sitemap:check
+
+command: npm run sitemap:check
+exit: 0
+at: 2026-11-09T13:58:43Z
+
+
+> pensions-system@0.0.0 sitemap:check
+> tsx scripts/check-sitemap.ts
+
+sitemap gate: 20 routes, 6 alternates each, origin https://pensions-system-delta.vercel.app
+sitemap gate: emitted .next/server/app/sitemap.xml.body and .next/server/app/robots.txt.body agree
+
+## Evidence: served HTML (title, kicker, node order)
+
+command: (npx next start -p 3077 > /tmp/opencode/verify007/server.log 2>&1 &) ; for i in $(seq 1 60); do curl -sf -o /dev/null http://127.0.0.1:3077/ && break; sleep 0.5; done; for p in "" en de fr it; do url="http://127.0.0.1:3077/$p"; f="/tmp/opencode/verify007/served-${p:-es}.html"; curl -s "$url" -o "$f"; printf '%-34s ' "$url"; grep -o '<title>[^<]*</title>' "$f" | head -1; grep -o '<p class="hero__kicker">[^<]*</p>' "$f" | head -1; done; echo "AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+exit: 0
+at: 2026-11-09T14:02:20Z
+
+http://127.0.0.1:3077/             <title>Sistema de pensiones: Estafa piramidal · 2042 · pensiones · España</title>
+<p class="hero__kicker">Estafa piramidal</p>
+http://127.0.0.1:3077/en           <title>Pension system: Pyramid scam · 2042 · pensiones · Spain</title>
+<p class="hero__kicker">Pyramid scam</p>
+http://127.0.0.1:3077/de           <title>Rentensystem: Schneeball-Betrug · 2042 · pensiones · Spanien</title>
+<p class="hero__kicker">Schneeball-Betrug</p>
+http://127.0.0.1:3077/fr           <title>Système de retraites : Fraude pyramidale · 2042 · pensiones · Espagne</title>
+<p class="hero__kicker">Fraude pyramidale</p>
+http://127.0.0.1:3077/it           <title>Sistema pensionistico: Frode piramidale · 2042 · pensiones · Spagna</title>
+<p class="hero__kicker">Frode piramidale</p>
+
+## Evidence: exemption breadth probe
+
+command: npx tsx /tmp/opencode/verify007/probe.ts
+exit: 0
+at: 2026-11-09T14:02:20Z
+
+thesisVocabularyOutsideThesis empty: true
+without-exemption hits total: 14
+without-exemption hits in exempt keys: 14
+without-exemption hits elsewhere: 0 []
+distinct exempt keys hit: ["kicker.mechanism","meta.title"]
+THESIS_CLAIM_KEYS: ["kicker.mechanism","meta.title"]
+
+## Evidence: test-run hash
+
+command: bash .standards/scripts/test-run-reuse.sh --print-hash
+exit: 128
+at: 2026-11-09T14:01:41Z
+
+fatal: Unable to hash .standards
+a6f76247599536c2f6d8f9debcd0699e61365ad6db15eb3b276a77dc2cb8feae

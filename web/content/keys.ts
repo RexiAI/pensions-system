@@ -28,7 +28,9 @@ export const REQUIRED_KEYS = [
   'theme.dark',
   'hero.statement',
   'hero.sub',
-  // Spec 007 T8: the mechanism kicker above the h1, verbatim from the operator's copy.
+  // Spec 007 T8 (revision 1, 2026-11-09): the mechanism kicker above the h1, verbatim from
+  // the operator's revised copy ("Estafa piramidal" / "Pyramid scam" / …). It is one of the
+  // two keys exempted by THESIS_CLAIM_KEYS in `registers.ts`.
   'kicker.mechanism',
   'hero.ctaPrimary',
   'hero.ctaSecondary',
