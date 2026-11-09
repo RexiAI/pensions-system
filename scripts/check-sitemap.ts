@@ -32,8 +32,9 @@ import { canonicalUrl, SITE_URL } from '../web/content/site';
 import { COUNTRY_CONFIGURATIONS, PUBLISHED_GEO, PUBLISHED_GEOS } from '../web/sources/countries';
 import { contentRegistry } from '../web/content/registry';
 import { readDerivedFigures } from '../web/ingest/write-derived';
-import { PUBLIC_ROUTE_PATHS, alternateLinks, publicPathFor } from '../web/seo/routes';
+import { PUBLIC_ROUTE_PATHS, alternateLinks, pageKindOfPath, pagePathFor } from '../web/seo/routes';
 import type { SitemapAlternate } from '../web/seo/routes';
+import { PAGE_KINDS } from '../web/content/types';
 
 const DERIVED_DIR = 'data/derived';
 const EMITTED_SITEMAP = '.next/server/app/sitemap.xml.body';
@@ -57,10 +58,10 @@ export interface SitemapCheckInput {
   /** `canonicalUrl`, bound to that origin: the one function that builds an absolute URL. */
   canonical: (path: string) => string;
   entries: readonly SitemapEntryView[];
-  /** The routes the site publishes, as paths: `['/', '/en', …]`. */
+  /** The routes the site publishes, as paths: `['/', '/cifras', …]`. */
   publishedPaths: readonly string[];
-  /** The reciprocal alternate set every entry must carry. */
-  alternates: readonly SitemapAlternate[];
+  /** The reciprocal alternate set one page kind carries, resolved from the entry's own path. */
+  alternates: (path: string) => readonly SitemapAlternate[];
   /** Figure and definition ids the derived data publishes as `unavailable` (T1). */
   unavailable: readonly string[];
   /** Configured countries this deployment does not publish (T2). */
@@ -104,10 +105,10 @@ function membershipProblems(input: SitemapCheckInput): string[] {
   return [...missing, ...extra];
 }
 
-/** 3. The same reciprocal set on every entry, with `x-default` on Spanish. */
+/** 3. The same reciprocal set for each entry, with `x-default` on its Spanish page. */
 function alternateProblems(input: SitemapCheckInput): string[] {
-  const expected = new Map(input.alternates.map((alternate) => [alternate.hreflang, alternate.href]));
   return input.entries.flatMap((entry) => {
+    const expected = new Map(input.alternates(pathOf(entry.url)).map((alternate) => [alternate.hreflang, alternate.href]));
     const wrong = [...expected.keys()]
       .filter((hreflang) => entry.languages[hreflang] !== expected.get(hreflang))
       .map(
@@ -190,11 +191,12 @@ function routeEntries(): SitemapEntryView[] {
 
 /**
  * The routes this deployment publishes, resolved from the content model rather than from the
- * manifest that is being checked: `publishedLocales × publicPathFor` must equal the route
- * manifest, and the sitemap must then list exactly that set.
+ * manifest that is being checked: `publishedLocales × page kinds` must equal the route manifest,
+ * and the sitemap must then list exactly that set.
  */
 function publishedPaths(): string[] {
-  return contentRegistry.locales(PUBLISHED_GEO).map((locale) => publicPathFor(locale));
+  const locales = contentRegistry.locales(PUBLISHED_GEO);
+  return PAGE_KINDS.flatMap((kind) => locales.map((locale) => pagePathFor(locale, kind)));
 }
 
 function repositoryInput(): SitemapCheckInput {
@@ -203,7 +205,7 @@ function repositoryInput(): SitemapCheckInput {
     canonical: (path) => canonicalUrl(path),
     entries: routeEntries(),
     publishedPaths: publishedPaths(),
-    alternates: alternateLinks(SITE_URL),
+    alternates: (path) => alternateLinks(SITE_URL, pageKindOfPath(path)),
     unavailable: readDerivedFigures(DERIVED_DIR)
       .filter((figure) => figure.availability !== 'computed')
       .flatMap((figure) => [figure.figureId, figure.definitionId]),
@@ -243,7 +245,7 @@ function main(): number {
     return 1;
   }
   console.log(
-    `sitemap gate: ${input.entries.length} routes, ${input.alternates.length} alternates each, origin ${input.siteUrl}`,
+    `sitemap gate: ${input.entries.length} routes, ${new Set(input.entries.flatMap((entry) => Object.keys(entry.languages))).size} alternates each, origin ${input.siteUrl}`,
   );
   console.log(
     input.emitted === null

@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { sitemapProblems, repositoryCheck } from '../../scripts/check-sitemap';
 import type { SitemapCheckInput } from '../../scripts/check-sitemap';
 import { SITE_URL, canonicalUrl } from '../../web/content/site';
-import { PUBLIC_ROUTE_PATHS, alternateLinks, publicPathFor } from '../../web/seo/routes';
-import { LOCALES } from '../../web/content/types';
+import { PUBLIC_ROUTE_PATHS, alternateLinks, pageKindOfPath, pagePathFor } from '../../web/seo/routes';
+import { LOCALES, PAGE_KINDS } from '../../web/content/types';
 
 /**
  * `npm run sitemap:check` pointed at `scripts/check-sitemap.ts` for three pipeline stages while
@@ -19,8 +19,8 @@ import { LOCALES } from '../../web/content/types';
  * each one fails with a message that names it. A check that cannot fail is the same defect as a
  * check that cannot run.
  */
-const EXPECTED_PATHS = LOCALES.map((locale) => publicPathFor(locale));
-const EXPECTED_ALTERNATES = alternateLinks(SITE_URL);
+const EXPECTED_PATHS = PAGE_KINDS.flatMap((kind) => LOCALES.map((locale) => pagePathFor(locale, kind)));
+const alternatesFor = (path: string) => alternateLinks(SITE_URL, pageKindOfPath(path));
 
 function baseInput(): SitemapCheckInput {
   return {
@@ -28,10 +28,10 @@ function baseInput(): SitemapCheckInput {
     canonical: (path) => canonicalUrl(path),
     entries: EXPECTED_PATHS.map((path) => ({
       url: canonicalUrl(path),
-      languages: Object.fromEntries(EXPECTED_ALTERNATES.map((alternate) => [alternate.hreflang, alternate.href])),
+      languages: Object.fromEntries(alternatesFor(path).map((alternate) => [alternate.hreflang, alternate.href])),
     })),
     publishedPaths: EXPECTED_PATHS,
-    alternates: EXPECTED_ALTERNATES,
+    alternates: alternatesFor,
     unavailable: [],
     unpublishedCountries: [],
     robotsSitemap: canonicalUrl('/sitemap.xml'),
@@ -49,8 +49,9 @@ describe('AC-001-52: the sitemap check runs, and the committed sitemap passes it
     // The real route modules, the real content registry and the real committed figures: this is
     // the assertion that the command does work rather than exiting 0 on an empty list.
     expect(repositoryCheck()).toEqual([]);
-    // Not a vacuous pass: the manifest the check compares against is the five published locales.
-    expect(EXPECTED_PATHS).toEqual(['/', '/en', '/fr', '/de', '/it']);
+    // Not a vacuous pass: the manifest the check compares against is the twenty public routes.
+    expect(EXPECTED_PATHS).toHaveLength(20);
+    expect(EXPECTED_PATHS.slice(0, 5)).toEqual(['/', '/en', '/fr', '/de', '/it']);
     expect(PUBLIC_ROUTE_PATHS).toEqual(EXPECTED_PATHS);
   });
 
