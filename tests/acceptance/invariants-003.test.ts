@@ -16,14 +16,17 @@ const CSS = readFileSync('web/styles/globals.css', 'utf8');
 const NEW_SECTION = CSS.slice(CSS.indexOf('/* ---------- Spec 003'));
 
 function page(locale = 'es'): string {
-  return renderComponent(PublicPage, {
+  const props = {
     content: content(locale),
     figures: [dependencyFigure(), shareFigure()],
     citations: citationRegistry,
     freshnessWindowDays: 45,
     stale: false,
     series: seriesFixtures(),
-  });
+  } as const;
+  return (['historia', 'cifras', 'metodo', 'debate'] as const)
+    .map((pageKind) => renderComponent(PublicPage, { ...props, pageKind }))
+    .join('');
 }
 
 describe('AC-003-44: public routes stay static with correct language', () => {

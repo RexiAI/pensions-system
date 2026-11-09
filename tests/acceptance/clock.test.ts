@@ -31,7 +31,7 @@ const AFTER = Date.parse(ANCHOR) + 60_000;
 const ES = content('es');
 
 function pageWith(series: readonly DerivedSeries[], locale: Locale = 'es', nowMs = THREE_DAYS_OUT): string {
-  return renderComponent(PublicPage, {
+  const props = {
     content: content(locale),
     figures: [shareFigure(), dependencyFigure()],
     citations: citationRegistry,
@@ -39,7 +39,11 @@ function pageWith(series: readonly DerivedSeries[], locale: Locale = 'es', nowMs
     stale: false,
     series,
     now: new Date(nowMs),
-  });
+  } as const;
+  return (
+    renderComponent(PublicPage, { ...props, pageKind: 'historia' }) +
+    renderComponent(PublicPage, { ...props, pageKind: 'metodo' })
+  );
 }
 
 /** Step 1's own markup: from its opening tag to the start of step 2. */
@@ -49,10 +53,10 @@ function numberStepOf(html: string): string {
   return at === -1 || end === -1 ? '' : html.slice(at, end);
 }
 
-/** The method region: from `id="metodo"` to the debate registers. */
+/** The method region: from `id="metodo"` to the page's closing pager. */
 function methodRegion(html: string): string {
   const at = html.indexOf('id="metodo"');
-  const end = html.indexOf('id="debate"', at === -1 ? 0 : at);
+  const end = html.indexOf('class="pager"', at === -1 ? 0 : at);
   return at === -1 || end === -1 ? '' : html.slice(at, end);
 }
 

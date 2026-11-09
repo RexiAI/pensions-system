@@ -7,8 +7,7 @@ import { formatWholePercent } from '../../web/content/format';
 import { LOCALES } from '../../web/content/types';
 import { content } from '../fixtures/figures';
 import { countdownAt, countdownSeries, countdownValue, pyramidSeries, seriesFixtures } from '../fixtures/series';
-import { classesOf, anchorDate, numberSentence, stepOf, storyPage, textOf } from '../helpers/story';
-import { decodeText } from '../helpers/render-document';
+import { classesOf, anchorDate, metodoPage, numberSentence, stepOf, storyPage, textOf } from '../helpers/story';
 
 const FUSE_SERIES = seriesFixtures().find((entry) => entry.seriesId === 'fuse');
 if (FUSE_SERIES === undefined) throw new Error('no fuse series');
@@ -169,8 +168,9 @@ describe('AC-004-21: the technical label and the dataset name leave the step', (
     const step = stepOf(html, 'distance');
     expect(step).not.toContain(content('es').t('fuse.definition'));
     expect(step).not.toContain('demo_pjan');
-    expect(html.slice(html.indexOf('id="metodo"'))).toContain(content('es').t('fuse.definition'));
-    expect(html.slice(html.indexOf('id="metodo"'))).toContain('class="fuse__label"');
+    const method = metodoPage('es');
+    expect(method).toContain(content('es').t('fuse.definition'));
+    expect(method).toContain('class="fuse__label"');
   });
 });
 
@@ -216,19 +216,6 @@ describe('AC-004-24: one sentence and one button', () => {
   });
 });
 
-describe('AC-004-25: the action is the page’s primary promise', () => {
-  it('AC-004-25: hero.ctaPrimary, href #figuras, the page’s only accent-filled action', () => {
-    for (const locale of LOCALES) {
-      const step = stepOf(storyPage(locale), 'meaning');
-      const anchor = /<a class="hero__cta" href="([^"]*)">([^<]*)<\/a>/.exec(step);
-      expect(anchor, locale).not.toBeNull();
-      expect(anchor?.[1], locale).toBe('#figuras');
-      expect(textOf(anchor?.[2] ?? ''), locale).toBe(content(locale).t('hero.ctaPrimary'));
-    }
-    expect(storyPage().split('class="hero__cta"').length - 1).toBe(1);
-  });
-});
-
 describe('AC-004-26: step 5 closes the story', () => {
   it('AC-004-26: meaning is the fifth data-top-step and nothing follows it', () => {
     const ids = [...storyPage().matchAll(/data-top-step="([a-z]+)"/g)].map((match) => match[1]);
@@ -241,28 +228,13 @@ describe('AC-004-27: the share row follows the steps and works without JavaScrip
   it('AC-004-27: the share row renders after step 5, outside every step, server-side', () => {
     for (const locale of LOCALES) {
       const html = storyPage(locale);
-      const strip = html.slice(html.indexOf('class="story__strip"'), html.indexOf('id="figuras"'));
+      const strip = html.slice(html.indexOf('class="story__strip"'), html.indexOf('class="pager"'));
       expect(strip, locale).toContain('class="share"');
       expect(strip, locale).not.toContain('data-top-step');
       expect(html.indexOf('class="story__strip"'), locale).toBeGreaterThan(html.indexOf('data-top-step="meaning"'));
       // The links, the canonical URL and the no-script text are in the served HTML.
       expect(strip, locale).toContain('https://');
       expect(strip, locale).toContain(content(locale).t('share.label'));
-    }
-  });
-});
-
-describe('AC-004-28: the secondary action survives, outside the steps', () => {
-  it('AC-004-28: the strip carries #metodo, no step does, and the id resolves', () => {
-    for (const locale of LOCALES) {
-      const html = storyPage(locale);
-      const strip = html.slice(html.indexOf('class="story__strip"'), html.indexOf('id="figuras"'));
-      expect(strip, locale).toContain('href="#metodo"');
-      expect(strip, locale).toContain(content(locale).t('hero.ctaSecondary'));
-      for (const id of ['number', 'breakage', 'why', 'distance', 'meaning']) {
-        expect(stepOf(html, id), `${locale}/${id}`).not.toContain('href="#metodo"');
-      }
-      expect(html, locale).toContain('id="metodo"');
     }
   });
 });
@@ -294,21 +266,6 @@ describe('AC-004-30: the three paraphrases are gone from the top', () => {
       ]) {
         expect(story, `${locale}: ${text.slice(0, 24)}`).not.toContain(text);
       }
-    }
-  });
-});
-
-describe('AC-004-32: the date and the arithmetic survive below the fold', () => {
-  it('AC-004-32: both render inside #metodo as visible text, outside any disclosure', () => {
-    for (const locale of LOCALES) {
-      const html = storyPage(locale);
-      const method = html.slice(html.indexOf('id="metodo"'), html.indexOf('id="debate"'));
-      const outside = method.replace(/<details[\s\S]*?<\/details>/g, '');
-      const local = content(locale);
-      expect(decodeText(outside), locale).toContain(local.t('countdown.clock.definition', { date: anchorDate(locale) }));
-      expect(decodeText(outside), locale).toContain(
-        local.t('countdown.clock.arithmetic', { years: '16', thresholdYear: '2042', snapshotYear: '2026', date: anchorDate(locale) }),
-      );
     }
   });
 });

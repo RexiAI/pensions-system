@@ -190,6 +190,7 @@ describe('AC-003-29: no third-party element in the markup', () => {
         stale: false,
         series: seriesFixtures(),
         now: new Date(NOW),
+        pageKind: 'historia',
       });
       for (const tag of html.match(/<(script|iframe|img|link|source)\b[^>]*>/g) ?? []) {
         const reference = /\s(?:src|href|srcset)="(https?:[^"]*)"/.exec(tag)?.[1];

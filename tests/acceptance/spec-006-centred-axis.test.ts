@@ -66,9 +66,10 @@ const OFFSET_MAX = 4;
 const RESIDUAL_MAX = 8;
 
 function assertAxis(measurement: AxisMeasurement, label: string): void {
-  // The derived set is exactly four: a fifth text-bearing block must be centred too.
-  expect(measurement.derived, `${label}: derived units`).toBe(4);
-  expect(measurement.results.length, `${label}: measured units`).toBe(4);
+  // The derived set is five: four story units plus the spec-007 kicker, and a fifth text-bearing
+  // block must be centred by the same rule.
+  expect(measurement.derived, `${label}: derived units`).toBe(5);
+  expect(measurement.results.length, `${label}: measured units`).toBe(5);
   for (const unit of measurement.results) {
     expect(unit.missing, `${label}: ${unit.name} has no ink`).toBe(false);
     expect(unit.offset, `${label}: ${unit.name} centre offset`).toBeLessThanOrEqual(OFFSET_MAX);

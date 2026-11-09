@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { LOCALES } from '../../web/content/types';
 import { content } from '../fixtures/figures';
-import { figuresOf, stepOf, storyPage, textOf } from '../helpers/story';
+import { allPages, cifrasPage, figuresOf, stepOf, storyPage, textOf } from '../helpers/story';
 
 /** AC-004-50…54 — the hero/band composition is retired (spec 004 T12). */
 const CSS = readFileSync('web/styles/globals.css', 'utf8');
@@ -34,10 +34,10 @@ describe('AC-004-51: one lead path', () => {
 describe('AC-004-52: the figure plates live in #figuras', () => {
   it('AC-004-52: every computed plate is inside #figuras and none is above step 5', () => {
     for (const locale of LOCALES) {
-      const html = storyPage(locale);
+      const html = cifrasPage(locale);
       expect(figuresOf(html).split('class="plate"').length - 1, locale).toBe(2);
       for (const id of ['number', 'breakage', 'why', 'distance', 'meaning']) {
-        expect(stepOf(html, id), `${locale}/${id}`).not.toContain('class="plate"');
+        expect(stepOf(storyPage(locale), id), `${locale}/${id}`).not.toContain('class="plate"');
       }
     }
   });
@@ -47,8 +47,10 @@ describe('AC-004-53: the lead’s provenance facts move to the figures', () => {
   it('AC-004-53: the four labels are absent from the steps and present beside the plates', () => {
     for (const locale of LOCALES) {
       const local = content(locale);
-      const html = storyPage(locale);
-      const story = ['number', 'breakage', 'why', 'distance', 'meaning'].map((id) => textOf(stepOf(html, id))).join(' ');
+      const html = cifrasPage(locale);
+      const story = ['number', 'breakage', 'why', 'distance', 'meaning']
+        .map((id) => textOf(stepOf(storyPage(locale), id)))
+        .join(' ');
       for (const key of ['hero.definitionLabel', 'hero.periodLabel', 'provenance.source', 'provenance.dataset'] as const) {
         // The *fact label* is what moved, not the word: the pyramid's table caption legitimately
         // says `Fuente: Eurostat`, so the assertion is on the definition-list term.
@@ -67,7 +69,7 @@ describe('AC-004-54: no dead hero surface', () => {
     ]) {
       expect(existsSync(file), file).toBe(false);
     }
-    const html = storyPage('es', { figures: [], series: [] });
+    const html = allPages('es', { figures: [], series: [] });
     expect(html).toContain('data-top-step="number"');
     expect(html).toContain('id="metodo"');
     expect(html).toContain('data-register="thesis"');

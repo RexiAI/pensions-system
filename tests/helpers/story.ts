@@ -1,7 +1,7 @@
 import { PublicPage } from '../../web/components/PublicPage';
 import { citationRegistry } from '../../web/content/citations';
 import { formatDate } from '../../web/content/format';
-import type { CountryLocaleContent, Locale } from '../../web/content/types';
+import type { CountryLocaleContent, Locale, PageKind } from '../../web/content/types';
 import type { DerivedFigure } from '../../web/ingest/types';
 import type { DerivedSeries } from '../../web/ingest/series-types';
 import { CLOCK_TIME_ZONE } from '../../web/series/clock';
@@ -19,8 +19,12 @@ export interface PageOptions {
   stale?: boolean;
 }
 
-/** The public page as a reader receives it, with the committed deployment's own fixtures. */
-export function storyPage(locale: Locale = 'es', options: PageOptions = {}): string {
+/**
+ * One page of the public site as a reader receives it, with the committed deployment's own
+ * fixtures. Spec 007 splits the single document into four pages, so a test that asserts a region
+ * renders the page that now owns it.
+ */
+export function pageOf(kind: PageKind, locale: Locale = 'es', options: PageOptions = {}): string {
   const figures = options.figures ?? [dependencyFigure(), shareFigure()];
   const series = options.series ?? seriesFixtures();
   return renderComponent(PublicPage, {
@@ -31,8 +35,29 @@ export function storyPage(locale: Locale = 'es', options: PageOptions = {}): str
     stale: options.stale === true,
     series,
     now: new Date(options.nowMs ?? STORY_NOW),
+    pageKind: kind,
   });
 }
+
+/** The four pages concatenated, for cross-page invariants that must hold across the surface. */
+export function allPages(locale: Locale = 'es', options: PageOptions = {}): string {
+  return (['historia', 'cifras', 'metodo', 'debate'] as const).map((kind) => pageOf(kind, locale, options)).join('');
+}
+
+export const historiaPage = (locale: Locale = 'es', options: PageOptions = {}): string =>
+  pageOf('historia', locale, options);
+
+export const cifrasPage = (locale: Locale = 'es', options: PageOptions = {}): string =>
+  pageOf('cifras', locale, options);
+
+export const metodoPage = (locale: Locale = 'es', options: PageOptions = {}): string =>
+  pageOf('metodo', locale, options);
+
+export const debatePage = (locale: Locale = 'es', options: PageOptions = {}): string =>
+  pageOf('debate', locale, options);
+
+/** The Historia page: the story, the strip and the pager. Kept as the name the story tests use. */
+export const storyPage = historiaPage;
 
 /** Everything between `<main id="main">` and the story's after-step strip. */
 export function storyOf(html: string): string {
@@ -60,17 +85,17 @@ export function stepIds(html: string): string[] {
   return [...html.matchAll(/data-top-step="([a-z]+)"/g)].map((match) => match[1] ?? '');
 }
 
-/** The appendix region: `#figuras` up to `#metodo`. */
+/** The figures region: `#figuras` up to the page's closing pager. */
 export function figuresOf(html: string): string {
   const at = html.indexOf('id="figuras"');
-  const end = html.indexOf('id="metodo"', at === -1 ? 0 : at);
+  const end = html.indexOf('class="pager"', at === -1 ? 0 : at);
   return at === -1 || end === -1 ? '' : html.slice(at, end);
 }
 
-/** The method region: `#metodo` up to the debate registers. */
+/** The method page's body: the method region up to the page's closing pager. */
 export function methodOf(html: string): string {
   const at = html.indexOf('<section class="method"');
-  const end = html.indexOf('id="debate"', at === -1 ? 0 : at);
+  const end = html.indexOf('class="pager"', at === -1 ? 0 : at);
   return at === -1 || end === -1 ? '' : html.slice(at, end);
 }
 

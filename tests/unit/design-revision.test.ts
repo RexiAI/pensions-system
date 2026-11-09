@@ -49,6 +49,7 @@ function pageHtml(figures: readonly DerivedFigure[], locale = 'es'): string {
     citations: citationRegistry,
     freshnessWindowDays: 45,
     stale: false,
+    pageKind: 'cifras',
   });
 }
 

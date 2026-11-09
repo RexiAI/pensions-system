@@ -4,7 +4,7 @@ import { LOCALES } from '../../web/content/types';
 import type { Locale } from '../../web/content/types';
 import { CHROME_PATH, launchBrowser, type Browser, type BrowserPage } from '../helpers/chromium';
 import { BUILD_PRESENT, routePath, startServedApp, type ServedApp } from '../helpers/served-app';
-import { storyPage } from '../helpers/story';
+import { allPages } from '../helpers/story';
 
 /**
  * AC-004-55…59 — no empty column at any width, in any locale (spec 004 T13).
@@ -193,7 +193,7 @@ function checkTrackOccupation(selector: string, tracks: number, counts: readonly
 describe('AC-004-59: the retired shape cannot return structurally', () => {
   const SHEET = readFileSync('web/styles/globals.css', 'utf8');
   const RULES = rulesOf(SHEET);
-  const PAGE = storyPage();
+  const PAGE = allPages();
 
   it('AC-004-59: no rule places a grid child into a track other than the first', () => {
     const placements: string[] = [];

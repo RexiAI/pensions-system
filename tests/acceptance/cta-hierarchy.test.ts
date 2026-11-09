@@ -55,6 +55,7 @@ function page(): string {
     freshnessWindowDays: 45,
     stale: false,
     series: seriesFixtures(),
+    pageKind: 'historia',
   });
 }
 
@@ -161,21 +162,21 @@ describe('AC-002-34: the secondary no longer competes on hue', () => {
 });
 
 describe('AC-002-35: both links keep their href targets and accessible names', () => {
-  it('AC-002-35: step 5 is `#figuras` primary, the strip is `#metodo` secondary', () => {
+  it('AC-002-35: step 5 is the Cifras page, the strip is the Método page', () => {
     const links = actions(page());
     expect(links).toHaveLength(2);
-    expect(links[0]).toEqual({ className: 'hero__cta', href: '#figuras', text: ES.t('hero.ctaPrimary') });
+    expect(links[0]).toEqual({ className: 'hero__cta', href: '/cifras', text: ES.t('hero.ctaPrimary') });
     expect(links[1]).toEqual({
       className: 'hero__cta-secondary',
-      href: '#metodo',
+      href: '/metodo',
       text: ES.t('hero.ctaSecondary'),
     });
   });
 
   it('AC-002-35: the after-story strip carries the method target, outside every step', () => {
     const html = page();
-    const strip = html.slice(html.indexOf('class="story__strip"'), html.indexOf('id="figuras"'));
-    expect(strip).toContain('href="#metodo"');
+    const strip = html.slice(html.indexOf('class="story__strip"'), html.indexOf('class="pager"'));
+    expect(strip).toContain('href="/metodo"');
     expect(strip).toContain(ES.t('hero.ctaSecondary'));
     // It renders after the fifth step and inside no step.
     expect(html.indexOf('class="story__strip"')).toBeGreaterThan(html.indexOf('data-top-step="meaning"'));

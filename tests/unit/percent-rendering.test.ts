@@ -10,6 +10,7 @@ import {
   shareFigure,
 } from '../fixtures/figures';
 import type { Locale } from '../../web/content/types';
+import { allPages } from '../helpers/story';
 
 /**
  * The rendered page never carries a percentage point multiplied by 100.
@@ -34,6 +35,7 @@ function page(locale: Locale): string {
     citations: citationRegistry,
     freshnessWindowDays: 45,
     stale: false,
+    pageKind: 'cifras',
   });
 }
 
@@ -48,7 +50,7 @@ function region(html: string, start: string, end: string): string {
  */
 function figuresRegion(html: string): string {
   const at = html.indexOf('id="figuras"');
-  return at === -1 ? '' : html.slice(at, html.indexOf('id="metodo"', at));
+  return at === -1 ? '' : html.slice(at, html.indexOf('class="pager"', at));
 }
 
 function readout(html: string, number: number): string {
@@ -117,9 +119,10 @@ describe('the page never renders a percentage point as a fraction', () => {
 
   it('keeps the fraction percents on their own figures unchanged', () => {
     // fig-03 (IRR) and fig-05 (growth) store fractions: they must stay one-decimal percents.
-    const pageEs = page('es');
-    expect(pageEs).toContain(`1${NBSP}% · 2${NBSP}% · 3${NBSP}% · 4${NBSP}%`);
-    expect(pageEs).not.toMatch(SCALED_PERCENT);
+    expect(allPages('es')).toContain(`1${NBSP}% · 2${NBSP}% · 3${NBSP}% · 4${NBSP}%`);
+    // The ×100 defect lives in the plates, which are Cifras' own page; the share hrefs encode
+    // text (`%20`) and are not a percentage surface.
+    expect(page('es')).not.toMatch(SCALED_PERCENT);
   });
 });
 
@@ -133,7 +136,7 @@ describe('the page never renders a percentage point as a fraction', () => {
 function committedPage(locale: Locale): string {
   const props = publicPageProps(locale, { now: new Date('2026-10-26T00:00:00Z') });
   if (!props) throw new Error(`no public page props for ${locale}`);
-  return renderComponent(PublicPage, props);
+  return renderComponent(PublicPage, { ...props, pageKind: 'cifras' });
 }
 
 /** One plate's own `<figure>` subtree, so a page-level assertion cannot read fig-01's chart. */

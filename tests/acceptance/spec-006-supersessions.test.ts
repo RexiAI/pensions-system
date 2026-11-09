@@ -88,6 +88,7 @@ const TOKEN_NAMES = [
   'chart-projection', 'dash-projection', 'rule-projection', 'pyramid-band-h', 'ground-instrument',
   'ground-consensus', 'ground-dispute', 'ground-thesis', 'radius', 'border-hair', 'border-strong',
   'border-register', 'shadow', 'focus', 'focus-offset', 'state-pending', 'state-danger',
+  'nav-active-rule', 'pager-gap', 'page-head-gap',
   'admin-max', 'admin-row-h', 'admin-gap', 'operator-bar-h', 'z-sticky', 'z-operator',
 ] as const;
 

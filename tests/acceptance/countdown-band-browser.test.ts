@@ -85,7 +85,8 @@ describe.skipIf(!READY)('step 1 and step 4, measured', () => {
   }, 60_000);
 
   it('AC-003-05: the anchor and the two disclosures are visible text below the story', async () => {
-    const page = await browser.open(`${app.baseUrl}/`, VIEWPORTS[2]);
+    // Spec 007: the precision moved with the method region to the Método page.
+    const page = await browser.open(`${app.baseUrl}/metodo`, VIEWPORTS[2]);
     pages.push(page);
     const facts = await page.evaluate<{ method: string }>(
       `(() => ({ method: (document.querySelector('#metodo')?.textContent ?? '').trim() }))()`,

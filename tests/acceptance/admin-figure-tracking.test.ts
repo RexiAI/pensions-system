@@ -5,7 +5,7 @@ import { FIGURE_IDS } from '../../web/ingest/types';
 import { adminT } from '../../web/content/admin';
 import { LOCALES } from '../../web/content/types';
 import { content } from '../fixtures/figures';
-import { figuresOf, methodOf, storyOf, storyPage } from '../helpers/story';
+import { allPages, figuresOf, methodOf, storyOf } from '../helpers/story';
 
 /**
  * AC-004-47…49 — figures 3 to 7 are tracked in admin (spec 004 T11).
@@ -59,7 +59,7 @@ describe('AC-004-49: the five unavailable figures are visible to the operator on
       expect(html.split('<th scope="row">').length - 1).toBe(FIGURE_IDS.length);
       expect(html).toContain('unavailable');
       for (const locale of LOCALES) {
-        const page = storyPage(locale);
+        const page = allPages(locale);
         expect(figuresOf(page).split('class="plate"').length - 1, locale).toBe(2);
         expect(page, locale).not.toContain('/admin');
         expect(storyOf(page) + methodOf(page), locale).not.toContain('admin.home');

@@ -43,7 +43,7 @@ const COHORT = ['65', 'mayores', 'older', 'âgé', 'ältere', 'anziani'];
 const THESIS_TERMS = ['pirámide', 'piramide', 'pyramid', 'pyramide', 'fraude', 'fraud', 'estafa', 'betrug'];
 
 function agreementHtml(locale: Locale): string {
-  return decodeText(sectionOf(committedPage(locale), 'data-register="agreement"'));
+  return decodeText(sectionOf(committedPage(locale, undefined, 'debate'), 'data-register="agreement"'));
 }
 
 /** A claim block's own sentence: its first `<p>`, before the citation panel's digits. */
@@ -116,7 +116,7 @@ describe('AC-005-19: claim B’s numerals are the committed fig-01 numerals', ()
       const text = renderedClaimB(locale);
       expect(text, `${locale}: rendered first numeral`).toContain(first);
       expect(text, `${locale}: rendered latest numeral`).toContain(latest);
-      const plate = decodeText(figuresOf(committedPage(locale)));
+      const plate = decodeText(figuresOf(committedPage(locale, undefined, 'cifras')));
       expect(plate, `${locale}: plate first`).toContain(first);
       expect(plate, `${locale}: plate latest`).toContain(latest);
       const otherDigits = text.replaceAll(first, '').replaceAll(latest, '');
@@ -177,6 +177,6 @@ describe('AC-005-22: no new figure, series or derived artefact', () => {
     // and by requiring the page's plate count to follow the computed figures.
     expect(FIGURE_IDS).toHaveLength(7);
     const computed = readDerivedFigures('data/derived').filter((figure) => figure.availability === 'computed');
-    expect(committedPage('es').split('class="figure-slot"').length - 1).toBe(computed.length);
+    expect(committedPage('es', undefined, 'cifras').split('class="figure-slot"').length - 1).toBe(computed.length);
   });
 });

@@ -23,7 +23,7 @@ const TOKENS = readFileSync('web/styles/tokens.css', 'utf8');
 const NOW = Date.parse('2026-10-31T10:00:00Z');
 
 function page(series: readonly DerivedSeries[] = seriesFixtures(), locale: Locale = 'es', nowMs = NOW): string {
-  return renderComponent(PublicPage, {
+  const props = {
     content: content(locale),
     figures: [dependencyFigure(), shareFigure()],
     citations: citationRegistry,
@@ -31,7 +31,11 @@ function page(series: readonly DerivedSeries[] = seriesFixtures(), locale: Local
     stale: false,
     series,
     now: new Date(nowMs),
-  });
+  } as const;
+  return (
+    renderComponent(PublicPage, { ...props, pageKind: 'historia' }) +
+    renderComponent(PublicPage, { ...props, pageKind: 'metodo' })
+  );
 }
 
 /** Step 1's own markup: from its opening tag to the start of step 2. */
@@ -41,10 +45,10 @@ function numberStepOf(html: string): string {
   return start === -1 || end === -1 ? '' : html.slice(start, end);
 }
 
-/** The method region: from `id="metodo"` to the debate registers. */
+/** The method region: from `id="metodo"` to the page's closing pager. */
 function methodOf(html: string): string {
   const start = html.indexOf('id="metodo"');
-  const end = html.indexOf('id="debate"');
+  const end = html.indexOf('class="pager"', start === -1 ? 0 : start);
   return start === -1 || end === -1 ? '' : html.slice(start, end);
 }
 

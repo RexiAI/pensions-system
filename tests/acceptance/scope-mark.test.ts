@@ -24,6 +24,7 @@ function pageHtml(locale: string): string {
     citations: citationRegistry,
     freshnessWindowDays: 45,
     stale: false,
+    pageKind: 'metodo',
   });
 }
 

@@ -5,7 +5,7 @@ import { contentRegistry } from '../../web/content/registry';
 import { renderComponent, PLATE_FIXTURES } from '../fixtures/figures';
 import { listSourceFiles, readSource } from '../helpers/source-scan';
 
-function pageFor(locale = 'es'): string {
+function pageFor(locale = 'es', pageKind: 'historia' | 'cifras' | 'metodo' | 'debate' = 'historia'): string {
   const result = contentRegistry.get('ES', locale);
   if (!result.ok) throw new Error('missing locale');
   return renderComponent(PublicPage, {
@@ -14,7 +14,13 @@ function pageFor(locale = 'es'): string {
     citations: citationRegistry,
     freshnessWindowDays: 45,
     stale: false,
+    pageKind,
   });
+}
+
+/** The four pages as one string: a cross-page property must hold across the whole public surface. */
+function pagesFor(locale = 'es'): string {
+  return (['historia', 'cifras', 'metodo', 'debate'] as const).map((kind) => pageFor(locale, kind)).join('');
 }
 
 describe('public surface independence', () => {
@@ -23,7 +29,7 @@ describe('public surface independence', () => {
     delete env.ADMIN_PASSWORD_HASH;
     delete env.ADMIN_SESSION_SECRET;
 
-    const html = pageFor('es');
+    const html = pagesFor('es');
 
     expect(html).toContain('<main');
     expect(html).toContain('fig-01');
@@ -46,7 +52,7 @@ describe('public surface independence', () => {
     for (const locale of ['es', 'en', 'fr', 'de', 'it']) {
       const result = contentRegistry.get('ES', locale);
       if (!result.ok) throw new Error('missing locale');
-      const html = pageFor(locale);
+      const html = pagesFor(locale);
       expect(html, locale).toContain(result.content.strings['hero.statement']);
       expect(html, locale).toContain(result.content.strings['thesis.label']);
       expect(html.length).toBeGreaterThan(2000);
@@ -62,6 +68,7 @@ describe('public surface independence', () => {
       citations: citationRegistry,
       freshnessWindowDays: 45,
       stale: true,
+      pageKind: 'historia',
     });
 
     expect(html).toContain(result.content.t('banner.stale'));

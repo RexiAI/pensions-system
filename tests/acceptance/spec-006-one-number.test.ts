@@ -4,7 +4,7 @@ import { readClock } from '../../web/series/clock';
 import { COUNTDOWN_BASE, COUNTDOWN_THRESHOLD } from '../../web/series/countdown';
 import { content } from '../fixtures/figures';
 import { countdownValue } from '../fixtures/series';
-import { anchorDate, clockLabels, numberSentence, stepIds, stepOf, storyPage, textOf } from '../helpers/story';
+import { anchorDate, clockLabels, metodoPage, numberSentence, stepIds, stepOf, storyPage, textOf } from '../helpers/story';
 import { decodeText } from '../helpers/render-document';
 
 /**
@@ -99,8 +99,8 @@ describe('AC-006-30: the sentence still carries the date and binds to the one nu
 describe('AC-006-31: the detail survives in Method', () => {
   it('AC-006-31: the years quantity, its two integers and the arithmetic are visible text outside a disclosure', () => {
     for (const locale of LOCALES) {
-      const html = storyPage(locale);
-      const method = html.slice(html.indexOf('id="metodo"'), html.indexOf('id="debate"'));
+      const html = metodoPage(locale);
+      const method = html.slice(html.indexOf('id="metodo"'), html.indexOf('class="pager"'));
       const outside = decodeText(method.replace(/<details[\s\S]*?<\/details>/g, ''));
       const arithmetic = content(locale).t('countdown.clock.arithmetic', {
         years: '16',

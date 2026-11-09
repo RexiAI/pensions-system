@@ -58,7 +58,7 @@ function renderFuse(series: DerivedSeries, locale = 'es'): string {
 /** `#metodo`: the methodological precision the story drops. */
 function methodOf(html: string): string {
   const at = html.indexOf('id="metodo"');
-  return at === -1 ? '' : html.slice(at, html.indexOf('id="debate"', at));
+  return at === -1 ? '' : html.slice(at, html.indexOf('class="pager"', at));
 }
 
 /** The declared `fuse.label`, computed from the value the same way the page does. */
@@ -73,7 +73,7 @@ function page(
   nowMs = Date.parse('2026-10-31T10:00:00Z'),
   locale = 'es',
 ): string {
-  return renderComponent(PublicPage, {
+  const props = {
     content: content(locale),
     figures: [dependencyFigure(), shareFigure()],
     citations: citationRegistry,
@@ -81,7 +81,11 @@ function page(
     stale: false,
     series,
     now: new Date(nowMs),
-  });
+  } as const;
+  return (
+    renderComponent(PublicPage, { ...props, pageKind: 'historia' }) +
+    renderComponent(PublicPage, { ...props, pageKind: 'metodo' })
+  );
 }
 
 /** The fuse element itself: the `<figure class="fuse">`, not its provenance sibling. */

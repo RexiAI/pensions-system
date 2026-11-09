@@ -39,7 +39,7 @@ function renderPage(value: CountdownValue, locale = 'es'): string {
     ...seriesFixtures().filter((entry) => entry.seriesId !== 'countdown'),
     { ...countdownSeries(), value },
   ];
-  return renderComponent(PublicPage, {
+  const props = {
     content: content(locale),
     figures: [],
     citations: citationRegistry,
@@ -47,13 +47,17 @@ function renderPage(value: CountdownValue, locale = 'es'): string {
     stale: false,
     series,
     now: new Date('2026-10-31T10:00:00Z'),
-  });
+  } as const;
+  return (
+    renderComponent(PublicPage, { ...props, pageKind: 'historia' }) +
+    renderComponent(PublicPage, { ...props, pageKind: 'metodo' })
+  );
 }
 
 /** `#metodo`: the region that carries the projection's precision. */
 function methodOf(html: string): string {
   const at = html.indexOf('id="metodo"');
-  return at === -1 ? '' : html.slice(at, html.indexOf('id="debate"', at));
+  return at === -1 ? '' : html.slice(at, html.indexOf('class="pager"', at));
 }
 
 /** Step 1's number group: the measurement and its labels. */
