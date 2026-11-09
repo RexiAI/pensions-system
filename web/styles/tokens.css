@@ -176,6 +176,10 @@
 
   --state-pending: #7a5310;
   --state-danger: #8a2c1e;
+  /* Spec 007 T6/T7/T8: the active page's rule, the pager's separation and the title-to-region gap. */
+  --nav-active-rule: 2px;
+  --pager-gap: var(--space-6);
+  --page-head-gap: var(--space-5);
   --admin-max: 1440px;
   --admin-row-h: 40px;
   --admin-gap: var(--space-5);
