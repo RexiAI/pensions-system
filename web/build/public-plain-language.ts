@@ -49,10 +49,13 @@ const STRIP_MARKER = 'class="story__strip"';
 const MAIN_MARKER = '<main';
 const CONTEXT = 60;
 
-/** The story region of a document: `<main>` up to the after-story strip. */
+/** The story region of a Historia document: `<main>` up to the after-story strip. */
 export function topRegionOf(html: string): string {
   const start = html.indexOf(MAIN_MARKER);
   if (start === -1) return '';
+  // Only a Historia page carries the story. A precision page (Método, Cifras, Debate) has no
+  // `data-top-step` and is out of the top-region scope by construction (spec 007 T11).
+  if (html.indexOf('data-top-step', start) === -1) return '';
   const end = html.indexOf(STRIP_MARKER, start);
   return end === -1 ? html.slice(start) : html.slice(start, end);
 }

@@ -25,7 +25,9 @@ function checkLocale(locale: string, terms: readonly string[]): number {
     console.error(`${locale}: no complete content for this locale`);
     return 1;
   }
-  const html = renderToStaticMarkup(createElement(PublicPage, props));
+  const html = (['historia', 'cifras', 'metodo', 'debate'] as const)
+    .map((pageKind) => renderToStaticMarkup(createElement(PublicPage, { ...props, pageKind })))
+    .join('');
   const hits = scanPublicText(stripOperatorSubtrees(html), terms);
   for (const hit of hits) console.error(`${locale}: ${hit.pattern} — …${hit.context}…`);
   return hits.length;
