@@ -6,6 +6,23 @@ export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = 'es';
 
+/**
+ * The locales the `[locale]` route segment enumerates: every locale but the default one, which is
+ * served from the branch that has no segment. Derived from `LOCALES` rather than spelled again, so
+ * a sixth locale is one edit and `generateStaticParams` cannot disagree with the route manifest.
+ */
+export const NON_DEFAULT_LOCALES: readonly Locale[] = LOCALES.filter((locale) => locale !== DEFAULT_LOCALE);
+
+/**
+ * The four public page kinds of spec 007, in reading order. The kind is a content concept as
+ * much as a route one: each page has one name and one title string, both of which live in the
+ * content model (never in a component), so the type is declared here and the route manifest and
+ * the content key maps both resolve it.
+ */
+export const PAGE_KINDS = ['historia', 'cifras', 'metodo', 'debate'] as const;
+
+export type PageKind = (typeof PAGE_KINDS)[number];
+
 export function isLocale(value: unknown): value is Locale {
   return typeof value === 'string' && (LOCALES as readonly string[]).includes(value);
 }
