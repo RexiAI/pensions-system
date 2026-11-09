@@ -1,6 +1,6 @@
 import { REGISTER_ROWS } from '../../content/registers';
 import type { CountryLocaleContent } from '../../content/types';
-import { localePath } from './SiteHeader';
+import { publicPathFor } from '../../seo/routes';
 
 export interface RegisterKeyProps {
   content: CountryLocaleContent;
@@ -29,7 +29,7 @@ export function RegisterKey({ content }: RegisterKeyProps) {
         </div>
       ))}
       <p className="register-key__method">
-        <a href={localePath(content.locale)}>{content.t('fig.01.title')}</a>
+        <a href={publicPathFor(content.locale)}>{content.t('fig.01.title')}</a>
       </p>
     </section>
   );
