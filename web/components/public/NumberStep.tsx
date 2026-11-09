@@ -117,9 +117,12 @@ export function NumberStep({ step, content, countdown, nowMs }: NumberStepProps)
       step={step}
       content={content}
       lead={
-        <h1 className="hero__title" id="hero-title">
-          {content.t('hero.statement')}
-        </h1>
+        <>
+          <p className="hero__kicker">{content.t('kicker.mechanism')}</p>
+          <h1 className="hero__title" id="hero-title">
+            {content.t('hero.statement')}
+          </h1>
+        </>
       }
     >
       <NumberBody content={content} countdown={countdown} nowMs={nowMs} />
