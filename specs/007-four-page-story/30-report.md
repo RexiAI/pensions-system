@@ -254,3 +254,17 @@ at: 2026-11-09T11:29:02Z
   untouched, as recorded in `25-verification.md`.
 - Stage 5b (PR Opener) precondition: `30-report.md` is present and GREEN; mutation score is above
   the unchanged threshold. The `PR:` line is appended by the PR Opener.
+
+## Evidence: pull request (stage 5b)
+
+PR: https://github.com/RexiAI/pensions-system/pull/20
+commits: 17
+branch: spec/007-four-page-story
+base: main
+at: 2026-11-09T13:34:33Z
+
+The PR is a draft. 17 commits = 13 spec-007 commits (12 task commits plus the T1
+`public-page-props` follow-up) + the docs/ledger commit + the 3 commits that predate spec 007
+(`04273aa`, `95bf0f6`, `7f39ba2`). Audit-trail gate (`check-audit-trail.sh 007-four-page-story`,
+no `--require-deploy`) exited 0 before the first commit. The spec folder is not archived here —
+stage 5d owns the archive.
