@@ -40,6 +40,7 @@ function pageWith(figures: readonly ReturnType<typeof fig01With>[]): string {
     stale: false,
     series: seriesFixtures(),
     now: new Date(NOW),
+    pageKind: 'debate',
   });
 }
 

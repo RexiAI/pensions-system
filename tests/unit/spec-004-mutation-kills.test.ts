@@ -46,21 +46,26 @@ function stepNamed(id: string) {
 describe('public-plain-language: the region boundary', () => {
   /** Kills `topRegionOf`'s three survivors at L57 (whole document, `? html : …`, `end === +1`). */
   it('ends the region at the after-story strip rather than at the end of the document', () => {
-    const html = '<body><main id="main"><p>uno</p></main><div class="story__strip">STRIP-MARKER</div></body>';
+    const html = '<body><main id="main"><p>uno</p></main><div class="story__strip">STRIP-MARKER</div><section data-top-step="number"></section></body>';
     const region = topRegionOf(html);
     expect(region.startsWith('<main')).toBe(true);
     expect(region).not.toContain('STRIP-MARKER');
   });
 
-  /** Kills the same survivors from the other side: a document with no strip runs to the end. */
-  it('takes the whole tail when the document carries no after-story strip', () => {
-    const html = '<body><main id="main"><p>uno</p></main></body>';
-    expect(topRegionOf(html)).toBe('<main id="main"><p>uno</p></main></body>');
+  /** Kills the same survivors from the other side: a story with no strip runs to the end. */
+  it('takes the whole tail when a Historia story carries no after-story strip', () => {
+    const html = '<body><main id="main"><section data-top-step="number">uno</section></main></body>';
+    expect(topRegionOf(html)).toBe('<main id="main"><section data-top-step="number">uno</section></main></body>');
+  });
+
+  /** Spec 007 T11: a precision page has no story, so it has no top region at all. */
+  it('returns no region for a document with no Historia story', () => {
+    expect(topRegionOf('<main id="main"><p>uno</p></main>')).toBe('');
   });
 
   /** Kills the `trim()` survivor at L61: a slice that ends on the strip's own whitespace is trimmed. */
   it('trims the whitespace a bounded context window ends on', () => {
-    const html = '<main id="main">ratio de dependencia <div class="story__strip"></div></main>';
+    const html = '<main id="main">ratio de dependencia <div class="story__strip"></div></main><section data-top-step="number"></section>';
     const hit = scanTopRegion(html, 'es').find((candidate) => candidate.term === 'ratio de dependencia');
     expect(hit?.context).toBe('<main id="main">ratio de dependencia <div');
   });
@@ -68,7 +73,7 @@ describe('public-plain-language: the region boundary', () => {
   /** Kills the four `contextAround` mutants at L61 (bounds, `index + CONTEXT`, lost collapse). */
   it('bounds the context window around the hit and collapses its whitespace', () => {
     const pad = `${'z'.repeat(70)}\n  ${'z'.repeat(7)}`;
-    const html = `<main id="main">\n<p>\n${pad} la ratio de dependencia ${pad}\n</p>\n</main>`;
+    const html = `<main id="main">\n<p>\n${pad} la ratio de dependencia ${pad}\n</p>\n</main><section data-top-step="number"></section>`;
     const hits = scanTopRegion(html, 'es');
     const hit = hits.find((candidate) => candidate.term === 'ratio de dependencia');
     expect(hit).toBeDefined();
@@ -133,23 +138,26 @@ describe('CountdownPrecision: each precision line is conditional', () => {
   });
 });
 
-describe('FiguresRegion: the heading and the one ledger note', () => {
-  /** Kills the L64 survivors: no heading without a published figure, and the heading names itself. */
-  it('heads the appendix only where a figure is published, with its own label', () => {
+describe('FiguresRegion: the page h1 names the region and nothing re-heads it', () => {
+  /** Re-pointed by spec 007 T3: the page owns the `<h1>`; the region prints no second heading. */
+  it('names the region from the page h1 and heads nothing itself', () => {
     const empty = renderComponent(FiguresRegion, {
       content: ES,
       figures: [makeFigure({ figureId: 'fig-06', unit: 'ratio', value: null, availability: 'unavailable' })],
       freshnessWindowDays: 45,
+      labelledBy: 'page-title-cifras',
     });
     expect(empty).not.toContain('region__heading');
-    expect(empty).toContain('<div id="figuras"></div>');
+    expect(empty).toContain('<div id="figuras" role="region" aria-labelledby="page-title-cifras">');
 
     const full = renderComponent(FiguresRegion, {
       content: ES,
       figures: [makeFigure({ figureId: 'fig-02', unit: 'percent', value: shareValue() })],
       freshnessWindowDays: 45,
+      labelledBy: 'page-title-cifras',
     });
-    expect(full).toContain(`<h2 class="region__heading">${ES.t('nav.figures')}</h2>`);
+    expect(full).not.toContain('region__heading');
+    expect(full).toContain('class="plate"');
   });
 
   /** Kills the L72 survivor: the ledger note leads the first ledger-state figure, not every one. */
@@ -187,7 +195,7 @@ describe('the step shells: the label, the id and the class are the structure', (
   it('states the meaning sentence and the one action', () => {
     const html = renderComponent(MeaningStep, { step: stepNamed('meaning'), content: ES });
     expect(html).toContain(`<p class="step__statement">${ES.t('steps.meaning.sentence')}</p>`);
-    expect(html).toContain(`href="#figuras">${ES.t('hero.ctaPrimary')}</a>`);
+    expect(html).toContain(`href="/cifras">${ES.t('hero.ctaPrimary')}</a>`);
   });
 
   /** Kills the L32 survivor in `RegisterKey`: the key's first link names the figure it points at. */
@@ -198,16 +206,19 @@ describe('the step shells: the label, the id and the class are the structure', (
 });
 
 describe('MethodRegion: it renders without the material it documents', () => {
-  /** Kills the L45 and L69 survivors: no series means no strip, and the heading is its own. */
-  it('renders the method heading and no strip when nothing is published', () => {
+  /** Kills the L45 and L69 survivors: no series means no strip, and no second heading is printed. */
+  it('renders no page-name heading and no strip when nothing is published', () => {
     const html = renderComponent(MethodRegion, {
       content: ES,
       sources: {},
       freshnessWindowDays: 45,
       nowMs: NOW,
       countries: [],
+      labelledBy: 'page-title-metodo',
     });
-    expect(html).toContain(`<h2 class="method__heading" id="metodo-heading">${ES.t('nav.method')}</h2>`);
+    expect(html).not.toContain('method__heading');
+    expect(html).toContain('id="metodo"');
+    expect(html).toContain('aria-labelledby="page-title-metodo"');
     expect(html).not.toContain('provenance__field');
     expect(html).not.toContain('fuse__label');
   });
@@ -216,7 +227,7 @@ describe('MethodRegion: it renders without the material it documents', () => {
 describe('the story with nothing published', () => {
   /** Kills the `PublicPage` survivors at L52, L81, L83 and L87. */
   it('renders the shell from content alone, with no series and no figures', () => {
-    const html = renderComponent(PublicPage, {
+    const props = {
       content: ES,
       figures: [],
       citations: citationRegistry,
@@ -224,9 +235,13 @@ describe('the story with nothing published', () => {
       stale: false,
       series: [],
       now: new Date(NOW),
-    });
+    } as const;
+    const html = (['historia', 'cifras', 'metodo', 'debate'] as const)
+      .map((pageKind) => renderComponent(PublicPage, { ...props, pageKind }))
+      .join('');
     expect(html).toContain(`<a class="skip-link" href="#main">${ES.t('site.skipLink')}</a>`);
-    expect(html).toContain('<div id="figuras"></div>');
+    expect(html).toContain('id="figuras"');
+    expect(html).not.toContain('class="plate"');
     // The scope mark falls back to this country's own record.
     expect(html).toContain('class="scope" data-scope="text"');
     expect(html).toContain(`<span class="scope__name">${ES.country.name}</span>`);
@@ -247,6 +262,7 @@ describe('the story with nothing published', () => {
       stale: false,
       series: seriesFixtures(),
       now: new Date(NOW),
+      pageKind: 'metodo',
     });
     expect(html).toContain('<span>Instituto Nacional de Estadística (INE)</span>');
   });
@@ -265,6 +281,7 @@ describe('the story with nothing published', () => {
       stale: false,
       series: seriesFixtures(),
       now: new Date(NOW),
+      pageKind: 'metodo',
     });
     expect(html).toContain(`<dt>${ES.t('assumptions.lifeExpectancy.label')}</dt><dd>21,5</dd>`);
   });
@@ -283,6 +300,7 @@ describe('the story with nothing published', () => {
       stale: false,
       series: seriesFixtures(),
       now: new Date(NOW),
+      pageKind: 'metodo',
     });
     expect(html).toContain(`<dt>${ES.t('assumptions.lifeExpectancy.label')}</dt><dd>${ES.t('table.notDefined')}</dd>`);
     expect(html).not.toContain('<dd>21,5</dd>');
@@ -299,6 +317,7 @@ describe('the story with nothing published', () => {
       stale: false,
       series: [countdown, ...seriesFixtures().filter((entry) => entry.seriesId !== 'countdown')],
       now: new Date(NOW),
+      pageKind: 'historia',
     });
     expect(html).not.toContain('data-clock-state');
     expect(html).not.toContain('class="share"');
@@ -320,6 +339,7 @@ describe('the countdown step without a clock', () => {
           : entry,
       ),
       now: new Date(NOW),
+      pageKind: 'historia',
     });
     expect(html).toContain('data-top-step="number"');
     expect(html).not.toContain('clock__value--days');
@@ -336,6 +356,7 @@ describe('the countdown step without a clock', () => {
       stale: false,
       series: seriesFixtures(),
       now: new Date(NOW),
+      pageKind: 'historia',
     });
     expect(html).toContain(`<span class="clock__label">${ES.t('countdown.clock.days')}</span>`);
     expect(html).not.toContain(`<span class="clock__label">${ES.t('countdown.clock.seconds')}</span>`);
@@ -531,6 +552,7 @@ describe('PlateBody: the chart frame names its figure and keeps its reference', 
       stale: false,
       series: [],
       now: new Date(NOW),
+      pageKind: 'cifras',
     });
   }
 

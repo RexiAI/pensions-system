@@ -2,11 +2,100 @@
   "meta": {
     "sourceId": "igae-pension-expenditure",
     "sourceClass": "document",
-    "publisher": "Intervención General de la Administración del Estado (IGAE)",
-    "dataset": "Cuentas del sistema de la Seguridad Social, gasto en pensiones contributivas",
-    "sourceUrl": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Paginas/Inicio.aspx",
-    "retrievedAt": "2026-10-25T00:00:00Z"
+    "publisher": "Intervención General de la Seguridad Social (IGSS) — Ministerio de Inclusión, Seguridad Social y Migraciones",
+    "dataset": "Pensiones contributivas del sistema de la Seguridad Social (incl. complementos de mínimos), millones de euros constantes de 2021",
+    "sourceUrl": "https://www.seg-social.es/wps/portal/wss/internet/InformacionEconomicoFinanciera",
+    "transcriptionSource": "https://documentos.fedea.net/data/ap/2026/ap2026-03.zip — de la Fuente (2026), series SSA 2005-2025 v1.3, hoja 'series', fila '2.1. Pensiones, incl. complementos de mínimos'",
+    "scopeNote": "Solo pensiones contributivas del Sistema (jubilación, viudedad, incapacidad, orfandad, favor de familiares) con complemento de mínimos. Excluye Clases Pasivas, prestaciones no contributivas, incapacidad temporal y asistencia sanitaria de Mutuas.",
+    "retrievedAt": "2026-11-08T00:00:00Z",
+    "unitNote": "céntimos de euro constantes de 2021 (valor = millones de euros de 2021 x 1e6 x 100)"
   },
-  "resolved": false,
-  "unresolvedReason": "Gasto en pensiones contributivas (cuentas de la IGAE): la línea no está resuelta (10-tasks.md, pregunta abierta 1). La cifra no se publica hasta que un operador aporte el snapshot con línea y fecha exactas."
+  "payload": {
+    "years": [
+      {
+        "year": 2005,
+        "value": 8331016681967
+      },
+      {
+        "year": 2006,
+        "value": 8558773789230
+      },
+      {
+        "year": 2007,
+        "value": 8945722954154
+      },
+      {
+        "year": 2008,
+        "value": 9270697239305
+      },
+      {
+        "year": 2009,
+        "value": 9821638942154
+      },
+      {
+        "year": 2010,
+        "value": 10424211631609
+      },
+      {
+        "year": 2011,
+        "value": 10846928099679
+      },
+      {
+        "year": 2012,
+        "value": 11301090529930
+      },
+      {
+        "year": 2013,
+        "value": 11801196444967
+      },
+      {
+        "year": 2014,
+        "value": 12219140843103
+      },
+      {
+        "year": 2015,
+        "value": 12514052883288
+      },
+      {
+        "year": 2016,
+        "value": 12850656889898
+      },
+      {
+        "year": 2017,
+        "value": 13077411662917
+      },
+      {
+        "year": 2018,
+        "value": 13523739039278
+      },
+      {
+        "year": 2019,
+        "value": 14042604977787
+      },
+      {
+        "year": 2020,
+        "value": 14258422452359
+      },
+      {
+        "year": 2021,
+        "value": 14547838000000
+      },
+      {
+        "year": 2022,
+        "value": 14550050670155
+      },
+      {
+        "year": 2023,
+        "value": 15149339768289
+      },
+      {
+        "year": 2024,
+        "value": 15788115719463
+      },
+      {
+        "year": 2025,
+        "value": 16295772798934
+      }
+    ]
+  }
 }

@@ -100,7 +100,10 @@ function yearCard(content: CountryLocaleContent, thresholdYear: number): ShareCa
       <ScopeLine name={content.country.name} />
     </div>
   );
-  return { alt: `${BRAND.wordmark} — ${content.t('meta.title', { year })}`, element };
+  return {
+    alt: `${BRAND.wordmark} — ${content.t('meta.title')} · ${year} · ${content.country.name}`,
+    element,
+  };
 }
 
 export function shareCard(locale: string, thresholdYear: number | null = committedThresholdYear()): ShareCard | null {

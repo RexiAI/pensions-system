@@ -134,8 +134,20 @@ export const RETIRED_SCENARIOS: readonly string[] = [
  * above (its subject still exists), but no test may cite it any more because a stronger scenario
  * replaced its assertion. Spec 005 T8 supersedes `AC-004-11` (step 2 was the sole carrier of the
  * `50`/`100` statement) with `AC-005-10` (steps 1 and 2 carry it).
+ *
+ * Spec 007 T12 supersedes the single-page fold pins: the fifth step preceding `#figuras`, the
+ * method region being "below the fold", and the step-5/strip in-page anchor targets. Their
+ * substance is where a region sat on one document; the four-page split replaces it with the page
+ * that owns the region and the pager that walks the sequence (AC-007-05, -06, -07, -08, -09).
  */
-export const SUPERSEDED_SCENARIOS: readonly string[] = ['AC-004-11'];
+export const SUPERSEDED_SCENARIOS: readonly string[] = [
+  'AC-004-11',
+  'AC-004-04',
+  'AC-004-37',
+  'AC-004-25',
+  'AC-004-28',
+  'AC-004-32',
+];
 
 export interface TraceabilityReport {
   /** Scenarios with no test citing them. */

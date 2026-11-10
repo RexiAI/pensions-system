@@ -56,15 +56,6 @@ describe('AC-004-03: each step is a labelled section with its own heading', () =
   });
 });
 
-describe('AC-004-04: the step stack precedes the figures', () => {
-  it('AC-004-04: the fifth step precedes #figuras, and #figuras is not empty', () => {
-    const html = storyPage();
-    expect(html.indexOf('data-top-step="meaning"')).toBeLessThan(html.indexOf('id="figuras"'));
-    const figures = html.slice(html.indexOf('id="figuras"'), html.indexOf('id="metodo"'));
-    expect(figures).toContain('class="plate"');
-  });
-});
-
 describe('AC-004-05: the page chrome is not a step', () => {
   it('AC-004-05: nothing before the first step but the header and, when stale, one banner', () => {
     for (const stale of [false, true]) {

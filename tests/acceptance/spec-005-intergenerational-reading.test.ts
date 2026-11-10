@@ -33,7 +33,7 @@ const NON_CONTRIBUTION = [
 ];
 
 function thesisHtml(locale: Locale): string {
-  return sectionOf(decodeText(committedPage(locale)), 'data-register="thesis"');
+  return sectionOf(decodeText(committedPage(locale, undefined, 'debate')), 'data-register="thesis"');
 }
 
 describe('AC-005-23: exactly one piece of prose carries the reading', () => {
@@ -65,7 +65,7 @@ describe('AC-005-25: it is labelled as the page’s reading, not as a measuremen
   it('AC-005-25: the reading sits inside the thesis, after its disclaimer, under its label', () => {
     for (const locale of LOCALES) {
       const local = content(locale);
-      const html = decodeText(committedPage(locale));
+      const html = decodeText(committedPage(locale, undefined, 'debate'));
       const { start: sectionStart, end: sectionEnd } = sectionRangeOf(html, 'data-register="thesis"');
       const readingText = reading(locale, local.editorial.thesis);
       const offset = html.indexOf(readingText);
@@ -103,7 +103,11 @@ describe('AC-005-27: the thesis keeps its structure and its vocabulary boundary'
       const local = content(locale);
       expect(thesisVocabularyLocations(local.editorial).length, locale).toBeGreaterThan(0);
       expect(thesisVocabularyOutsideThesis(local.strings, local.editorial), locale).toEqual([]);
-      const html = decodeText(committedPage(locale));
+      const html = decodeText(
+        committedPage(locale, undefined, 'historia') +
+          committedPage(locale, undefined, 'cifras') +
+          committedPage(locale, undefined, 'debate'),
+      );
       const readingText = reading(locale, local.editorial.thesis);
       expect(storyOf(html), `${locale}: in the story`).not.toContain(readingText);
       const figuresStart = html.indexOf('id="figuras"');

@@ -4,7 +4,7 @@ import { PublicPage } from '../../web/components/PublicPage';
 import { citationRegistry } from '../../web/content/citations';
 import { content } from '../fixtures/figures';
 import { countdownSeries, countdownValue } from '../fixtures/series';
-import { clockLabels, stepOf, storyPage } from '../helpers/story';
+import { clockLabels, metodoPage, stepOf, storyPage } from '../helpers/story';
 import { renderComponent } from '../fixtures/figures';
 import { BROWSER_READY, DOM_PREAMBLE, MATRIX, startServedBrowser } from '../helpers/served-browser';
 import type { ServedBrowser } from '../helpers/served-browser';
@@ -111,6 +111,7 @@ describe('AC-002-13/14: the surviving group invariants', () => {
       stale: false,
       series: [{ ...countdownSeries(), value: notCrossed }],
       now: new Date(Date.parse('2026-10-31T10:00:00Z')),
+      pageKind: 'historia',
     });
     expect(html).not.toContain('clock__value--days');
     expect(html).toContain(content('es').t('countdown.notCrossed', { year: notCrossed.horizonEnd }));
@@ -119,11 +120,10 @@ describe('AC-002-13/14: the surviving group invariants', () => {
   it('AC-002-14: the anchor date stays visible text, and the group never states the crossing', () => {
     const now = Date.parse('2026-10-31T10:00:00Z');
     for (const locale of LOCALES) {
-      const html = storyPage(locale, { nowMs: now });
-      const method = html.slice(html.indexOf('id="metodo"'));
+      const method = metodoPage(locale, { nowMs: now });
       expect(method, locale).toContain('2042');
       expect(method, locale).toContain(content(locale).t('countdown.clock.anchorLabel'));
-      const step = stepOf(html, 'number');
+      const step = stepOf(storyPage(locale, { nowMs: now }), 'number');
       const group = /<div class="clock"[^>]*>([\s\S]*?)<\/div>/.exec(step)?.[1] ?? '';
       expect(group, locale).not.toMatch(/cruza|cruz|alcanza|alcanz|valid|supera|corrobor|cross|reaches|atteint|erreicht|raggiunge/i);
     }

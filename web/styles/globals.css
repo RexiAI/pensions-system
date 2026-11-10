@@ -473,14 +473,6 @@ svg {
   min-block-size: var(--tap-min);
 }
 
-/* The region heading of the appendix: outside `#figuras`, so the anchor lands on the first plate. */
-.region__heading {
-  font-size: var(--text-h2);
-  line-height: var(--leading-snug);
-  color: var(--ink-1);
-  margin: var(--space-8) 0 0;
-}
-
 /* The page's one `<h1>`, inside step 1: the display step of the ladder, uncapped by `--measure`
    (a character measure at 64px resolves past the content width and correctly never binds). */
 .hero__title {
@@ -1533,19 +1525,11 @@ svg {
   color: var(--ink-1);
 }
 
-/* ---------- The method region (spec 004 T8) ---------- */
+/* ---------- The method region (spec 004 T8, re-pointed by spec 007 T4) ---------- */
 
 .method {
-  border-top: var(--border-hair);
-  padding-block: var(--space-9) 0;
+  padding-block: 0;
   max-inline-size: var(--measure);
-}
-
-.method__heading {
-  font-size: var(--text-h2);
-  line-height: var(--leading-snug);
-  color: var(--ink-1);
-  margin: 0 0 var(--space-5);
 }
 
 /* Three groups, one hairline each: the countdown's precision, the fuse's, then the provenance. */
@@ -1700,3 +1684,133 @@ svg {
   clip-path: inset(50%);
 }
 
+
+/* ---------- Spec 007: four pages, one nav, a pager and the kicker ---------- */
+
+/* The active page in the header nav: weight plus a neutral 2px bar, never colour. The bar is an
+   `::after` inset so the 64px row does not grow when the state moves. */
+.site-header__nav a {
+  position: relative;
+}
+
+.site-header__nav a[aria-current='page'] {
+  font-weight: 600;
+}
+
+.site-header__nav a[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: var(--nav-active-rule);
+  background: var(--ink-1);
+}
+
+.index-panel__anchors a[aria-current='page'] {
+  font-weight: 600;
+}
+
+/* The sub-page title: the appendix heading's declaration set, a signpost rather than a claim.
+   `--page-head-gap` is the only separation between the title and its first region — no hairline. */
+.page-heading {
+  font-size: var(--text-h2);
+  line-height: var(--leading-snug);
+  color: var(--ink-1);
+  margin: 0 0 var(--page-head-gap);
+}
+
+/* The kicker above the h1: type and ink only, no badge, rule, background, accent or icon. It sits
+   inside step 1, on the same centre axis as the headline. */
+.hero__kicker {
+  font-family: var(--font-label);
+  font-size: var(--text-meta);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-2);
+  text-align: center;
+  max-inline-size: var(--measure);
+  margin: 0 auto var(--space-3);
+}
+
+/* Método's four regions chunk 2 + 2: one hairline between the instrument band and the
+   reproduction band, no heading invented to create the separation. */
+.method-bands {
+  display: block;
+}
+
+.method-band {
+  max-inline-size: var(--measure);
+}
+
+.method-band + .method-band {
+  border-top: var(--border-hair);
+  margin-block-start: var(--space-6);
+  padding-block-start: var(--space-6);
+}
+
+/* The previous/next pager: a two-cell row, one hairline above, no card, no radius, no shadow.
+   Every link is one line — a decorative arrow, the direction word and the destination — and the
+   pair is separated by the largest gap on the page. The destination carries no underline until
+   hover/focus, so the resting state is text, not a grey rule. */
+.pager {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pager-gap);
+  border-top: var(--border-hair);
+  margin-block-start: var(--space-8);
+  padding-block-start: var(--space-5);
+}
+
+.pager__link {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  line-height: var(--tap-min);
+  min-block-size: var(--tap-min);
+  color: var(--ink-1);
+  text-decoration: none;
+}
+
+.pager__arrow {
+  font-size: var(--text-body);
+  color: var(--ink-3);
+}
+
+.pager__direction {
+  font-family: var(--font-label);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-3);
+}
+
+.pager__destination {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--ink-1);
+}
+
+.pager__link:hover .pager__destination,
+.pager__link:focus-visible .pager__destination {
+  text-decoration-line: underline;
+  text-underline-offset: var(--space-1);
+}
+
+@media (min-width: 768px) {
+  .pager {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .pager__link {
+    flex: 1 1 0;
+    max-inline-size: 45%;
+  }
+
+  .pager__link--next {
+    justify-content: flex-end;
+    text-align: end;
+  }
+}

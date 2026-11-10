@@ -10,6 +10,7 @@ import {
 } from '../../web/sources/countries';
 import type { CountryConfiguration } from '../../web/sources/countries';
 import { MACHINE_SOURCE_IDS, SOURCE_DECLARATIONS, findSource } from '../../web/sources/types';
+import { loadSnapshots } from '../../web/sources/load';
 import { datasetForUrl, publisherForUrl } from '../../web/sources/labels';
 import { LIVE_URLS, fetchLiveSnapshots } from '../../web/sources/live';
 import { stableStringify } from '../../web/ingest/deterministic-json';
@@ -148,11 +149,16 @@ describe('the source catalogue', () => {
     }
   });
 
-  it('names what an operator must supply for every manual source', () => {
+  it('names what an operator must supply for every manual source that is still unresolved', () => {
+    const snapshots = loadSnapshots('data/snapshots');
     const manual = SOURCE_DECLARATIONS.filter((source) => source.sourceClass === 'document');
 
     expect(manual.length).toBeGreaterThan(0);
     for (const source of manual) {
+      // A resolved manual source no longer has anything to ask an operator for; an
+      // unresolved one must say exactly what is missing (`10-tasks.md`, open question 1).
+      const snapshot = snapshots.get(source.sourceId);
+      if (snapshot?.resolved) continue;
       expect(source.requiresManualSnapshot, source.sourceId).toBeTruthy();
     }
   });

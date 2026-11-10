@@ -3,7 +3,7 @@ import { canonicalUrl } from '../../content/site';
 import type { CountryLocaleContent } from '../../content/types';
 import type { CountdownValue } from '../../series/countdown';
 import { DAYS_PLACEHOLDER } from '../../share/links';
-import { publicPathFor } from '../../seo/routes';
+import { publicPathFor, pagePathFor } from '../../seo/routes';
 import { ShareRow } from '../share/ShareRow';
 import type { ShareStrings } from '../share/ShareRow';
 
@@ -64,7 +64,7 @@ export function StoryStrip({ content, countdown }: StoryStripProps) {
   const anchored = anchoredCountdown(countdown);
   return (
     <div className="story__strip">
-      <a className="hero__cta-secondary" href="#metodo">
+      <a className="hero__cta-secondary" href={pagePathFor(content.locale, 'metodo')}>
         {content.t('hero.ctaSecondary')}
       </a>
       {anchored === undefined ? null : <ShareBlock content={content} countdown={anchored} />}

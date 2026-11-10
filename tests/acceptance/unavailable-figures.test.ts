@@ -5,7 +5,7 @@ import type { DerivedFigure } from '../../web/ingest/types';
 import { LOCALES } from '../../web/content/types';
 import type { Locale } from '../../web/content/types';
 import { cohortFigure, content, dependencyFigure, makeFigure, shareFigure, unresolvedFigures } from '../fixtures/figures';
-import { figuresOf, storyPage, textOf } from '../helpers/story';
+import { allPages, cifrasPage, figuresOf, textOf } from '../helpers/story';
 
 /**
  * AC-004-42…46 — unavailable figures leave the public page (spec 004 T10).
@@ -17,7 +17,7 @@ import { figuresOf, storyPage, textOf } from '../helpers/story';
 const COMMITTED = [dependencyFigure(), shareFigure(), ...unresolvedFigures().filter((figure) => !['fig-01', 'fig-02'].includes(figure.figureId))];
 
 function page(figures: readonly DerivedFigure[] = COMMITTED, locale: Locale = 'es'): string {
-  return storyPage(locale, { figures });
+  return cifrasPage(locale, { figures });
 }
 
 describe('AC-004-42: no figure without a value appears', () => {
@@ -90,7 +90,7 @@ describe('AC-004-45: every figure computed renders every plate', () => {
 
 describe('AC-004-46: zero computed figures is a page, not a hole', () => {
   it('AC-004-46: no plate, no heading, no placeholder, and the story is unaffected', () => {
-    const html = page(unresolvedFigures());
+    const html = allPages('es', { figures: unresolvedFigures() });
     expect(html).toContain('data-top-step="number"');
     expect(html).toContain('data-top-step="meaning"');
     expect(figuresOf(html)).not.toContain('class="plate"');
@@ -103,7 +103,7 @@ describe('AC-004-46: zero computed figures is a page, not a hole', () => {
 
 describe('AC-003-41: unavailable figures still expose no reproduction', () => {
   it('AC-003-41: no chart, table, digest or command for a figure without a value', () => {
-    const html = page(unresolvedFigures());
+    const html = allPages('es', { figures: unresolvedFigures() });
     const reproduce = html.slice(html.indexOf('id="reproducir"'));
     expect(reproduce).not.toContain('--figure fig-03');
     expect(reproduce).not.toContain('--figure fig-07');
@@ -114,7 +114,7 @@ describe('AC-003-41: unavailable figures still expose no reproduction', () => {
 
 describe('AC-003-43: computed figures and registers are unaffected', () => {
   it('AC-003-43: computed plates keep their order and provenance, and the registers render', () => {
-    const html = page();
+    const html = allPages('es');
     const region = figuresOf(html);
     const ids = [...region.matchAll(/id="(fig-0\d)"/g)].map((match) => match[1]);
     expect(ids).toEqual(['fig-01', 'fig-02']);

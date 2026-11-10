@@ -24,6 +24,7 @@ function pageHtml(locale: string): string {
     citations: citationRegistry,
     freshnessWindowDays: 45,
     stale: false,
+    pageKind: 'metodo',
   });
 }
 
@@ -73,16 +74,15 @@ describe('AC-001-102: the scope mark renders from the country record in every lo
     }
   });
 
-  it('AC-001-102: the <title> and og:title take a scope suffix from the record', () => {
+  it('AC-001-102: the <title> and og:title are the short claim, not a scope suffix (revision 2)', () => {
     for (const locale of LOCALES) {
       const page = content(locale);
       const meta = pageMetadata(locale);
-      expect(meta.title, locale).toContain(page.country.name);
-      expect(meta.ogTitle, locale).toContain(page.country.name);
-      // Re-pointed by spec 003 T4 (D7 amended): the only digits the title may carry are the
-      // derived threshold year's; the scope suffix stays last.
-      expect(meta.title.replaceAll('2042', '').replace(/50|65|100/g, '')).not.toMatch(/\d/);
-      expect(meta.title.endsWith(page.country.name), locale).toBe(true);
+      // Revision 2: the operator's title is the claim alone — no country, wordmark or year.
+      expect(meta.title, locale).toBe(page.t('meta.title'));
+      expect(meta.ogTitle, locale).toBe(page.t('meta.title'));
+      expect(meta.title, locale).not.toContain(page.country.name);
+      expect(meta.title, locale).not.toMatch(/\b(19|20)\d\d\b/);
     }
   });
 

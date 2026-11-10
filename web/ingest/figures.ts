@@ -60,19 +60,30 @@ interface YearAmounts {
   years: Array<{ year: number; value: number }>;
 }
 
+/**
+ * Align two series on their period key: every left-hand row the right-hand series also observes,
+ * carrying its counterpart value. Rows are never forward-filled — an unobserved period is absent.
+ */
+function joinSeries<T>(
+  left: readonly T[],
+  right: readonly T[],
+  keyOf: (item: T) => string,
+  valueOf: (item: T) => number,
+): Array<{ item: T; counterpart: number }> {
+  const index = new Map(right.map((item) => [keyOf(item), valueOf(item)]));
+  return left
+    .filter((item) => index.has(keyOf(item)))
+    .map((item) => ({ item, counterpart: index.get(keyOf(item)) as number }));
+}
+
 /** Only the years both series observe: the ratio is aligned, never forward-filled. */
 function alignedYears(
   beneficiaries: readonly { year: number; value: number }[],
   employed: readonly { year: number; value: number }[],
 ): DependencyRatioPoint[] {
-  const employedByYear = new Map(employed.map((point) => [point.year, point.value]));
-  const points = beneficiaries
-    .filter((point) => employedByYear.has(point.year))
-    .map((point) => ({
-      period: String(point.year),
-      numerator: point.value,
-      denominator: employedByYear.get(point.year) as number,
-    }));
+  const points = joinSeries(beneficiaries, employed, (point) => String(point.year), (point) => point.value).map(
+    ({ item, counterpart }) => ({ period: String(item.year), numerator: item.value, denominator: counterpart }),
+  );
   if (points.length === 0) {
     throw new Error('beneficiaries and employment share no observed year: no ratio can be aligned');
   }
@@ -316,21 +327,26 @@ function nationalDependencyFigure(): FigureDefinition {
     requirementSources: ['ss-pensioners', 'ss-affiliates'],
     compute(inputs) {
       const pensioners = payload<MonthlySeries>(inputs, 'ss-pensioners').months;
-      const affiliates = new Map(
-        payload<MonthlySeries>(inputs, 'ss-affiliates').months.map((point) => [point.month, point.value]),
+      const affiliates = payload<MonthlySeries>(inputs, 'ss-affiliates').months;
+      const points = joinSeries(pensioners, affiliates, (point) => point.month, (point) => point.value).map(
+        ({ item, counterpart }) => ({ period: item.month, numerator: item.value, denominator: counterpart }),
       );
-      const points = pensioners
-        .filter((point) => affiliates.has(point.month))
-        .map((point) => ({
-          period: point.month,
-          numerator: point.value,
-          denominator: affiliates.get(point.month) as number,
-        }));
       if (points.length === 0) throw new Error('pensioners and affiliates share no observed month');
       return { value: dependencyRatioSeries(points), assumptions: { entry: 'monthly series' } };
     },
   });
 }
+
+/**
+ * The committed series are transcribed in cents of constant 2021 euros (millions of 2021 euros
+ * from the FEDEA SSA series, scaled by 1e8): the readout formatter treats every monetary figure
+ * as minor units. The cover ratio is invariant to that scale because numerator and denominator
+ * share it; the euro gap is not, so it is labelled.
+ */
+const COVER_ASSUMPTIONS = {
+  unit: 'céntimos de euro constantes de 2021',
+  basis: 'IGSS, vía series SSA (de la Fuente 2026)',
+};
 
 /** Figure 7 — the national definition of metric 2: contributions ÷ expenditure (T4 figure 2). */
 function nationalCoverFigure(): FigureDefinition {
@@ -341,18 +357,12 @@ function nationalCoverFigure(): FigureDefinition {
     requirementSources: ['igae-social-contributions', 'igae-pension-expenditure'],
     compute(inputs) {
       const contributions = payload<YearAmounts>(inputs, 'igae-social-contributions').years;
-      const expenditure = new Map(
-        payload<YearAmounts>(inputs, 'igae-pension-expenditure').years.map((entry) => [entry.year, entry.value]),
+      const expenditure = payload<YearAmounts>(inputs, 'igae-pension-expenditure').years;
+      const points = joinSeries(contributions, expenditure, (entry) => String(entry.year), (entry) => entry.value).map(
+        ({ item, counterpart }) => ({ year: item.year, contributions: item.value, expenditure: counterpart }),
       );
-      const points = contributions
-        .filter((entry) => expenditure.has(entry.year))
-        .map((entry) => ({
-          year: entry.year,
-          contributions: entry.value,
-          expenditure: expenditure.get(entry.year) as number,
-        }));
       if (points.length === 0) throw new Error('contributions and expenditure share no observed year');
-      return { value: contributionCoverSeries(points), assumptions: { unit: 'EUR minor units' } };
+      return { value: contributionCoverSeries(points), assumptions: COVER_ASSUMPTIONS };
     },
   });
 }

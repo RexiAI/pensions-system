@@ -15,10 +15,10 @@ const SPEC_NOW = Date.parse('2026-10-31T10:00:00Z');
  * fixture. The facts register's claim B derives its numerals from `data/derived/fig-01.json`, so
  * a fixture-based page would prove a different figure from the one the reader receives.
  */
-export function committedPage(locale: Locale, nowMs: number = SPEC_NOW): string {
+export function committedPage(locale: Locale, nowMs: number = SPEC_NOW, pageKind: 'historia' | 'cifras' | 'metodo' | 'debate' = 'historia'): string {
   const props = publicPageProps(locale, { now: new Date(nowMs) });
   if (props === null) throw new Error(`no committed page for ${locale}`);
-  return renderComponent(PublicPage, { ...props, now: new Date(nowMs) });
+  return renderComponent(PublicPage, { ...props, now: new Date(nowMs), pageKind });
 }
 
 interface Fig01File {

@@ -11,7 +11,7 @@ import { citationRegistry } from '../../web/content/citations';
 import { LOCALES } from '../../web/content/types';
 import type { Locale } from '../../web/content/types';
 import { metadataFor } from '../../web/seo/metadata';
-import { publicPathFor, sitemapEntries } from '../../web/seo/routes';
+import { pageKindOfPath, pagePathFor, publicPathFor, sitemapEntries } from '../../web/seo/routes';
 import { siteMetadata } from '../../web/seo/site-metadata';
 import { content, PLATE_FIXTURES, renderComponent } from '../fixtures/figures';
 import { seriesFixtures } from '../fixtures/series';
@@ -140,17 +140,18 @@ describe('AC-001-35: the configuration branches the shipped defaults never reach
   });
 });
 
-describe('AC-001-35: the canonical link, og:url and the footer line cannot drift', () => {
-  it('AC-001-35: every route publishes the same absolute URL in all three places', () => {
+describe('AC-001-35: the canonical link and og:url cannot drift', () => {
+  it('AC-001-35: every route publishes the same absolute URL in both places', () => {
     for (const locale of LOCALES) {
       const canonical = canonicalUrl(publicPathFor(locale));
       const meta = metadataFor(locale);
       expect(String(meta.alternates?.canonical), `${locale} rel=canonical`).toBe(canonical);
       expect(String(meta.openGraph?.url), `${locale} og:url`).toBe(canonical);
 
-      const footer = renderComponent(SiteFooter, { content: content(locale), snapshotIso: '2026-10-25T22:26:02Z' });
-      expect(footer, `${locale} footer line`).toContain(`<code>${canonical}</code>`);
-      // Never the bare path: `/` is not a canonical URL.
+      // Revision 2: the footer's citation block is gone, so it never prints a bare path or a
+      // `<code>` line that could disagree with the head.
+      const footer = renderComponent(SiteFooter, { content: content(locale) });
+      expect(footer, `${locale} footer line`).not.toContain('<code>');
       expect(footer, `${locale}`).not.toContain('<code>/</code>');
     }
   });
@@ -164,7 +165,7 @@ describe('AC-001-35: the canonical link, og:url and the footer line cannot drift
 
   it('AC-001-35: the contact renders as a real mailto link with the address as visible text', () => {
     for (const locale of LOCALES as readonly Locale[]) {
-      const footer = renderComponent(SiteFooter, { content: content(locale), snapshotIso: '2026-10-25T22:26:02Z' });
+      const footer = renderComponent(SiteFooter, { content: content(locale) });
       expect(footer, `${locale}`).toContain(`<a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>`);
       // Exactly twice — the href and the visible text — and never obfuscated into an image.
       expect(countOccurrences(footer, CONTACT_EMAIL), `${locale}: one address, twice`).toBe(2);
@@ -172,7 +173,7 @@ describe('AC-001-35: the canonical link, og:url and the footer line cannot drift
     }
   });
 
-  it('AC-001-35: the snapshot stamp is still the manifest value, not a literal in the footer', () => {
+  it('AC-001-35: the snapshot stamp is still the manifest value in the header, and absent from the footer', () => {
     const figures = PLATE_FIXTURES.map((fixture) => fixture());
     const fromManifest = figures.find((figure) => figure.figureId === 'fig-01')?.manifest.fetchedAt ?? '';
     expect(fromManifest).not.toBe('');
@@ -183,13 +184,13 @@ describe('AC-001-35: the canonical link, og:url and the footer line cannot drift
       citations: citationRegistry,
       freshnessWindowDays: 45,
       stale: false,
+      pageKind: 'historia',
     });
-    // `PublicPage` takes the stamp from the first figure's manifest, and the footer prints it.
-    expect(page).toContain(`<time dateTime="${fromManifest}">${fromManifest}</time>`);
-    // A second, different instant proves the line reads its prop rather than a fixed date.
-    const other = '2025-01-02T03:04:05Z';
-    const footer = renderComponent(SiteFooter, { content: content('es'), snapshotIso: other });
-    expect(footer).toContain(`<time dateTime="${other}">${other}</time>`);
+    // `PublicPage` takes the stamp from the first figure's manifest, and the header prints it.
+    expect(page).toContain(`<time dateTime="${fromManifest}">`);
+    // Revision 2: the footer's citation block is gone, so no second stamp can drift from it.
+    const footer = renderComponent(SiteFooter, { content: content('es') });
+    expect(footer).not.toContain('<time');
     expect(footer).not.toContain(fromManifest);
   });
 });
@@ -231,6 +232,16 @@ describe('AC-001-35: no shipped surface carries a reserved-domain placeholder', 
  * `canonicalUrl`, the same function the canonical `<link>` and `og:url` use, so the alternate
  * for `es` *is* the canonical URL rather than a second spelling of it.
  */
+/** The sitemap's per-page alternate set equals the page metadata's, and names five distinct pages. */
+function assertPageAlternates(entry: ReturnType<typeof sitemapEntries>[number]): void {
+  const path = new URL(entry.url).pathname;
+  const kind = pageKindOfPath(path);
+  const fromSitemap = Object.fromEntries(entry.alternates.map((alternate) => [alternate.hreflang, alternate.href]));
+  const fromPage = (metadataFor('es', kind).alternates?.languages ?? {}) as Record<string, string>;
+  expect(fromSitemap, `sitemap ${entry.url}`).toEqual(fromPage);
+  expect(new Set(Object.values(fromSitemap)).size, `${path}: distinct pages`).toBe(LOCALES.length);
+}
+
 describe('AC-001-52: every route advertises the reciprocal locale alternate set', () => {
   /** The six entries the design requires: five locales plus `x-default`, which names Spanish. */
   const EXPECTED: Record<string, string> = {
@@ -269,12 +280,18 @@ describe('AC-001-52: every route advertises the reciprocal locale alternate set'
     }
   });
 
-  it('AC-001-52: the sitemap advertises the same set as the pages do', () => {
+  it('AC-001-52: the sitemap advertises the same per-page set as the pages do', () => {
     // One source, two surfaces: a page whose alternates disagree with the sitemap's is a crawler
-    // reading two different stories about which URLs are translations of each other.
-    for (const entry of sitemapEntries(SITE_URL)) {
-      const fromSitemap = Object.fromEntries(entry.alternates.map((alternate) => [alternate.hreflang, alternate.href]));
-      expect(fromSitemap, `sitemap ${entry.url}`).toEqual(EXPECTED);
+    // reading two different stories about which URLs are translations of each other. Spec 007
+    // extends this from the five home routes to all twenty public routes.
+    const entries = sitemapEntries(SITE_URL);
+    expect(entries).toHaveLength(20);
+    for (const entry of entries) assertPageAlternates(entry);
+    // Every page kind's set names that page kind, never the home URL for a sub-page.
+    for (const kind of ['cifras', 'metodo', 'debate'] as const) {
+      const hrefs = Object.values((metadataFor('es', kind).alternates?.languages ?? {}) as Record<string, string>);
+      expect(hrefs, kind).toContain(canonicalUrl(pagePathFor('es', kind)));
+      expect(hrefs, kind).not.toContain(canonicalUrl('/'));
     }
   });
 });

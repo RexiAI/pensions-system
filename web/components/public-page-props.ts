@@ -3,9 +3,10 @@ import { contentRegistry } from '../content/registry';
 import { SERIES_DIR, readDerivedSeries } from '../derived/series-store';
 import { readDerivedFigures } from '../ingest/write-derived';
 import { evaluateFreshness } from '../sources/freshness';
+import { publicPathFor } from '../seo/routes';
 import type { ScopeEntry } from './public/ScopeMark';
 import type { DerivedFigure } from '../ingest/types';
-import type { PublicPageProps } from './PublicPage';
+import type { PublicPageData } from './PublicPage';
 
 export const DEFAULT_FRESHNESS_DAYS = 45;
 
@@ -48,7 +49,7 @@ function resolveOptions(options: PublicPageOptions): ResolvedOptions {
 export function publicPageProps(
   locale: string,
   options: PublicPageOptions = {},
-): PublicPageProps | null {
+): PublicPageData | null {
   const result = contentRegistry.get('ES', locale);
   if (!result.ok) return null;
   const resolved = resolveOptions(options);
@@ -83,6 +84,6 @@ export function publishedScope(locale: string): ScopeEntry[] {
   return contentRegistry.countries().flatMap((geo) => {
     const entry = contentRegistry.get(geo, locale);
     if (!entry.ok) return [];
-    return [{ geo, name: entry.content.country.name, href: locale === 'es' ? '/' : `/${locale}` }];
+    return [{ geo, name: entry.content.country.name, href: publicPathFor(locale) }];
   });
 }

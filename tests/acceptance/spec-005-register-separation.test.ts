@@ -27,7 +27,7 @@ function claimTexts(locale: Locale): string[] {
 describe('AC-005-28: the fact occurs once, and only under the facts register', () => {
   it('AC-005-28: each mechanism claim appears once, inside agreement and nowhere else', () => {
     for (const locale of LOCALES) {
-      const html = decodeText(committedPage(locale));
+      const html = decodeText(committedPage(locale, undefined, 'debate'));
       const agreement = sectionRangeOf(html, 'data-register="agreement"');
       const thesis = sectionRangeOf(html, 'data-register="thesis"');
       const dispute = sectionRangeOf(html, 'data-register="dispute"');
@@ -49,7 +49,7 @@ describe('AC-005-28: the fact occurs once, and only under the facts register', (
 describe('AC-005-29: the judgement occurs once, and only under the opinion register', () => {
   it('AC-005-29: the reading appears once, inside thesis and nowhere else', () => {
     for (const locale of LOCALES) {
-      const html = decodeText(committedPage(locale));
+      const html = decodeText(committedPage(locale, undefined, 'debate'));
       const text = reading(locale, content(locale).editorial.thesis);
       const agreement = sectionRangeOf(html, 'data-register="agreement"');
       const dispute = sectionRangeOf(html, 'data-register="dispute"');
@@ -69,7 +69,7 @@ describe('AC-005-29: the judgement occurs once, and only under the opinion regis
 describe('AC-005-30: the facts carry their citation, the opinion does not', () => {
   it('AC-005-30: one chip per claim, and the thesis has none', () => {
     for (const locale of LOCALES) {
-      const html = decodeText(committedPage(locale));
+      const html = decodeText(committedPage(locale, undefined, 'debate'));
       const agreement = sectionOf(html, 'data-register="agreement"');
       const blocks = agreement.split('<div class="claim">').slice(1);
       expect(blocks.length, locale).toBe(content(locale).editorial.agreement.length);
@@ -86,7 +86,7 @@ describe('AC-005-30: the facts carry their citation, the opinion does not', () =
 describe('AC-005-31: the registers keep their structure', () => {
   it('AC-005-31: one section each, in order, after #debate, with the key count intact', () => {
     for (const locale of LOCALES) {
-      const html = decodeText(committedPage(locale));
+      const html = decodeText(committedPage(locale, undefined, 'debate'));
       for (const marker of ['data-register="agreement"', 'data-register="dispute"', 'data-register="thesis"']) {
         expect(html.split(marker).length - 1, `${locale}: ${marker}`).toBe(1);
       }
@@ -106,7 +106,7 @@ describe('AC-005-31: the registers keep their structure', () => {
 
   it('AC-005-31: no claim and no reading sits inside an operator-only subtree', () => {
     for (const locale of LOCALES) {
-      const html = decodeText(committedPage(locale));
+      const html = decodeText(committedPage(locale, undefined, 'debate'));
       const visible = stripOperatorSubtrees(html);
       for (const text of claimTexts(locale)) expect(visible, `${locale}: claim`).toContain(text);
       expect(visible, `${locale}: reading`).toContain(reading(locale, content(locale).editorial.thesis));

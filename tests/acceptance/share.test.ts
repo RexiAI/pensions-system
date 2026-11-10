@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { PublicPage } from '../../web/components/PublicPage';
+import { SiteFooter } from '../../web/components/public/SiteFooter';
 import { StoryStrip } from '../../web/components/public/StoryStrip';
 import { citationRegistry } from '../../web/content/citations';
 import { integerFormatter } from '../../web/content/format';
 import { shareCopyProblems } from '../../web/content/share-copy';
-import { SITE_URL, canonicalUrl } from '../../web/content/site';
+import { CONTACT_EMAIL, SITE_URL, canonicalUrl } from '../../web/content/site';
 import { LOCALES } from '../../web/content/types';
 import type { Locale } from '../../web/content/types';
 import type { LocaleKey } from '../../web/content/keys';
@@ -190,6 +191,7 @@ describe('AC-003-29: no third-party element in the markup', () => {
         stale: false,
         series: seriesFixtures(),
         now: new Date(NOW),
+        pageKind: 'historia',
       });
       for (const tag of html.match(/<(script|iframe|img|link|source)\b[^>]*>/g) ?? []) {
         const reference = /\s(?:src|href|srcset)="(https?:[^"]*)"/.exec(tag)?.[1];
@@ -216,8 +218,13 @@ describe('AC-003-30: zero third-party requests, structurally', () => {
 });
 
 describe('AC-003-32: the no-tracking promise stays true', () => {
-  it('AC-003-32: the footer string is unchanged and nothing on the public surface writes a cookie', () => {
-    expect(content('es').t('footer.noTracking')).toBe('Sin cookies, sin analítica de terceros, sin rastreo.');
+  it('AC-003-32: the no-tracking block is gone, the contact stays, and nothing writes a cookie', () => {
+    // Revision 2: the operator removed the claim and no-tracking blocks from the footer. The
+    // promise is still true — it is asserted structurally on the code, not restated as copy.
+    expect((content('es').strings as Record<string, string>)['footer.noTracking']).toBeUndefined();
+    const footer = renderComponent(SiteFooter, { content: content('es') });
+    expect(footer).not.toContain('Sin cookies');
+    expect(footer).toContain(`<a href="mailto:${CONTACT_EMAIL}">`);
     for (const file of [...listSourceFiles('web/components'), ...listSourceFiles('web/share')]) {
       expect(readSource(file), file).not.toMatch(/document\.cookie|Set-Cookie/i);
     }

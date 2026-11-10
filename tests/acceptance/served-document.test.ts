@@ -73,8 +73,8 @@ describe.skipIf(!BUILD_PRESENT)('the served document', () => {
     }
   });
 
-  it('publishes one canonical URL per route, in the link, og:url and the footer', async () => {
-    // The three places that name this page's URL, read from the bytes a reader receives: a
+  it('publishes one canonical URL per route, in the link and og:url', async () => {
+    // The two places that name this page's URL, read from the bytes a reader receives: a
     // metadata helper that is right in isolation but never wired into the route would pass every
     // other test in this file and still ship a page with no canonical.
     for (const locale of LOCALES) {
@@ -85,8 +85,8 @@ describe.skipIf(!BUILD_PRESENT)('the served document', () => {
       const ogUrl = metaContent(html, 'og:url');
       expect(link, `${locale}: <link rel="canonical">`).toBe(canonical);
       expect(ogUrl, `${locale}: og:url`).toBe(canonical);
-      // The footer's citation line carries the same absolute URL — never a bare path.
-      expect(html, `${locale}: footer line`).toContain(canonical);
+      // Revision 2: the footer's citation line is gone; no `<code>` republishes the URL.
+      expect(html, `${locale}: footer citation`).not.toContain(`<code>${canonical}</code>`);
       expect(html, `${locale}: no reserved-domain host`).not.toMatch(/pensiones\.example/);
       expect(html, `${locale}: a real inbox`).toContain(`mailto:${CONTACT_EMAIL}`);
     }

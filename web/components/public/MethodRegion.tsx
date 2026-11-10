@@ -24,6 +24,11 @@ export interface MethodRegionProps {
   freshnessWindowDays: number;
   nowMs: number;
   countries: readonly ScopeEntry[];
+  /**
+   * The page `<h1>`'s id. The page is named Método, so the region takes the `<h1>` as its name
+   * and prints no second heading (spec 007 T4).
+   */
+  labelledBy?: string;
 }
 
 /** The fuse's precision: the ratio, its year and the threshold its percentage is a share of. */
@@ -62,12 +67,9 @@ function seriesStrip(content: CountryLocaleContent, series: DerivedSeries | unde
  * the register key: three groups separated by one hairline each. `#metodo` lives here once, and
  * the register key is nested inside it, so every existing in-page reference keeps resolving.
  */
-export function MethodRegion({ content, sources, freshnessWindowDays, nowMs, countries }: MethodRegionProps) {
+export function MethodRegion({ content, sources, freshnessWindowDays, nowMs, countries, labelledBy }: MethodRegionProps) {
   return (
-    <section className="method" id="metodo" aria-labelledby="metodo-heading">
-      <h2 className="method__heading" id="metodo-heading">
-        {content.t('nav.method')}
-      </h2>
+    <section className="method" id="metodo" aria-labelledby={labelledBy}>
       <ScopeMark content={content} countries={countries} />
       {sources.countdown === undefined ? null : (
         <CountdownPrecision content={content} countdown={sources.countdown} nowMs={nowMs} />

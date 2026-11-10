@@ -92,7 +92,7 @@ describe.skipIf(!BROWSER_READY)('the above-the-fold target set, measured', () =>
       const measured = await served.measure<TargetMeasurement>('es', viewport, TARGETS);
       expect(measured.targets.length, `${viewport.width}: desktop targets`).toBeGreaterThanOrEqual(12);
       const hrefs = measured.targets.map((target) => target.href);
-      for (const href of ['#main', '#figuras', '#metodo', '#debate', '#lectura', '/', '/en', '/fr', '/de', '/it']) {
+      for (const href of ['#main', '/', '/cifras', '/metodo', '/debate', '/en', '/fr', '/de', '/it']) {
         expect(hrefs, `${viewport.width}: ${href}`).toContain(href);
       }
       expect(measured.targets.some((target) => target.tag === 'button'), `${viewport.width}: theme toggle`).toBe(true);

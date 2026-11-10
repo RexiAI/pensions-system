@@ -7,8 +7,6 @@ import { claimA, reading } from '../helpers/spec-005';
 import { BUILD_PRESENT, htmlLang, routePath, startServedApp } from '../helpers/served-app';
 import { decodeText } from '../helpers/render-document';
 
-const SHIPPED_KEY_COUNT = 276;
-
 function withoutPlaceholders(template: string): string {
   return template.replace(/\{\w+\}/g, '').trim();
 }
@@ -48,13 +46,15 @@ describe('AC-005-33: the editorial shape is identical across the five', () => {
 });
 
 describe('AC-005-34: the key set is unchanged, and the placeholders match', () => {
-  it('AC-005-34: no key was added or removed, and every template has the same placeholders', () => {
-    expect(REQUIRED_KEYS).toHaveLength(SHIPPED_KEY_COUNT);
+  it('AC-005-34: the key set is set-equal, not a fixed count, and every template has the same placeholders', () => {
+    // Spec 007 T10: parity asserts set equality, never a fixed count — the set simply grows.
+    expect(REQUIRED_KEYS.length).toBe(new Set(REQUIRED_KEYS).size);
     expect(REQUIRED_KEYS.filter((key) => key.startsWith('editorial.'))).toEqual([]);
     for (const document of COUNTRY_DOCUMENTS) {
       const strings = document.strings;
       expect(missingKeys(strings), document.locale).toEqual([]);
       expect(unknownKeys(strings), document.locale).toEqual([]);
+      expect(Object.keys(strings).sort(), document.locale).toEqual([...REQUIRED_KEYS].sort());
     }
     for (const locale of LOCALES) {
       const placeholders = [...content(locale).t('steps.number.sentence').matchAll(/\{(\w+)\}/g)]

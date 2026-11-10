@@ -245,6 +245,6 @@ describe('accessibility: non-visual data for charts', () => {
       true,
     );
     expect(row).toContain(ES.t('figure.methodLink'));
-    expect(row).toContain('href="#metodo"');
+    expect(row).toContain('href="/metodo"');
   });
 });

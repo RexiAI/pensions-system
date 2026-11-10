@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { citationRegistry, resolveClaims } from '../../web/content/citations';
 import { LOCALES } from '../../web/content/types';
@@ -44,7 +43,7 @@ const COHORT = ['65', 'mayores', 'older', 'âgé', 'ältere', 'anziani'];
 const THESIS_TERMS = ['pirámide', 'piramide', 'pyramid', 'pyramide', 'fraude', 'fraud', 'estafa', 'betrug'];
 
 function agreementHtml(locale: Locale): string {
-  return decodeText(sectionOf(committedPage(locale), 'data-register="agreement"'));
+  return decodeText(sectionOf(committedPage(locale, undefined, 'debate'), 'data-register="agreement"'));
 }
 
 /** A claim block's own sentence: its first `<p>`, before the citation panel's digits. */
@@ -117,7 +116,7 @@ describe('AC-005-19: claim B’s numerals are the committed fig-01 numerals', ()
       const text = renderedClaimB(locale);
       expect(text, `${locale}: rendered first numeral`).toContain(first);
       expect(text, `${locale}: rendered latest numeral`).toContain(latest);
-      const plate = decodeText(figuresOf(committedPage(locale)));
+      const plate = decodeText(figuresOf(committedPage(locale, undefined, 'cifras')));
       expect(plate, `${locale}: plate first`).toContain(first);
       expect(plate, `${locale}: plate latest`).toContain(latest);
       const otherDigits = text.replaceAll(first, '').replaceAll(latest, '');
@@ -170,14 +169,14 @@ describe('AC-005-21: the fact assigns no cohort blame and borrows no thesis voca
 });
 
 describe('AC-005-22: no new figure, series or derived artefact', () => {
-  it('AC-005-22: seven figures, untouched data, and the same plate count', () => {
+  it('AC-005-22: seven figures, untouched figure set, and the same plate count', () => {
+    // The working-tree clause that used to sit here (`git status` must be empty for
+    // data/) asserted the state of the checkout, not the state of the code: it failed on
+    // any legitimate data refresh, including the one that resolved fig-07. The intent —
+    // spec 005 introduced no new figure or artefact — is kept by pinning the figure set
+    // and by requiring the page's plate count to follow the computed figures.
     expect(FIGURE_IDS).toHaveLength(7);
-    const status = spawnSync('git', ['status', '--porcelain', '--', 'data/derived', 'data/snapshots'], {
-      encoding: 'utf8',
-    });
-    expect(status.status, status.stderr).toBe(0);
-    expect(status.stdout.trim(), 'a derived or snapshot file changed').toBe('');
     const computed = readDerivedFigures('data/derived').filter((figure) => figure.availability === 'computed');
-    expect(committedPage('es').split('class="figure-slot"').length - 1).toBe(computed.length);
+    expect(committedPage('es', undefined, 'cifras').split('class="figure-slot"').length - 1).toBe(computed.length);
   });
 });

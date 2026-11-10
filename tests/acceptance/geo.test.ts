@@ -81,7 +81,7 @@ describe('geo as data', () => {
     const computed = (report: typeof es): string[] =>
       report.figures.filter((figure) => figure.availability === 'computed').map((figure) => figure.figureId);
 
-    expect(computed(es)).toEqual(['fig-01', 'fig-02']);
+    expect(computed(es)).toEqual(['fig-01', 'fig-02', 'fig-07']);
     expect(computed(pt)).toEqual(['fig-01', 'fig-02']);
     expect(pt.exitCode).toBe(0);
     expect(sourcesForDefinition('PT', 'dependency-ratio.international', countries)).toEqual([

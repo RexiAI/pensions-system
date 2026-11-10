@@ -1,10 +1,11 @@
 /**
  * Build gate for the story's plain language (spec 004 T9).
  *
- * Every public route is rendered here from the same components Next renders statically, its top
- * region is isolated (`<main>` up to the after-story strip) and scanned for the banned term list
- * plus every repository identifier the committed derived data carries. Any hit fails the build,
- * per locale, so a term that only appears in one translation cannot pass as a green run.
+ * Every public page's Historia story is rendered here from the same components Next renders
+ * statically, its top region is isolated (`<main>` up to the after-story strip) and scanned for
+ * the banned term list plus every repository identifier the committed derived data carries. Any
+ * hit fails the build, per locale, so a term that only appears in one translation cannot pass as
+ * a green run. The precision pages (Método, Cifras, Debate) are out of the top-region scope.
  */
 import { pathToFileURL } from 'node:url';
 import { createElement } from 'react';
@@ -28,7 +29,7 @@ export interface GateResult {
 export function checkLocale(locale: string, internalTerms: readonly string[]): string[] {
   const props = publicPageProps(locale, { derivedDir: DERIVED_DIR, seriesDir: SERIES_DIR });
   if (!props) return [`${locale}: no complete content for this locale`];
-  const html = renderToStaticMarkup(createElement(PublicPage, props));
+  const html = renderToStaticMarkup(createElement(PublicPage, { ...props, pageKind: 'historia' }));
   return scanTopRegion(html, locale, internalTerms).map(
     (hit) => `${locale}: ${hit.term} — …${hit.context}…`,
   );

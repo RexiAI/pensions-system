@@ -4,7 +4,7 @@ import type { PyramidValue } from '../../web/series/age-structure';
 import { LOCALES } from '../../web/content/types';
 import { content } from '../fixtures/figures';
 import { pyramidSeries, seriesFixtures, unavailableSeries } from '../fixtures/series';
-import { stepOf, storyPage, textOf } from '../helpers/story';
+import { metodoPage, stepOf, storyPage, textOf } from '../helpers/story';
 
 /**
  * AC-004-13…19 — step 3, the pyramid (spec 004 T4). The panels are the page's explanation, so the
@@ -26,7 +26,8 @@ describe('AC-004-13: the pyramid is the third step and precedes the figures', ()
     const ids = [...html.matchAll(/data-top-step="([a-z]+)"/g)].map((match) => match[1]);
     expect(ids.indexOf('why')).toBe(2);
     expect(ids).toEqual(['number', 'breakage', 'why', 'distance', 'meaning']);
-    expect(html.indexOf('data-top-step="why"')).toBeLessThan(html.indexOf('id="figuras"'));
+    // Spec 007: Cifras owns #figuras, so Historia carries no plate region at all.
+    expect(html).not.toContain('id="figuras"');
   });
 });
 
@@ -97,7 +98,7 @@ describe('AC-004-18: the pyramid’s provenance is not in step 3', () => {
   it('AC-004-18: no operator subtree in step 3, and the strip renders in #metodo', () => {
     const html = storyPage();
     expect(stepOf(html, 'why')).not.toContain('data-operator="true"');
-    const method = html.slice(html.indexOf('id="metodo"'), html.indexOf('id="debate"'));
+    const method = metodoPage();
     expect(method).toContain('data/derived/series');
     expect(method).toContain(PYRAMID.manifest.formulaId);
   });

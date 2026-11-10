@@ -1,26 +1,22 @@
+import type { ReactNode } from 'react';
 import type { DerivedSeries } from '../ingest/series-types';
 import type { CountdownValue } from '../series/countdown';
 import type { CitationRegistry, ClaimVariables } from '../content/citations';
-import type { CountryLocaleContent } from '../content/types';
+import type { CountryLocaleContent, PageKind } from '../content/types';
 import { formatValue } from '../content/format';
 import type { DependencyRatioSeriesValue } from '../metrics/dependency-ratio';
 import type { DerivedFigure } from '../ingest/types';
 import type { ScopeEntry } from './public/ScopeMark';
-import { AssumptionsLedger } from './public/AssumptionsLedger';
-import { FiguresRegion } from './public/FiguresRegion';
-import { MethodRegion } from './public/MethodRegion';
-import { PublicStory } from './public/PublicStory';
-import { ReproduceBlock } from './public/ReproduceBlock';
+import { CifrasPage } from './public/CifrasPage';
+import { DebatePage } from './public/DebatePage';
+import { HistoriaPage } from './public/HistoriaPage';
+import { MetodoPage } from './public/MetodoPage';
+import { Pager } from './public/Pager';
 import { SiteFooter } from './public/SiteFooter';
 import { SiteHeader } from './public/SiteHeader';
-import { SourceStrip } from './public/SourceStrip';
-import { StoryStrip } from './public/StoryStrip';
-import { AgreementSection } from './registers/AgreementSection';
-import { DisputeSection } from './registers/DisputeSection';
-import { ThesisSection } from './registers/ThesisSection';
 import { findSeries } from '../derived/series-store';
 
-export interface PublicPageProps {
+export interface PublicPageData {
   content: CountryLocaleContent;
   figures: readonly DerivedFigure[];
   citations: CitationRegistry;
@@ -35,6 +31,11 @@ export interface PublicPageProps {
    * deterministic when a caller pins it (a test, or the static build's own instant).
    */
   now?: Date;
+}
+
+export interface PublicPageProps extends PublicPageData {
+  /** The page to render: Historia, Cifras, Método or Debate (spec 007 T1). */
+  pageKind: PageKind;
 }
 
 function lifeExpectancyOf(figures: readonly DerivedFigure[]): number | null {
@@ -78,13 +79,11 @@ function claimVariables(figures: readonly DerivedFigure[], locale: CountryLocale
 }
 
 /**
- * The public document (re-composed by spec 004): the five-step story, the way to the method and
- * to share it, the computed figure plates, the method region that holds everything the story
- * dropped, the three registers, the reproduce panel and the assumptions ledger.
+ * The public document shell (re-composed by spec 007 T1/T2): one page kind per route, with the
+ * shared header, skip link, banner and footer. Each body owns exactly the regions its task names,
+ * and the pager closes the page inside `<main>`.
  *
- * There is exactly one lead path: the story is composed from `TOP_STEPS`, and nothing else renders
- * between `<main>` and the end of the fifth step. The page is composed from data and content only,
- * so it renders without any admin configuration.
+ * The page is composed from data and content only, so it renders without any admin configuration.
  */
 export function PublicPage({
   content,
@@ -92,63 +91,54 @@ export function PublicPage({
   citations,
   freshnessWindowDays,
   stale,
+  pageKind,
   series = [],
   countries,
   now = new Date(),
 }: PublicPageProps) {
   const countdown = countdownOf(series);
+  const pyramid = findSeries(series, 'pyramid');
+  const fuse = findSeries(series, 'fuse');
   const scopes = countries ?? [{ geo: content.country.code, name: content.country.name, href: '#' }];
   const snapshotIso = snapshotIsoOf(figures);
-  const sources = figures.flatMap((figure) => figure.manifest.sourceUrl);
+  const bodies: Record<PageKind, ReactNode> = {
+    historia: (
+      <HistoriaPage
+        content={content}
+        countdown={countdown}
+        pyramid={pyramid}
+        fuse={fuse}
+        nowMs={now.getTime()}
+        freshnessWindowDays={freshnessWindowDays}
+      />
+    ),
+    cifras: <CifrasPage content={content} figures={figures} freshnessWindowDays={freshnessWindowDays} />,
+    metodo: (
+      <MetodoPage
+        content={content}
+        sources={{ countdown, pyramid, fuse }}
+        figures={figures}
+        series={series}
+        freshnessWindowDays={freshnessWindowDays}
+        nowMs={now.getTime()}
+        countries={scopes}
+        lifeExpectancy={lifeExpectancyOf(figures)}
+      />
+    ),
+    debate: <DebatePage content={content} citations={citations} vars={claimVariables(figures, content.locale)} />,
+  };
   return (
     <div className="page">
       <a className="skip-link" href="#main">
         {content.t('site.skipLink')}
       </a>
       {stale ? <p className="banner">{content.t('banner.stale')}</p> : null}
-      <SiteHeader content={content} snapshotIso={snapshotIso} />
+      <SiteHeader content={content} snapshotIso={snapshotIso} pageKind={pageKind} />
       <main id="main">
-        <PublicStory
-          content={content}
-          countdown={countdown}
-          pyramid={findSeries(series, 'pyramid')}
-          fuse={findSeries(series, 'fuse')}
-          nowMs={now.getTime()}
-          freshnessWindowDays={freshnessWindowDays}
-        />
-        <StoryStrip content={content} countdown={countdown} />
-        <SourceStrip content={content} sources={sources} />
-        <FiguresRegion content={content} figures={figures} freshnessWindowDays={freshnessWindowDays} />
-        <MethodRegion
-          content={content}
-          sources={{
-            countdown,
-            pyramid: findSeries(series, 'pyramid'),
-            fuse: findSeries(series, 'fuse'),
-          }}
-          freshnessWindowDays={freshnessWindowDays}
-          nowMs={now.getTime()}
-          countries={scopes}
-        />
-        <div id="debate">
-          <AgreementSection
-            content={content}
-            citations={citations}
-            vars={claimVariables(figures, content.locale)}
-          />
-          <DisputeSection content={content} citations={citations} />
-        </div>
-        <div id="lectura">
-          <ThesisSection content={content} />
-        </div>
-        <ReproduceBlock content={content} figures={figures} series={series} />
-        <AssumptionsLedger
-          content={content}
-          freshnessWindowDays={freshnessWindowDays}
-          lifeExpectancy={lifeExpectancyOf(figures)}
-        />
+        {bodies[pageKind]}
+        <Pager content={content} pageKind={pageKind} />
       </main>
-      <SiteFooter content={content} snapshotIso={snapshotIso} />
+      <SiteFooter content={content} />
     </div>
   );
 }

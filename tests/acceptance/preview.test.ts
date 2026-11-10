@@ -43,16 +43,17 @@ function seriesDirWith(entry: unknown): string {
   return dir;
 }
 
-describe('AC-003-34: title and og:title carry the year in every locale', () => {
-  it('AC-003-34: both contain the derived year and keep the scope suffix', () => {
+describe('AC-003-34: the title is the yearless claim; the description carries the year', () => {
+  it('AC-003-34: title and og:title carry no year and no scope suffix (revision 2)', () => {
     expect(committedThresholdYear()).toBe(YEAR);
     for (const locale of LOCALES) {
       const meta = pageMetadata(locale);
-      const country = content(locale).country.name;
       for (const title of [meta.title, meta.ogTitle]) {
-        expect(title, locale).toContain(String(YEAR));
-        expect(title.endsWith(` · ${country}`), locale).toBe(true);
+        expect(title, locale).toBe(content(locale).t('meta.title'));
+        expect(title, locale).not.toContain(String(YEAR));
+        expect(title, locale).not.toContain(content(locale).country.name);
       }
+      expect(meta.description, locale).toContain(String(YEAR));
     }
   });
 });
@@ -70,12 +71,16 @@ describe('AC-003-35: og:description and the share card carry the year', () => {
 });
 
 describe('AC-003-36: the year is derived, never typed', () => {
-  it('AC-003-36: a threshold that yields 2043 moves every preview string to 2043', () => {
+  it('AC-003-36: a threshold that yields 2043 moves every year-bearing preview string, never the title', () => {
     const moved = countdownAt(49).thresholdYear ?? 2043;
     expect(moved).not.toBe(YEAR);
     for (const locale of LOCALES) {
       const meta = pageMetadata(locale, moved);
-      for (const text of [meta.title, meta.ogTitle, meta.description, cardText(locale, moved), shareAlt(locale, moved)]) {
+      // Revision 2: the title is yearless, so the derived year moves the description and the
+      // share surfaces but leaves the title on its claim.
+      expect(meta.title, locale).toBe(content(locale).t('meta.title'));
+      expect(meta.ogTitle, locale).toBe(content(locale).t('meta.title'));
+      for (const text of [meta.description, cardText(locale, moved), shareAlt(locale, moved)]) {
         expect(text, locale).toContain(String(moved));
         expect(text, locale).not.toContain(String(YEAR));
       }

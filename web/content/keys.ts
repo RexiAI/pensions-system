@@ -1,3 +1,5 @@
+import type { PageKind } from './types';
+
 /**
  * Every user-facing string on the public surface resolves through one of these keys.
  * The list is the contract: a locale document missing any key is incomplete and is
@@ -6,6 +8,8 @@
 export const REQUIRED_KEYS = [
   'site.wordmark',
   'site.skipLink',
+  // Spec 007: the header nav becomes four page links; Historia is the one name without a key.
+  'nav.historia',
   'nav.figures',
   'nav.method',
   'nav.debate',
@@ -24,6 +28,10 @@ export const REQUIRED_KEYS = [
   'theme.dark',
   'hero.statement',
   'hero.sub',
+  // Spec 007 T8 (revision 1, 2026-11-09): the mechanism kicker above the h1, verbatim from
+  // the operator's revised copy ("Estafa piramidal" / "Pyramid scam" / …). It is one of the
+  // two keys exempted by THESIS_CLAIM_KEYS in `registers.ts`.
+  'kicker.mechanism',
   'hero.ctaPrimary',
   'hero.ctaSecondary',
   'hero.comparisonFirst',
@@ -185,11 +193,7 @@ export const REQUIRED_KEYS = [
   'assumptions.horizon.consequence',
   'assumptions.freshness.label',
   'assumptions.freshness.consequence',
-  'footer.doesNotClaimHeading',
-  'footer.noTracking',
   'footer.contact',
-  'footer.canonical',
-  'footer.snapshot',
   'footer.sourcesHeading',
   'footer.licence',
   'error.notFound.title',
@@ -281,7 +285,13 @@ export const REQUIRED_KEYS = [
   'share.copied',
   'share.linkLabel',
   'share.newWindow',
+  // Spec 007 T8/T9, revision 2: `meta.title` is the home page's short claim, and a sub-page
+  // title is composed from its page name and `kicker.mechanism` — neither stores a year,
+  // wordmark or country.
   'meta.title',
+  'pager.label',
+  'pager.previous',
+  'pager.next',
   'meta.description',
   'card.eyebrow',
   'card.sentence',
@@ -406,3 +416,16 @@ export const SERIES_TITLE_KEYS: Readonly<Record<string, LocaleKey>> = {
   countdown: 'series.countdown.title',
   fuse: 'series.fuse.title',
 };
+
+/**
+ * The four page names, in reading order. The header nav, the pager and each sub-page's `<h1>`
+ * all read this one map, so a page cannot be called two things on two surfaces.
+ */
+export const PAGE_NAME_KEYS: Readonly<Record<PageKind, LocaleKey>> = {
+  historia: 'nav.historia',
+  cifras: 'nav.figures',
+  metodo: 'nav.method',
+  debate: 'nav.debate',
+};
+
+
