@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { siteMetadata, siteViewport } from '../../../web/seo/site-metadata';
@@ -36,5 +37,10 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <RootShell lang={locale}>{children}</RootShell>;
+  return (
+    <RootShell lang={locale}>
+      {children}
+      <Analytics />
+    </RootShell>
+  );
 }
