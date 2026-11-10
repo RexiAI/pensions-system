@@ -2646,3 +2646,70 @@ at: 2026-11-09T14:01:41Z
 
 fatal: Unable to hash .standards
 a6f76247599536c2f6d8f9debcd0699e61365ad6db15eb3b276a77dc2cb8feae
+
+## Revision 2 — operator review of the shipped surface (2026-11-10)
+
+The operator reviewed the built pages and issued four corrections. They override the
+corresponding revision-1 decisions and are recorded here as the authoritative disposition.
+
+**Instruction (verbatim intent).** Remove `2042 pensiones España` from the tab title: it
+must read only `Sistema de pensiones: estafa piramidal`. The CTA "Ver cuánto te queda"
+reads as a pension calculation and must be replaced. The pager renders "Siguiente / Cifras"
+on two lines with a grey underline on the destination and looks broken. The footer must drop
+"Lo que esta página no afirma", "Sin cookies, sin analítica de terceros, sin rastreo.",
+the canonical URL and the snapshot — keeping only the contact line.
+
+**Title.** `meta.title` is the short claim, with no year, wordmark or country suffix:
+`Sistema de pensiones: estafa piramidal`, `Pension system: pyramid scam`,
+`Rentensystem: Schneeball-Betrug`, `Système de retraites : fraude pyramidale`,
+`Sistema pensionistico: frode piramidale`. Sub-page titles are `<page name> · <kicker>`.
+This supersedes AC-001-102 (scope suffix) and AC-003-34/AC-003-36 (year in the title);
+`description` and `og:description` keep the derived year.
+
+**CTA.** `hero.ctaPrimary` becomes `Ver la fecha` / `See the date` / `Datum ansehen` /
+`Voir la date` / `Vedi la data` — a date, not a projected pension.
+
+**Pager.** One line: decorative arrow (`aria-hidden`), direction word, destination. The
+resting `text-decoration-line: underline` on the destination is removed; underline returns
+only on `:hover` and `:focus-visible`. AC-007-13 is revised to assert one line, the arrow
+position and the absence of a resting underline.
+
+**Footer.** `footer.doesNotClaimHeading`, `footer.noTracking`, `footer.canonical` and
+`footer.snapshot` are removed from the component and from the five locale documents;
+`footer.contact` stays. AC-003-32 and the footer mutation-kill test are revised to prove the
+blocks are absent and the contact is present, rather than asserting the removed copy.
+
+## Evidence: revision 2 gates
+
+command: npx tsc --noEmit
+exit: 0
+at: 2026-11-10T11:22:40Z
+
+command: npx eslint .
+exit: 0
+at: 2026-11-10T11:22:52Z
+
+command: npm run build
+exit: 0
+at: 2026-11-10T11:23:10Z
+
+command: npx vitest run
+exit: 0
+at: 2026-11-10T11:23:56Z
+
+130 test files passed, 1154 tests passed.
+
+command: npm run sitemap:check
+exit: 0
+at: 2026-11-10T11:25:02Z
+
+command: bash .standards/scripts/check-code-principles.sh -BaseRef main
+exit: 0
+at: 2026-11-10T11:25:20Z
+
+0 FAIL(s), 23 WARN(s) — advisory only.
+
+Served HTML checked after the build: `es` `<title>Sistema de pensiones: estafa piramidal</title>`;
+`/cifras` `<title>Cifras · Estafa piramidal</title>`; pager computed `flex-direction: row`,
+one line (46px at `line-height: 44px`), `text-decoration-line: none`; footer contains no
+claim/no-tracking/canonical/snapshot block and does contain `info@rexi-ai.com`.

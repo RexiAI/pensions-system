@@ -138,7 +138,7 @@ export function PublicPage({
         {bodies[pageKind]}
         <Pager content={content} pageKind={pageKind} />
       </main>
-      <SiteFooter content={content} snapshotIso={snapshotIso} pageKind={pageKind} />
+      <SiteFooter content={content} />
     </div>
   );
 }

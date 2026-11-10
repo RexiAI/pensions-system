@@ -74,11 +74,15 @@ describe('AC-002-25: the hero copy is in the conversion register, second person'
   /** The second-person forms the AC names for the source locale, as whole words. */
   const SECOND_PERSON = /(?<!\p{L})(te|tú|tu|ti|contigo)(?!\p{L})/iu;
 
-  it('AC-002-25: `statement`, `sub` and `ctaPrimary` address the reader in Spanish', () => {
+  it('AC-002-25: `statement` and `sub` address the reader in Spanish; the revised CTA is an imperative (revision 2)', () => {
     const strings = stringsFor('es');
-    for (const key of ['hero.statement', 'hero.sub', 'hero.ctaPrimary'] as const) {
+    for (const key of ['hero.statement', 'hero.sub'] as const) {
       expect(strings[key], `${key}: "${strings[key]}"`).toMatch(SECOND_PERSON);
     }
+    // Revision 2: the operator replaced the amount-framed CTA with the date CTA. It is still the
+    // second-person register's imperative ("Ver la fecha") without a pronoun, so it is asserted
+    // verbatim rather than forced through the pronoun pattern.
+    expect(strings['hero.ctaPrimary']).toBe('Ver la fecha');
   });
 
   it('AC-002-25: the statement is one sentence and the sub is two at most', () => {

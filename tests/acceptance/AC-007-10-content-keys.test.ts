@@ -8,9 +8,6 @@ import { jsxTextLiterals, listSourceFiles, readSource } from '../helpers/source-
 const NEW_KEYS = [
   'nav.historia',
   'kicker.mechanism',
-  'meta.cifras.title',
-  'meta.metodo.title',
-  'meta.debate.title',
   'pager.label',
   'pager.previous',
   'pager.next',

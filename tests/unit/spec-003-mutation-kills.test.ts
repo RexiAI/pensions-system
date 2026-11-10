@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { BRAND } from '../../web/brand/generated';
 import { decodeText } from '../helpers/render-document';
 import { MethodRegion } from '../../web/components/public/MethodRegion';
 import { StoryStrip } from '../../web/components/public/StoryStrip';
@@ -113,11 +112,13 @@ describe('AC-003-12: the observed ratio comes from the latest year that can be d
   });
 });
 
-describe('AC-003-38: an unknown locale publishes the bare wordmark, never a scoped title', () => {
-  it('AC-003-38: pageMetadata falls back to the wordmark with no description and no suffix', () => {
+describe('AC-003-38: an unknown locale publishes no invented title', () => {
+  it('AC-003-38: pageMetadata falls back to empty strings with no description and no suffix', () => {
+    // Revision 2: the title no longer carries the wordmark, so the unknown-locale fallback
+    // publishes nothing rather than a brand string the operator removed from every title.
     expect(pageMetadata('xx')).toEqual({
-      title: BRAND.wordmark,
-      ogTitle: BRAND.wordmark,
+      title: '',
+      ogTitle: '',
       description: '',
     });
   });

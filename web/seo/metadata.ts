@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import { BRAND } from '../brand/generated';
-import { PAGE_NAME_KEYS, PAGE_TITLE_KEYS } from '../content/keys';
-import type { LocaleKey } from '../content/keys';
+import { PAGE_NAME_KEYS } from '../content/keys';
 import { contentRegistry } from '../content/registry';
 import { formatYear } from '../content/format';
 import { SITE_URL, canonicalUrl } from '../content/site';
@@ -10,10 +8,10 @@ import { alternateLinks, pagePathFor } from './routes';
 import { committedThresholdYear } from './threshold-year';
 
 /**
- * Page metadata for one locale and one page kind (spec 007 T8/T9). The `<title>` and `og:title`
- * take a scope suffix from the country record, so a shared link says which country the figures
- * cover. The promise framing and its `{year}` interpolation come from the content model; the
- * suffix (" · wordmark · country") is unchanged from spec 003, so the title keeps its shape.
+ * Page metadata for one locale and one page kind (spec 007 T8/T9, revision 2). The tab title is
+ * the short claim on the home page and the page name plus the mechanism kicker on a sub-page:
+ * no year, no wordmark and no country, so the same claim reads the same in a shared tab.
+ * The `description` and `og:description` keep the derived year.
  */
 export interface PageMetadata {
   title: string;
@@ -21,20 +19,14 @@ export interface PageMetadata {
   description: string;
 }
 
-function scopedTitle(countryName: string): string {
-  return countryName === '' ? BRAND.wordmark : `${BRAND.wordmark} · ${countryName}`;
-}
-
 /**
- * The leading string before the scope suffix. Historia carries the promise framing; a sub-page
- * carries its own page name and the derived year. Without a committed year Historia falls back
- * to the year-free suffix alone and a sub-page to its name alone — neither invents a year.
+ * The title a page publishes. Historia carries its short claim from `meta.title`; a sub-page
+ * carries its own page name and the mechanism kicker, composed here so the two translations
+ * cannot drift into a hand-typed concatenation.
  */
-function leadingTitle(content: CountryLocaleContent, thresholdYear: number | null, kind: PageKind): string {
-  const year = thresholdYear === null ? null : formatYear(thresholdYear, content.locale);
-  const key: LocaleKey = PAGE_TITLE_KEYS[kind];
-  if (year === null) return kind === 'historia' ? '' : content.t(PAGE_NAME_KEYS[kind]);
-  return content.t(key, { year });
+function titleFor(content: CountryLocaleContent, kind: PageKind): string {
+  if (kind === 'historia') return content.t('meta.title');
+  return `${content.t(PAGE_NAME_KEYS[kind])} · ${content.t('kicker.mechanism')}`;
 }
 
 /**
@@ -53,12 +45,9 @@ export function pageMetadata(
   kind: PageKind = 'historia',
 ): PageMetadata {
   const entry = contentRegistry.get('ES', locale);
-  if (!entry.ok) return { title: BRAND.wordmark, ogTitle: BRAND.wordmark, description: '' };
-  const scoped = scopedTitle(entry.content.country.name);
-  const leading = leadingTitle(entry.content, thresholdYear, kind);
+  if (!entry.ok) return { title: '', ogTitle: '', description: '' };
+  const title = titleFor(entry.content, kind);
   const description = descriptionFor(entry.content, thresholdYear);
-  if (leading === '') return { title: scoped, ogTitle: scoped, description };
-  const title = `${leading} · ${scoped}`;
   return { title, ogTitle: title, description };
 }
 
@@ -74,8 +63,8 @@ export function languageAlternates(baseUrl: string = SITE_URL, kind: PageKind = 
 
 /**
  * One page's metadata. `<link rel="canonical">` and `og:url` are the same absolute URL, and both
- * come from `canonicalUrl(pagePathFor(locale, kind))` — the footer's citation line calls the same
- * pair, so the three cannot disagree about what this page's URL is.
+ * come from `canonicalUrl(pagePathFor(locale, kind))`, so the two cannot disagree about what this
+ * page's URL is.
  *
  * `alternates.languages` is what Next renders as `<link rel="alternate" hreflang="…">`. Every
  * route carries the full set for its own page kind, never the home URL for a sub-page.

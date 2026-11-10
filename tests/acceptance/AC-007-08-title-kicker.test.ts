@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { AgreementSection } from '../../web/components/registers/AgreementSection';
-import { BRAND } from '../../web/brand/generated';
 import { citationRegistry } from '../../web/content/citations';
 import { PAGE_NAME_KEYS } from '../../web/content/keys';
 import {
@@ -18,11 +17,11 @@ const YEAR = committedThresholdYear();
 if (YEAR === null) throw new Error('the committed countdown has no threshold year');
 
 const PROMISE: Record<string, string> = {
-  es: 'Sistema de pensiones: Estafa piramidal · {year}',
-  en: 'Pension system: Pyramid scam · {year}',
-  de: 'Rentensystem: Schneeball-Betrug · {year}',
-  fr: 'Système de retraites : Fraude pyramidale · {year}',
-  it: 'Sistema pensionistico: Frode piramidale · {year}',
+  es: 'Sistema de pensiones: estafa piramidal',
+  en: 'Pension system: pyramid scam',
+  de: 'Rentensystem: Schneeball-Betrug',
+  fr: 'Système de retraites : fraude pyramidale',
+  it: 'Sistema pensionistico: frode piramidale',
 };
 
 const KICKER: Record<string, string> = {
@@ -34,18 +33,18 @@ const KICKER: Record<string, string> = {
 };
 
 /**
- * AC-007-14…17 — the promise title and the mechanism kicker (spec 007 T8).
+ * AC-007-14…17 — the promise title and the mechanism kicker (spec 007 T8; revision 2 title).
  */
-describe('AC-007-14: the home title is the promise framing, per locale, ending in the country', () => {
-  it('AC-007-14: title and og:title start with the promise and end with the country', () => {
+describe('AC-007-14: the home title is the promise framing, exact per locale', () => {
+  it('AC-007-14: title and og:title are the exact claim, with no year, wordmark or country', () => {
     for (const locale of LOCALES) {
-      const promise = PROMISE[locale].replace('{year}', String(YEAR));
-      const country = content(locale).country.name;
+      const promise = PROMISE[locale];
       const meta = pageMetadata(locale);
-      expect(meta.title, locale).toContain(promise);
-      expect(meta.title.endsWith(` · ${country}`), locale).toBe(true);
+      expect(meta.title, locale).toBe(promise);
+      expect(meta.title, locale).not.toMatch(/\b(19|20)\d\d\b/);
+      expect(meta.title, locale).not.toContain(content(locale).country.name);
       const resolved = metadataFor(locale);
-      expect(String(resolved.title), locale).toBe(meta.title);
+      expect(String(resolved.title), locale).toBe(promise);
       expect(String((resolved.openGraph as { title?: string }).title), locale).toBe(meta.ogTitle);
     }
   });
@@ -65,17 +64,16 @@ describe('AC-007-15: the kicker names the mechanism above the h1, exact per loca
   });
 });
 
-describe('AC-007-16: sub-page titles follow the same shape and end in the country', () => {
-  it('AC-007-16: each sub-page title carries the page name, the year, the wordmark and the country', () => {
+describe('AC-007-16: sub-page titles are the page name plus the mechanism kicker', () => {
+  it('AC-007-16: each sub-page title is exactly "<page name> · <kicker>", with no year or country', () => {
     for (const locale of LOCALES) {
       const local = content(locale);
       for (const kind of ['cifras', 'metodo', 'debate'] as const) {
         const meta = pageMetadata(locale, YEAR, kind);
         const pageName = local.t(PAGE_NAME_KEYS[kind]);
-        expect(meta.title.toLowerCase(), `${locale}/${kind}`).toContain(pageName.toLowerCase());
-        expect(meta.title, `${locale}/${kind}`).toContain(String(YEAR));
-        expect(meta.title, `${locale}/${kind}`).toContain(BRAND.wordmark);
-        expect(meta.title.endsWith(` · ${local.country.name}`), `${locale}/${kind}`).toBe(true);
+        expect(meta.title, `${locale}/${kind}`).toBe(`${pageName} · ${local.t('kicker.mechanism')}`);
+        expect(meta.title, `${locale}/${kind}`).not.toContain(String(YEAR));
+        expect(meta.title, `${locale}/${kind}`).not.toContain(local.country.name);
       }
     }
   });
@@ -90,7 +88,7 @@ describe('AC-007-17: the revised title and kicker state the claim under the reco
   it('AC-007-17: every locale states a thesis term in the title and kicker, and the exemption covers exactly those keys', () => {
     for (const locale of LOCALES) {
       const local = content(locale);
-      const title = PROMISE[locale].replace('{year}', String(YEAR));
+      const title = PROMISE[locale];
       expect(findThesisTerms(title).length, `${locale}: ${title}`).toBeGreaterThan(0);
       expect(findThesisTerms(KICKER[locale]).length, `${locale}: ${KICKER[locale]}`).toBeGreaterThan(0);
       expect(findThesisTerms(pageMetadata(locale).title).length, locale).toBeGreaterThan(0);
@@ -102,12 +100,12 @@ describe('AC-007-17: the revised title and kicker state the claim under the reco
     }
   });
 
-  it('AC-007-17: without a year the home title is the year-free wordmark · country, and the kicker stays', () => {
+  it('AC-007-17: without a year the home title is the same yearless claim, and the kicker stays', () => {
     for (const locale of LOCALES) {
       const meta = pageMetadata(locale, null);
-      expect(meta.title, locale).toBe(`${BRAND.wordmark} · ${content(locale).country.name}`);
+      expect(meta.title, locale).toBe(PROMISE[locale]);
       expect(meta.title, locale).not.toMatch(/\b(19|20)\d\d\b/);
-      expect(findThesisTerms(meta.title), locale).toEqual([]);
+      expect(findThesisTerms(meta.title).length, locale).toBeGreaterThan(0);
       expect(historiaPage(locale), locale).toContain(KICKER[locale]);
     }
   });

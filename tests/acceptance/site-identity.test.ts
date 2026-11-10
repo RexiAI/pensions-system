@@ -140,17 +140,18 @@ describe('AC-001-35: the configuration branches the shipped defaults never reach
   });
 });
 
-describe('AC-001-35: the canonical link, og:url and the footer line cannot drift', () => {
-  it('AC-001-35: every route publishes the same absolute URL in all three places', () => {
+describe('AC-001-35: the canonical link and og:url cannot drift', () => {
+  it('AC-001-35: every route publishes the same absolute URL in both places', () => {
     for (const locale of LOCALES) {
       const canonical = canonicalUrl(publicPathFor(locale));
       const meta = metadataFor(locale);
       expect(String(meta.alternates?.canonical), `${locale} rel=canonical`).toBe(canonical);
       expect(String(meta.openGraph?.url), `${locale} og:url`).toBe(canonical);
 
-      const footer = renderComponent(SiteFooter, { content: content(locale), snapshotIso: '2026-10-25T22:26:02Z' });
-      expect(footer, `${locale} footer line`).toContain(`<code>${canonical}</code>`);
-      // Never the bare path: `/` is not a canonical URL.
+      // Revision 2: the footer's citation block is gone, so it never prints a bare path or a
+      // `<code>` line that could disagree with the head.
+      const footer = renderComponent(SiteFooter, { content: content(locale) });
+      expect(footer, `${locale} footer line`).not.toContain('<code>');
       expect(footer, `${locale}`).not.toContain('<code>/</code>');
     }
   });
@@ -164,7 +165,7 @@ describe('AC-001-35: the canonical link, og:url and the footer line cannot drift
 
   it('AC-001-35: the contact renders as a real mailto link with the address as visible text', () => {
     for (const locale of LOCALES as readonly Locale[]) {
-      const footer = renderComponent(SiteFooter, { content: content(locale), snapshotIso: '2026-10-25T22:26:02Z' });
+      const footer = renderComponent(SiteFooter, { content: content(locale) });
       expect(footer, `${locale}`).toContain(`<a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>`);
       // Exactly twice — the href and the visible text — and never obfuscated into an image.
       expect(countOccurrences(footer, CONTACT_EMAIL), `${locale}: one address, twice`).toBe(2);
@@ -172,7 +173,7 @@ describe('AC-001-35: the canonical link, og:url and the footer line cannot drift
     }
   });
 
-  it('AC-001-35: the snapshot stamp is still the manifest value, not a literal in the footer', () => {
+  it('AC-001-35: the snapshot stamp is still the manifest value in the header, and absent from the footer', () => {
     const figures = PLATE_FIXTURES.map((fixture) => fixture());
     const fromManifest = figures.find((figure) => figure.figureId === 'fig-01')?.manifest.fetchedAt ?? '';
     expect(fromManifest).not.toBe('');
@@ -185,12 +186,11 @@ describe('AC-001-35: the canonical link, og:url and the footer line cannot drift
       stale: false,
       pageKind: 'historia',
     });
-    // `PublicPage` takes the stamp from the first figure's manifest, and the footer prints it.
-    expect(page).toContain(`<time dateTime="${fromManifest}">${fromManifest}</time>`);
-    // A second, different instant proves the line reads its prop rather than a fixed date.
-    const other = '2025-01-02T03:04:05Z';
-    const footer = renderComponent(SiteFooter, { content: content('es'), snapshotIso: other });
-    expect(footer).toContain(`<time dateTime="${other}">${other}</time>`);
+    // `PublicPage` takes the stamp from the first figure's manifest, and the header prints it.
+    expect(page).toContain(`<time dateTime="${fromManifest}">`);
+    // Revision 2: the footer's citation block is gone, so no second stamp can drift from it.
+    const footer = renderComponent(SiteFooter, { content: content('es') });
+    expect(footer).not.toContain('<time');
     expect(footer).not.toContain(fromManifest);
   });
 });

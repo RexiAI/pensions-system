@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { BRAND } from '../../web/brand/generated';
 import { FigureStatusRow } from '../../web/components/FigureStatusRow';
 import { FiguresRegion } from '../../web/components/public/FiguresRegion';
 import { MethodRegion } from '../../web/components/public/MethodRegion';
@@ -57,11 +56,22 @@ describe('Pager: direction, destination and order are the link', () => {
     direction: string;
     href: string;
     text: string;
+    arrowBefore: boolean;
+    arrowAfter: boolean;
   }
 
   function linksOf(html: string): RenderedLink[] {
     return [...html.matchAll(/<a class="pager__link pager__link--(prev|next)" href="([^"]*)">([\s\S]*?)<\/a>/g)].map(
-      (match) => ({ direction: match[1] ?? '', href: match[2] ?? '', text: bareText(match[3] ?? '') }),
+      (match) => {
+        const inner = match[3] ?? '';
+        return {
+          direction: match[1] ?? '',
+          href: match[2] ?? '',
+          text: bareText(inner),
+          arrowBefore: inner.startsWith('<span class="pager__arrow" aria-hidden="true">←</span>'),
+          arrowAfter: inner.endsWith('<span class="pager__arrow" aria-hidden="true">→</span>'),
+        };
+      },
     );
   }
 
@@ -78,9 +88,14 @@ describe('Pager: direction, destination and order are the link', () => {
         expect(destination, `${kind} ${direction} must not exist`).toBeDefined();
         if (destination === undefined) continue;
         expect(link.href, `${kind} ${direction} href`).toBe(pagePathFor('es', destination));
-        // The direction word and the destination name are two words, and each is its own word.
+        // Revision 2: one line — a decorative arrow, the direction word, the destination.
         const word = ES.t(direction === 'prev' ? 'pager.previous' : 'pager.next');
-        expect(link.text, `${kind} ${direction} text`).toBe(`${word} ${ES.t(PAGE_NAME_KEYS[destination])}`);
+        const destinationName = ES.t(PAGE_NAME_KEYS[destination]);
+        expect(link.text, `${kind} ${direction} text`).toBe(
+          direction === 'prev' ? `←${word} ${destinationName}` : `${word} ${destinationName}→`,
+        );
+        expect(link.arrowBefore, `${kind} ${direction} arrow before`).toBe(direction === 'prev');
+        expect(link.arrowAfter, `${kind} ${direction} arrow after`).toBe(direction === 'next');
       }
 
       const expected = Object.values(neighbours).filter((kindName) => kindName !== undefined).length;
@@ -98,14 +113,14 @@ describe('Pager: direction, destination and order are the link', () => {
 });
 
 describe('metadata: a page without a committed year never invents one', () => {
-  it('leads a sub-page with its own page name and Historia with the scope sentence alone', () => {
-    const scope = `${BRAND.wordmark} · ${ES.country.name}`;
+  it('leads a sub-page with its page name and kicker, and Historia with the claim alone', () => {
+    const kicker = ES.t('kicker.mechanism');
     const cifras = pageMetadata('es', null, 'cifras');
-    expect(cifras.title).toBe(`${ES.t(PAGE_NAME_KEYS.cifras)} · ${scope}`);
+    expect(cifras.title).toBe(`${ES.t(PAGE_NAME_KEYS.cifras)} · ${kicker}`);
     expect(cifras.ogTitle).toBe(cifras.title);
 
-    expect(pageMetadata('es', null, 'historia').title).toBe(scope);
-    expect(pageMetadata('es', null, 'metodo').title).toBe(`${ES.t(PAGE_NAME_KEYS.metodo)} · ${scope}`);
+    expect(pageMetadata('es', null, 'historia').title).toBe(ES.t('meta.title'));
+    expect(pageMetadata('es', null, 'metodo').title).toBe(`${ES.t(PAGE_NAME_KEYS.metodo)} · ${kicker}`);
   });
 
   it('defaults the alternate set to Historia’s own routes', () => {
@@ -218,7 +233,7 @@ describe('MetodoPage: the heading id is the one the first region points at', () 
 });
 
 describe('SiteFooter: the citing half keeps its labels, links and the space between them', () => {
-  const footer = renderComponent(SiteFooter, { content: ES, snapshotIso: SNAPSHOT_ISO, pageKind: 'cifras' });
+  const footer = renderComponent(SiteFooter, { content: ES });
 
   it('lists every declared source as a named link to its publisher', () => {
     expect(footer).toContain(`<h2>${ES.t('footer.sourcesHeading')}</h2>`);
@@ -239,17 +254,16 @@ describe('SiteFooter: the citing half keeps its labels, links and the space betw
     expect(footer.split('footer__locales').length - 1).toBe(1);
   });
 
-  it('states the claims, the contact and the citation each with their own label', () => {
-    expect(footer).toContain(`<h2>${ES.t('footer.doesNotClaimHeading')}</h2>`);
-    expect(footer).toContain(`<p>${ES.t('footer.noTracking')}</p>`);
+  it('drops the claim, no-tracking and citation blocks and keeps the contact (revision 2)', () => {
+    // Revision 2: only the contact line survives from the second column. The remover's mutant —
+    // reinstating a claim heading, the no-tracking paragraph, a canonical `<code>` or a `<time>`
+    // stamp — is killed by asserting each is absent, not by trusting that it was deleted.
+    expect(footer.split('<h2>').length - 1, 'only the sources heading').toBe(1);
+    expect(footer).not.toContain('Sin cookies');
+    expect(footer).not.toContain('<code>');
+    expect(footer).not.toContain('<time');
     expect(footer).toContain(
       `${ES.t('footer.contact')}: <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>`,
-    );
-    expect(footer).toContain(
-      `${ES.t('footer.canonical')}: <code>${canonicalUrl(pagePathFor('es', 'cifras'))}</code>`,
-    );
-    expect(footer).toContain(
-      `${ES.t('footer.snapshot')}: <time dateTime="${SNAPSHOT_ISO}">${SNAPSHOT_ISO}</time>`,
     );
   });
 });

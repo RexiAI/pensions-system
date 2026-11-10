@@ -193,11 +193,7 @@ export const REQUIRED_KEYS = [
   'assumptions.horizon.consequence',
   'assumptions.freshness.label',
   'assumptions.freshness.consequence',
-  'footer.doesNotClaimHeading',
-  'footer.noTracking',
   'footer.contact',
-  'footer.canonical',
-  'footer.snapshot',
   'footer.sourcesHeading',
   'footer.licence',
   'error.notFound.title',
@@ -289,12 +285,10 @@ export const REQUIRED_KEYS = [
   'share.copied',
   'share.linkLabel',
   'share.newWindow',
+  // Spec 007 T8/T9, revision 2: `meta.title` is the home page's short claim, and a sub-page
+  // title is composed from its page name and `kicker.mechanism` — neither stores a year,
+  // wordmark or country.
   'meta.title',
-  // Spec 007 T8/T9: one leading string per sub-page title; the scope suffix is appended by
-  // `pageMetadata`, so the shape stays `page-name · {year} · wordmark · country`.
-  'meta.cifras.title',
-  'meta.metodo.title',
-  'meta.debate.title',
   'pager.label',
   'pager.previous',
   'pager.next',
@@ -434,13 +428,4 @@ export const PAGE_NAME_KEYS: Readonly<Record<PageKind, LocaleKey>> = {
   debate: 'nav.debate',
 };
 
-/**
- * The leading string of each page's `<title>`. Historia keeps the existing `meta.title` (the
- * promise framing); the three sub-pages take their own page-name-plus-year template.
- */
-export const PAGE_TITLE_KEYS: Readonly<Record<PageKind, LocaleKey>> = {
-  historia: 'meta.title',
-  cifras: 'meta.cifras.title',
-  metodo: 'meta.metodo.title',
-  debate: 'meta.debate.title',
-};
+

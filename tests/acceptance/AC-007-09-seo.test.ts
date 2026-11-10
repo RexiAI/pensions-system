@@ -13,15 +13,16 @@ const SUB_PAGE_FILES = ['cifras', 'metodo', 'debate'] as const;
 /**
  * AC-007-18…21 — per-page SEO (spec 007 T9).
  */
-describe('AC-007-18: one canonical URL per route, in the link, og:url and the footer', () => {
-  it('AC-007-18: every one of the twenty routes publishes its own canonical in all three places', () => {
+describe('AC-007-18: one canonical URL per route, in the link and og:url', () => {
+  it('AC-007-18: every one of the twenty routes publishes its own canonical in both places', () => {
     for (const locale of LOCALES) {
       for (const kind of PAGE_KINDS) {
         const canonical = canonicalUrl(pagePathFor(locale, kind));
         const meta = metadataFor(locale, kind);
         expect(String(meta.alternates?.canonical), `${locale}/${kind}`).toBe(canonical);
         expect(String(meta.openGraph?.url), `${locale}/${kind}`).toBe(canonical);
-        expect(pageOf(kind, locale), `${locale}/${kind} footer`).toContain(`<code>${canonical}</code>`);
+        // Revision 2: the footer's citation block is gone; it no longer republishes the URL.
+        expect(pageOf(kind, locale), `${locale}/${kind} footer`).not.toContain(`<code>${canonical}</code>`);
       }
     }
   });
