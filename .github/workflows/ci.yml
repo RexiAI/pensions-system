@@ -25,7 +25,7 @@ jobs:
   # GHCR_TOKEN / PACT_BROKER_URL secrets — and re-check the concurrency collision above,
   # because a second reusable workflow from this caller reintroduces it.
   frontend-ci:
-    uses: RexiAI/my-engineering-standards/.github/workflows/ci-nextjs.yml@21046d96796467f8238d6d613ce3a552bf3fced0 # pinned; bump deliberately, never track a branch
+    uses: RexiAI/my-engineering-standards/.github/workflows/ci-nextjs.yml@78d2adc5c667dcdfa5c99d9fd68030dc00f88709 # pinned; bump deliberately, never track a branch
     with:
       # No Dockerfile in this repo, and GHCR_TOKEN is unset: the callee's docker
       # job failed every run with "Password required". Deployment is Vercel via
