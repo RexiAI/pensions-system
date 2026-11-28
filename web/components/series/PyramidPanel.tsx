@@ -125,7 +125,7 @@ function Axis({ axisMax, content }: { axisMax: number; content: CountryLocaleCon
 /** The band a panel's annotation points the eye at: the wide foot, or the bulge that retires. */
 function annotatedBand(year: YearStructure): number {
   if (year.hue !== 'measured') return BASE_BAND;
-  const largest = [...year.bands].sort((a, b) => b.total - a.total)[0];
+  const largest = year.bands.toSorted((a, b) => b.total - a.total)[0];
   return largest === undefined ? BASE_BAND : largest.band;
 }
 

@@ -48,8 +48,8 @@ export interface ContributionCoverSeriesValue {
 export function contributionCoverSeries(
   points: readonly { year: number; contributions: number; expenditure: number }[],
 ): ContributionCoverSeriesValue {
-  const series = [...points]
-    .sort((a, b) => a.year - b.year)
+  const series = points
+    .toSorted((a, b) => a.year - b.year)
     .map((point) => ({ year: point.year, contributions: point.contributions, expenditure: point.expenditure, ...contributionCover(point.contributions, point.expenditure) }));
   return {
     points: series,

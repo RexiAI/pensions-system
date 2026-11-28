@@ -219,8 +219,8 @@ function repositoryInput(): SitemapCheckInput {
 
 /** The content model and the route manifest must name the same five routes. */
 function manifestProblems(): string[] {
-  const fromContent = publishedPaths().slice().sort();
-  const fromManifest = [...PUBLIC_ROUTE_PATHS].sort();
+  const fromContent = publishedPaths().toSorted();
+  const fromManifest = PUBLIC_ROUTE_PATHS.toSorted();
   if (fromContent.join('|') === fromManifest.join('|')) return [];
   return [
     `the content model publishes [${fromContent.join(', ')}] but the route manifest names [${fromManifest.join(', ')}]`,

@@ -45,8 +45,8 @@ export interface PensionShareSeriesValue {
 export function pensionShareSeries(
   points: readonly { year: number; percent: number }[],
 ): PensionShareSeriesValue {
-  const series = [...points]
-    .sort((a, b) => a.year - b.year)
+  const series = points
+    .toSorted((a, b) => a.year - b.year)
     .map((point) => ({
       year: point.year,
       share: publishedShare(point.percent),

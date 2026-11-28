@@ -52,7 +52,7 @@ function meanOf(points: DependencyRatioSeriesPoint[]): number | null {
 
 /** Series sorted by period; the last ten calendar years of periods feed the readout mean. */
 export function dependencyRatioSeries(points: readonly DependencyRatioPoint[]): DependencyRatioSeriesValue {
-  const sorted = [...points].sort((a, b) => a.period.localeCompare(b.period));
+  const sorted = points.toSorted((a, b) => a.period.localeCompare(b.period));
   const series = sorted.map((point) => ({
     period: point.period,
     ...dependencyRatio(point.numerator, point.denominator),
