@@ -30,7 +30,7 @@ async function csrfOf(): Promise<string> {
 
 function revisionsState() {
   const revisions = createFileRevisionStore();
-  const published = [...revisions.list()].reverse().find((revision) => revision.status === 'published');
+  const published = revisions.list().findLast((revision) => revision.status === 'published');
   return {
     pending: pendingFor(revisions),
     publishedId: optional(published?.id, '-'),

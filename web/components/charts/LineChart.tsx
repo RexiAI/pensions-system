@@ -53,7 +53,7 @@ function Endpoint({ box, point, min, max, format }: { box: ChartBox; point: Char
 }
 
 function lastDrawable(points: readonly ChartPoint[]): ChartPoint | null {
-  return [...points].reverse().find((point) => point.value !== null) ?? null;
+  return points.findLast((point) => point.value !== null) ?? null;
 }
 
 function axisLabels(points: readonly ChartPoint[]): { first: string; last: string } {
